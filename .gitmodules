@@ -1,0 +1,12 @@
+[submodule "modules/JUCE"]
+	path = modules/JUCE
+	url = https://github.com/juce-framework/JUCE
+[submodule "modules/cello"]
+	path = modules/cello
+	url = https://github.com/bgporter/cello
+[submodule "modules/animator"]
+	path = modules/animator
+	url = https://github.com/bgporter/animator
+[submodule "modules/testSuite"]
+	path = modules/testSuite
+	url = https://github.com/bgporter/testSuite
