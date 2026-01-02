@@ -1,11 +1,15 @@
 #include "MainComponent.h"
+#include "model/appContext.h"
+#include "model/persistentContext.h"
+#include "utility/logger.h"
 
 //==============================================================================
-class GuiAppApplication final : public juce::JUCEApplication
+class TenpinScopeApplication final : public juce::JUCEApplication,
+                                     public juce::Timer
 {
 public:
     //==============================================================================
-    GuiAppApplication () {}
+    TenpinScopeApplication () {}
 
     // We inject these as compile definitions from the CMakeLists.txt
     // If you've enabled the juce header with `juce_generate_juce_header(<thisTarget>)`
@@ -14,20 +18,100 @@ public:
     const juce::String getApplicationVersion () override { return JUCE_APPLICATION_VERSION_STRING; }
     bool moreThanOneInstanceAllowed () override { return true; }
 
+    void timerCallback () override
+    {
+        PersistentContext pc { *appContext };
+        if (pc.canUndo ())
+        {
+            pc.save (getConfigPath ());
+            INFO_ ("Prefs file updated");
+        }
+    }
+
     //==============================================================================
     void initialise (const juce::String& commandLine) override
     {
         // This method is where you should put your application's initialisation code..
-        juce::ignoreUnused (commandLine);
+        TestSuite::runAllTests (commandLine);
 
-        mainWindow.reset (new MainWindow (getApplicationName ()));
+        initializeLogger ();
+        initializeAppContext ();
+        mainWindow = std::make_unique<MainWindow> (getApplicationName (), *appContext);
+        PersistentContext pc { *appContext };
+        mainWindow->restoreWindowStateFromString (pc.windowState);
+        startTimer (1000);
+    }
+
+    juce::File getBaseDataPath ()
+    {
+        juce::String appName { getApplicationName () };
+        juce::File basePath {
+            juce::File::getSpecialLocation (juce::File::userApplicationDataDirectory).getChildFile (appName)
+        };
+        if (!basePath.exists ())
+        {
+            auto ok = basePath.createDirectory ();
+            if (!ok)
+            {
+                jassertfalse;
+                return {};
+                // !!! handle properly
+            }
+        }
+        return basePath;
+    }
+
+    juce::File getLogPath ()
+    {
+        auto base { getBaseDataPath () };
+        if (base == juce::File {})
+            return {};
+        return base.getChildFile (getApplicationName () + ".log");
+    }
+
+    void initializeLogger ()
+    {
+        LogWriter::init (getLogPath ());
+        INFO_ ({
+            {     "msg",                                                       "STARTING" },
+            {    "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z") },
+            { "version",                                         getApplicationVersion () }
+        });
+    }
+
+    juce::File getConfigPath ()
+    {
+        auto base { getBaseDataPath () };
+        if (base == juce::File {})
+            return {};
+        return base.getChildFile (getApplicationName () + ".prefs");
+    }
+
+    void initializeAppContext ()
+    {
+        appContext = std::make_unique<AppContext> (getConfigPath ());
+        appContext->setUndoManager (&undoManager);
     }
 
     void shutdown () override
     {
         // Add your application's shutdown code here..
+        INFO_ ({
+            {  "msg",                                                       "SHUTDOWN" },
+            { "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z") }
+        });
+        LogWriter::shutdown ();
+        // stop the timer that keeps the prefs file updated...
+        stopTimer ();
+        // ...and call the timer callback to ensure the prefs file is saved if needed.
+        timerCallback ();
+
+        PersistentContext pc { *appContext };
+        pc.windowState = mainWindow->getWindowStateAsString ();
+        pc.save (getConfigPath ());
 
         mainWindow = nullptr; // (deletes our window)
+        appContext = nullptr;
     }
 
     //==============================================================================
@@ -54,12 +138,12 @@ public:
     class MainWindow final : public juce::DocumentWindow
     {
     public:
-        explicit MainWindow (juce::String name)
+        explicit MainWindow (juce::String name, AppContext& theAppContext)
         : DocumentWindow (name, juce::Desktop::getInstance ().getDefaultLookAndFeel ().findColour (backgroundColourId),
                           allButtons)
         {
             setUsingNativeTitleBar (true);
-            setContentOwned (new MainComponent (), true);
+            setContentOwned (new MainComponent (theAppContext), true);
 
 #if JUCE_IOS || JUCE_ANDROID
             setFullScreen (true);
@@ -92,8 +176,10 @@ public:
 
 private:
     std::unique_ptr<MainWindow> mainWindow;
+    std::unique_ptr<AppContext> appContext;
+    juce::UndoManager undoManager;
 };
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION (GuiAppApplication)
+START_JUCE_APPLICATION (TenpinScopeApplication)

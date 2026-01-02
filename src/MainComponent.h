@@ -6,6 +6,8 @@
 // you could `#include <JuceHeader.h>` here instead, to make all your module headers visible.
 #include <juce_gui_extra/juce_gui_extra.h>
 
+#include "model/appContext.h"
+
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -15,15 +17,15 @@ class MainComponent final : public juce::Component
 {
 public:
     //==============================================================================
-    MainComponent();
+    MainComponent (AppContext& theAppContext);
 
     //==============================================================================
     void paint (juce::Graphics&) override;
-    void resized() override;
+    void resized () override;
 
 private:
     //==============================================================================
     // Your private member variables go here...
-
+    AppContext appContext;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };
