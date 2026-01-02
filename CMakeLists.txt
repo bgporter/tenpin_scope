@@ -61,11 +61,40 @@ juce_generate_juce_header(${TargetName})
 # Finally, we supply a list of source files that will be built into the target. This is a standard
 # CMake command.
 
+set(SOURCES_MAIN
+    src/Main.cpp
+    src/MainComponent.h
+    src/MainComponent.cpp
+)
+
+set (SOURCES_MODEL
+    src/model/appContext.h
+    src/model/persistentContext.h
+    src/model/runtimeContext.h)
+
+
+set(SOURCES_UTILITY
+    src/utility/logger.h
+    src/utility/logger.cpp
+    src/utility/propertyList.h
+    src/utility/variantConverters.h
+    src/utility/paletteColor.h
+    src/utility/paletteColor.cpp
+    src/utility/versionNumber.h
+    src/utility/versionNumber.cpp
+)
+
+set(APP_SOURCES
+    ${SOURCES_MAIN}
+    ${SOURCES_MODEL}
+    ${SOURCES_UTILITY}
+)
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src PREFIX "src" FILES ${APP_SOURCES})
+
 target_sources(${TargetName}
     PRIVATE
-        src/Main.cpp
-        src/MainComponent.h)
-        src/MainComponent.cpp)
+        ${APP_SOURCES})
 
 # `target_compile_definitions` adds some preprocessor definitions to our target. In a Projucer
 # project, these might be passed in the 'Preprocessor Definitions' field. JUCE modules also make use

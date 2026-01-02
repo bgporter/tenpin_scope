@@ -106,10 +106,6 @@ public:
         // ...and call the timer callback to ensure the prefs file is saved if needed.
         timerCallback ();
 
-        PersistentContext pc { *appContext };
-        pc.windowState = mainWindow->getWindowStateAsString ();
-        pc.save (getConfigPath ());
-
         mainWindow = nullptr; // (deletes our window)
         appContext = nullptr;
     }
@@ -141,6 +137,7 @@ public:
         explicit MainWindow (juce::String name, AppContext& theAppContext)
         : DocumentWindow (name, juce::Desktop::getInstance ().getDefaultLookAndFeel ().findColour (backgroundColourId),
                           allButtons)
+        , appContext (theAppContext)
         {
             setUsingNativeTitleBar (true);
             setContentOwned (new MainComponent (theAppContext), true);
@@ -169,9 +166,23 @@ public:
            you really have to override any DocumentWindow methods, make sure your
            subclass also calls the superclass's method.
         */
+        void moved () override
+        {
+            PersistentContext pc { appContext };
+            pc.windowState = getWindowStateAsString ();
+            DocumentWindow::moved ();
+        }
+
+        void resized () override
+        {
+            PersistentContext pc { appContext };
+            pc.windowState = getWindowStateAsString ();
+            DocumentWindow::resized ();
+        }
 
     private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
+        AppContext appContext;
     };
 
 private:

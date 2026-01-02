@@ -40,6 +40,7 @@ public:
     PersistentContext (cello::Object& parentOrSelf)
     : cello::Object { type.toString (), parentOrSelf }
     {
+        // restrict sidebar width to a reasonable range
         sidebarWidth.onSet = [] (int newValue) { return std::clamp (newValue, 150, 400); };
     }
 
@@ -58,18 +59,20 @@ public:
             jassertfalse;
             return juce::Result::fail (msg);
         }
+        // we use the undo manager to track changes to the prefs file -- if there's nothing
+        // undoable, then we know we haven't been changed.
         clearUndoHistory ();
         return juce::Result::ok ();
     }
 
-    juce::Result saveIfNeeded (const juce::File& file)
-    {
-        if (canUndo ())
-        {
-            return save (file);
-        }
-        return juce::Result::ok ();
-    }
+    /**
+     * @brief Save the prefs file if there are any changes. We use the undo manager to track
+     * changes to the prefs file -- if there's nothing undoable, then we know we haven't been changed.
+     *
+     * @param file
+     * @return juce::Result
+     */
+    juce::Result saveIfNeeded (const juce::File& file) { return canUndo () ? save (file) : juce::Result::ok (); }
 
     MAKE_VALUE_MEMBER (juce::String, windowState, {});
     MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
