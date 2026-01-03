@@ -29,6 +29,7 @@ public:
                   expect (testColorConversion ("#0F0", juce::Colours::lime));
                   expect (testColorConversion ("#00F", juce::Colours::blue));
                   expect (testColorConversion ("#F00", juce::Colours::red));
+                  expect (testColorConversion ("#G00", PaletteColor::invalidColor));
               });
 
         test ("6-digit hex",
@@ -40,6 +41,7 @@ public:
                   expect (testColorConversion ("#00FF00", juce::Colours::lime));
                   expect (testColorConversion ("#0000FF", juce::Colours::blue));
                   expect (testColorConversion ("#FF0000", juce::Colours::red));
+                  expect (testColorConversion ("#G00000", PaletteColor::invalidColor));
               });
 
         test ("8-digit hex",
@@ -52,6 +54,7 @@ public:
                   expect (testColorConversion ("#00FF00FF", juce::Colours::lime));
                   expect (testColorConversion ("#0000FFFF", juce::Colours::blue));
                   expect (testColorConversion ("#FF0000FF", juce::Colours::red));
+                  expect (testColorConversion ("#G0000080", PaletteColor::invalidColor));
 
                   juce::uint8 alpha = 0x80;
                   expect (testColorConversion ("#FFFFFF80", juce::Colours::white.withAlpha (alpha)));
@@ -68,6 +71,7 @@ public:
                   expect (testColorConversion ("#00FF0000", juce::Colours::lime.withAlpha (alpha)));
                   expect (testColorConversion ("#0000FF00", juce::Colours::blue.withAlpha (alpha)));
                   expect (testColorConversion ("#FF000000", juce::Colours::red.withAlpha (alpha)));
+                  expect (testColorConversion ("#G0000000", PaletteColor::invalidColor));
               });
 
         test ("named",

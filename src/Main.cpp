@@ -1,3 +1,27 @@
+/*
+ MIT License
+
+ Copyright (c) 2026 Brett g Porter
+
+ Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal
+ in the Software without restriction, including without limitation the rights
+ to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
+
+ The above copyright notice and this permission notice shall be included in all
+ copies or substantial portions of the Software.
+
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ SOFTWARE.
+ */
+
 #include "MainComponent.h"
 #include "model/appContext.h"
 #include "model/persistentContext.h"
@@ -21,7 +45,7 @@ public:
     void timerCallback () override
     {
         PersistentContext pc { *appContext };
-        if (pc.canUndo ())
+        if (pc.canUndo () && !pc.dragging)
         {
             pc.save (getConfigPath ());
             INFO_ ("Prefs file updated");
@@ -32,9 +56,12 @@ public:
     void initialise (const juce::String& commandLine) override
     {
         // This method is where you should put your application's initialisation code..
-        TestSuite::runAllTests (commandLine);
-
         initializeLogger ();
+
+        LogWriter::enableLogging (false);
+        TestSuite::runAllTests (commandLine);
+        LogWriter::enableLogging (true);
+
         initializeAppContext ();
         mainWindow = std::make_unique<MainWindow> (getApplicationName (), *appContext);
         PersistentContext pc { *appContext };
@@ -91,6 +118,7 @@ public:
     {
         appContext = std::make_unique<AppContext> (getConfigPath ());
         appContext->setUndoManager (&undoManager);
+        appContext->clearUndoHistory ();
     }
 
     void shutdown () override

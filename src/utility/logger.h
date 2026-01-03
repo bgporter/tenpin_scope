@@ -193,6 +193,20 @@ private:
 #define WARN_(...) LogWriter::log (LogWriter::Level::warn, __VA_ARGS__, __FILE__, __func__, __LINE__)
 
 /**
+ * @brief Log a warning only once. This should help in situations where logging every instance
+ * of a warning would spam the log file for no good reason.
+ */
+#define WARN_ONCE_(...)                                                                         \
+    {                                                                                           \
+        static bool hasLogged { false };                                                        \
+        if (!hasLogged)                                                                         \
+        {                                                                                       \
+            LogWriter::log (LogWriter::Level::warn, __VA_ARGS__, __FILE__, __func__, __LINE__); \
+            hasLogged = true;                                                                   \
+        }                                                                                       \
+    }
+
+/**
  * @brief The default logging level to use: this is something you want to be sure that
  * we include in the log files.
  */

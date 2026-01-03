@@ -7,6 +7,9 @@
 #include <juce_gui_extra/juce_gui_extra.h>
 
 #include "model/appContext.h"
+#include "model/persistentContext.h"
+#include "view/dataView.h"
+#include "view/deviceView.h"
 
 //==============================================================================
 /*
@@ -27,5 +30,8 @@ private:
     //==============================================================================
     // Your private member variables go here...
     AppContext appContext;
+    PersistentContext persistentContext;
+    DataView dataView;
+    DeviceView deviceView;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <regex>
+
 #include <JuceHeader.h>
 
 #include "logger.h"
@@ -78,23 +80,23 @@ public:
                                               colorString[2],
                                               colorString[2] };
                     juce::String representationExpanded { chars, 8 };
-                    return parseRgba (representationExpanded);
+                    return parseArgb (representationExpanded);
                 }
                 case 6:
                 {
                     // 6-digit hex; set alpha to max
-                    return parseRgba (juce::String { "FF" } + colorString);
+                    return parseArgb (juce::String { "FF" } + colorString);
                 }
                 case 8:
                 {
                     // 8-digit hex; convert from RGBA to ARGB
                     const auto rgb   = colorString.substring (0, 6);
                     const auto alpha = colorString.substring (6);
-                    return parseRgba (alpha + rgb);
+                    return parseArgb (alpha + rgb);
                 }
                 default:
                 {
-                    ERROR_ (juce::String ("Invalid color: ") + representation);
+                    WARN_ONCE_ (juce::String ("Invalid color: ") + representation);
                     return invalidColor;
                 }
             }
@@ -108,10 +110,20 @@ public:
     juce::String toString () const { return representation; }
 
 private:
-    static juce::Colour parseRgba (juce::String argb)
+    static const inline std::regex hexRegex { "^[0-9a-fA-F]+$" };
+
+    static bool isValidHex (juce::String hex) { return std::regex_match (hex.toStdString (), hexRegex); }
+
+    static juce::Colour parseArgb (juce::String argb)
     {
+        if (!isValidHex (argb))
+        {
+            WARN_ONCE_ (juce::String ("Invalid color: ") + argb);
+            return invalidColor;
+        }
         return juce::Colour { static_cast<juce::uint32> (argb.getHexValue32 ()) };
     }
+
     static juce::Colour parseNamed (juce::String name) { return juce::Colours::findColourForName (name, invalidColor); }
 
     juce::String representation;

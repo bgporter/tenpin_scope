@@ -22,29 +22,16 @@
  SOFTWARE.
  */
 
-#pragma once
+#include "dataView.h"
 
-#include <cello/cello.h>
-
-class RuntimeContext : public cello::Object
+DataView::DataView (AppContext& theAppContext)
+: appContext { theAppContext }
 {
-public:
-    static const inline juce::Identifier type { "RuntimeContext" };
+}
 
-    /**
-     * @brief Construct a new RuntimeContext object
-     *
-     * @param parentOrSelf If the type of the object we're passed matches our type,
-     * we'll wrap that directly; otherwise we will look for (or create) a defaulted
-     * instance of our type as a child of the passed object.
-     */
-    RuntimeContext (const cello::Object& parentOrSelf)
-    : cello::Object { type.toString (), parentOrSelf }
-    {
-        // properties in the runtime context are not undoable.
-        setUndoManager (nullptr);
-    }
+void DataView::paint (juce::Graphics& g)
+{
+    g.fillAll (juce::Colours::pink);
+}
 
-    /// a 'temp' var where we can store the *last* sidebar width value during dragging.
-    MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
-};
+void DataView::resized () {}

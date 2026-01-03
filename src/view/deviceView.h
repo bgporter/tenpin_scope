@@ -24,27 +24,38 @@
 
 #pragma once
 
-#include <cello/cello.h>
+#include <JuceHeader.h>
 
-class RuntimeContext : public cello::Object
+#include "model/appContext.h"
+
+class ResizeHandle : public juce::Component
 {
 public:
-    static const inline juce::Identifier type { "RuntimeContext" };
+    ResizeHandle (AppContext& context);
+    ~ResizeHandle () override = default;
 
-    /**
-     * @brief Construct a new RuntimeContext object
-     *
-     * @param parentOrSelf If the type of the object we're passed matches our type,
-     * we'll wrap that directly; otherwise we will look for (or create) a defaulted
-     * instance of our type as a child of the passed object.
-     */
-    RuntimeContext (const cello::Object& parentOrSelf)
-    : cello::Object { type.toString (), parentOrSelf }
-    {
-        // properties in the runtime context are not undoable.
-        setUndoManager (nullptr);
-    }
+    void paint (juce::Graphics& g) override;
 
-    /// a 'temp' var where we can store the *last* sidebar width value during dragging.
-    MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
+    void mouseDown (const juce::MouseEvent& e) override;
+    void mouseUp (const juce::MouseEvent& e) override;
+    void mouseDrag (const juce::MouseEvent& e) override;
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
+    AppContext appContext;
+};
+
+class DeviceView : public juce::Component
+{
+public:
+    DeviceView (AppContext& theAppContext);
+    void paint (juce::Graphics& g) override;
+    void resized () override;
+
+private:
+    static const inline int resizeHandleWidth { 5 };
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
+    AppContext appContext;
+    ResizeHandle resizer;
 };

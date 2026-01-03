@@ -84,10 +84,18 @@ set(SOURCES_UTILITY
     src/utility/versionNumber.cpp
 )
 
+set(SOURCES_VIEW
+    src/view/dataView.h
+    src/view/dataView.cpp
+    src/view/deviceView.h
+    src/view/deviceView.cpp
+)
+
 set(APP_SOURCES
     ${SOURCES_MAIN}
     ${SOURCES_MODEL}
     ${SOURCES_UTILITY}
+    ${SOURCES_VIEW}
 )
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src PREFIX "src" FILES ${APP_SOURCES})

@@ -76,4 +76,6 @@ public:
 
     MAKE_VALUE_MEMBER (juce::String, windowState, {});
     MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
+    /// @brief True when we're in the middle of a drag operation, to prevent saving prefs mid-drag.
+    MAKE_VALUE_MEMBER (bool, dragging, false);
 };

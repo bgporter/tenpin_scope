@@ -1,26 +1,25 @@
 #include "MainComponent.h"
+#include "model/persistentContext.h"
 
 //==============================================================================
 MainComponent::MainComponent (AppContext& theAppContext)
 : appContext (theAppContext)
+, persistentContext { theAppContext }
+, dataView { theAppContext }
+, deviceView { theAppContext }
 {
+    addAndMakeVisible (dataView);
+    addAndMakeVisible (deviceView);
     setSize (600, 400);
+
+    persistentContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 }
 
-//==============================================================================
-void MainComponent::paint (juce::Graphics& g)
-{
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll (getLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId));
-
-    g.setFont (juce::FontOptions (16.0f));
-    g.setColour (juce::Colours::white);
-    g.drawText ("Hello World!", getLocalBounds (), juce::Justification::centred, true);
-}
+void MainComponent::paint (juce::Graphics& ) {}
 
 void MainComponent::resized ()
 {
-    // This is called when the MainComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
+    auto bounds = getLocalBounds ();
+    deviceView.setBounds (bounds.removeFromLeft (persistentContext.sidebarWidth));
+    dataView.setBounds (bounds);
 }
