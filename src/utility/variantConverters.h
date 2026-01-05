@@ -89,6 +89,12 @@ template <> struct VariantConverter<juce::File>
     static juce::var toVar (const juce::File& f) { return f.getFullPathName (); }
 };
 
+template <> struct VariantConverter<juce::Font>
+{
+    static juce::Font fromVar (const juce::var& v) { return juce::Font::fromString (v.toString ()); }
+    static juce::var toVar (const juce::Font& font) { return font.toString (); }
+};
+
 /**
  * @brief store a string array as a comma-separated string. In the future we
  * can/should consider rewriting this as e.g. storing an array of `var`s, each

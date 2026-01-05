@@ -37,7 +37,7 @@ public:
      * we'll wrap that directly; otherwise we will look for (or create) a defaulted
      * instance of our type as a child of the passed object.
      */
-    PersistentContext (cello::Object& parentOrSelf)
+    PersistentContext (const cello::Object& parentOrSelf)
     : cello::Object { type.toString (), parentOrSelf }
     {
         // restrict sidebar width to a reasonable range

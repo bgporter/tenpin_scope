@@ -89,6 +89,10 @@ set(SOURCES_VIEW
     src/view/dataView.cpp
     src/view/deviceView.h
     src/view/deviceView.cpp
+    src/view/palette.h
+    src/view/palette.cpp    
+    src/view/lookAndFeel.h
+    src/view/lookAndFeel.cpp
 )
 
 set(APP_SOURCES

@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <compare>
 #include <regex>
 
 #include <JuceHeader.h>
@@ -53,7 +54,7 @@ class PaletteColor
 {
 public:
     static const inline juce::Colour invalidColor { 0xFFFF00FF };
-    PaletteColor (juce::String theRepresentation)
+    PaletteColor (juce::StringRef theRepresentation = "")
     : representation (theRepresentation)
     {
     }
@@ -65,7 +66,6 @@ public:
             // one of the RGB formats we support. Convert into a standard 8-byte
             // ARGB format, then pass to our internal parse function.
             const auto colorString = representation.substring (1);
-            const wchar_t F        = 'F';
             switch (colorString.length ())
             {
                 case 3:
@@ -108,6 +108,8 @@ public:
     }
 
     juce::String toString () const { return representation; }
+
+    auto operator<=> (const PaletteColor&) const = default;
 
 private:
     static const inline std::regex hexRegex { "^[0-9a-fA-F]+$" };

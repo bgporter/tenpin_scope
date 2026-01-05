@@ -26,6 +26,7 @@
 #include "model/appContext.h"
 #include "model/persistentContext.h"
 #include "utility/logger.h"
+#include "view/lookAndFeel.h"
 
 //==============================================================================
 class TenpinScopeApplication final : public juce::JUCEApplication,
@@ -63,6 +64,8 @@ public:
         LogWriter::enableLogging (true);
 
         initializeAppContext ();
+        lookAndFeel = std::make_unique<TenpinLookAndFeel> (*appContext);
+        juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get ());
         mainWindow = std::make_unique<MainWindow> (getApplicationName (), *appContext);
         PersistentContext pc { *appContext };
         mainWindow->restoreWindowStateFromString (pc.windowState);
@@ -135,7 +138,9 @@ public:
         timerCallback ();
 
         mainWindow = nullptr; // (deletes our window)
-        appContext = nullptr;
+        juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
+        lookAndFeel = nullptr;
+        appContext  = nullptr;
     }
 
     //==============================================================================
@@ -217,6 +222,7 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<AppContext> appContext;
     juce::UndoManager undoManager;
+    std::unique_ptr<TenpinLookAndFeel> lookAndFeel;
 };
 
 //==============================================================================
