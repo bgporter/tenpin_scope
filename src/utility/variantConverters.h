@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include "logger.h"
+
 /**
  * @file VariantConverters.h
  * @brief A place to put commonly-used variant converters to prevent
@@ -111,5 +113,27 @@ template <> struct VariantConverter<juce::StringArray>
 
     static juce::var toVar (const juce::StringArray& sa) { return sa.joinIntoString (","); }
 };
+
+template <> struct VariantConverter<juce::ump::EndpointId>
+{
+    static juce::ump::EndpointId fromVar (const juce::var& v)
+    {
+        const auto parts { juce::StringArray::fromTokens (v.toString (), ",", "") };
+        if (parts.size () != 2)
+        {
+            return {};
+        }
+        return juce::ump::EndpointId::makeSrcDst (parts[0], parts[1]);
+    }
+
+    static juce::var toVar (juce::ump::EndpointId val)
+    {
+        juce::String s { val.get (juce::ump::IOKind::src) };
+        s << "," << val.get (juce::ump::IOKind::dst);
+        return s;
+    }
+};
+
+
 
 } // namespace juce

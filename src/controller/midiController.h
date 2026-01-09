@@ -27,21 +27,24 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
+#include "model/midiProperties.h"
 #include "model/persistentContext.h"
-#include "palette.h"
+#include "model/runtimeContext.h"
 
-class TenpinLookAndFeel : public juce::LookAndFeel_V4
+class MidiController : public juce::ump::EndpointsListener
 {
 public:
-    TenpinLookAndFeel (const AppContext& appContext);
+    MidiController (juce::StringRef sessionName, const AppContext& appContext);
 
-    /**
-     * @brief Update the look and feel from the palette.
-     *
-     */
-    void updateFromPalette ();
+    ~MidiController () override;
+
+    void endpointsChanged () override {}
+
+    void virtualMidiServiceActiveChanged () override {}
 
 private:
-    PersistentContext persistentContext;
-    Palette palette;
+    RuntimeContext runtimeContext;
+    MidiProperties midiProperties;
+    juce::ump::Endpoints* endpoints;
+    juce::ump::Session session;
 };

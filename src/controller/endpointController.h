@@ -26,22 +26,12 @@
 
 #include <JuceHeader.h>
 
-#include "model/appContext.h"
-#include "model/persistentContext.h"
-#include "palette.h"
-
-class TenpinLookAndFeel : public juce::LookAndFeel_V4
+class EndpointController
 {
 public:
-    TenpinLookAndFeel (const AppContext& appContext);
-
-    /**
-     * @brief Update the look and feel from the palette.
-     *
-     */
-    void updateFromPalette ();
+    EndpointController (juce::ump::EndpointId endpointId);
+    ~EndpointController ();
 
 private:
-    PersistentContext persistentContext;
-    Palette palette;
+    juce::ump::EndpointId endpointId;
 };

@@ -26,22 +26,13 @@
 
 #include <JuceHeader.h>
 
-#include "model/appContext.h"
-#include "model/persistentContext.h"
-#include "palette.h"
-
-class TenpinLookAndFeel : public juce::LookAndFeel_V4
+class MidiProperties : public cello::Object
 {
 public:
-    TenpinLookAndFeel (const AppContext& appContext);
+    static const inline juce::Identifier type { "MidiProperties" };
 
-    /**
-     * @brief Update the look and feel from the palette.
-     *
-     */
-    void updateFromPalette ();
-
-private:
-    PersistentContext persistentContext;
-    Palette palette;
+    MidiProperties (const cello::Object& parentOrSelf)
+    : cello::Object { type.toString (), parentOrSelf }
+    {
+    }
 };

@@ -82,6 +82,7 @@ public:
     , properties { eventProps }
     {
     }
+
     void appendProperties (const PropertyList& moreProps) { properties.append (moreProps); }
 
     juce::String toString () const

@@ -54,7 +54,6 @@ juce_add_gui_app(${TargetName}
 # include all your JUCE module headers; if you're happy to include module headers directly, you
 # probably don't need to call this.
 
-juce_generate_juce_header(${TargetName})
 
 # `target_sources` adds source files to a target. We pass the target that needs the sources as the
 # first argument, then a visibility parameter for the sources which should normally be PRIVATE.
@@ -67,8 +66,14 @@ set(SOURCES_MAIN
     src/MainComponent.cpp
 )
 
+set (SOURCES_CONTROLLER
+    src/controller/midiController.h
+    src/controller/midiController.cpp)
+
 set (SOURCES_MODEL
     src/model/appContext.h
+    src/model/midiProperties.h
+    src/model/midiEndpointProperties.h
     src/model/persistentContext.h
     src/model/runtimeContext.h)
 
@@ -97,6 +102,7 @@ set(SOURCES_VIEW
 
 set(APP_SOURCES
     ${SOURCES_MAIN}
+    ${SOURCES_CONTROLLER}
     ${SOURCES_MODEL}
     ${SOURCES_UTILITY}
     ${SOURCES_VIEW}
@@ -147,6 +153,8 @@ target_link_libraries(${TargetName}
     PRIVATE
         # GuiAppData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra
+        juce::juce_audio_basics
+        juce::juce_audio_devices
         cello::cello
         friz::friz
         testSuite::testSuite
@@ -154,3 +162,6 @@ target_link_libraries(${TargetName}
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags)
+
+juce_generate_juce_header(${TargetName})
+

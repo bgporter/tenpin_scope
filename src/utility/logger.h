@@ -121,10 +121,10 @@ private:
     {
         // make sure that the delegate/impl are shut down?
     }
-    LogWriter (const LogWriter&)            = delete;
+    LogWriter (const LogWriter&) = delete;
     LogWriter& operator= (const LogWriter&) = delete;
     LogWriter (LogWriter&&)                 = delete;
-    LogWriter& operator= (LogWriter&&)      = delete;
+    LogWriter& operator= (LogWriter&&) = delete;
 
     class Impl;
     class Delegate
@@ -238,3 +238,45 @@ private:
 #endif
 
 #undef DISABLE_TRACE
+
+namespace juce
+{
+template <> struct VariantConverter<LogWriter::Level>
+{
+    static LogWriter::Level fromVar (const juce::var& v)
+    {
+        const auto level { v.toString ().toUpperCase () };
+        if (level == "ERROR")
+            return LogWriter::Level::error;
+        if (level == "WARN")
+            return LogWriter::Level::warn;
+        if (level == "INFO")
+            return LogWriter::Level::info;
+        if (level == "DEBUG")
+            return LogWriter::Level::debug;
+        if (level == "TRACE")
+            return LogWriter::Level::trace;
+        return LogWriter::Level::info;
+    }
+
+    static juce::var toVar (LogWriter::Level val)
+    {
+        switch (val)
+        {
+            case LogWriter::Level::error:
+                return "ERROR";
+            case LogWriter::Level::warn:
+                return "WARN";
+            case LogWriter::Level::info:
+                return "INFO";
+            case LogWriter::Level::debug:
+                return "DEBUG";
+            case LogWriter::Level::trace:
+                return "TRACE";
+            default:
+                return "INFO";
+        }
+    }
+};
+
+} // namespace juce

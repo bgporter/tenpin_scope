@@ -23,6 +23,7 @@
  */
 
 #include "MainComponent.h"
+#include "controller/midiController.h"
 #include "model/appContext.h"
 #include "model/persistentContext.h"
 #include "utility/logger.h"
@@ -65,6 +66,9 @@ public:
 
         initializeAppContext ();
         lookAndFeel = std::make_unique<TenpinLookAndFeel> (*appContext);
+
+        midiController = std::make_unique<MidiController> (getApplicationName (), *appContext);
+
         juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get ());
         mainWindow = std::make_unique<MainWindow> (getApplicationName (), *appContext);
         PersistentContext pc { *appContext };
@@ -103,9 +107,9 @@ public:
     {
         LogWriter::init (getLogPath ());
         INFO_ ({
-            {     "msg",                                                       "STARTING" },
-            {    "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z") },
-            { "version",                                         getApplicationVersion () }
+            {    "msg",                                                       "STARTING"},
+            {   "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z")},
+            {"version",                                         getApplicationVersion ()}
         });
     }
 
@@ -128,14 +132,16 @@ public:
     {
         // Add your application's shutdown code here..
         INFO_ ({
-            {  "msg",                                                       "SHUTDOWN" },
-            { "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z") }
+            { "msg",                                                       "SHUTDOWN"},
+            {"time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z")}
         });
         LogWriter::shutdown ();
         // stop the timer that keeps the prefs file updated...
         stopTimer ();
         // ...and call the timer callback to ensure the prefs file is saved if needed.
         timerCallback ();
+
+        midiController = nullptr;
 
         mainWindow = nullptr; // (deletes our window)
         juce::LookAndFeel::setDefaultLookAndFeel (nullptr);
@@ -219,9 +225,10 @@ public:
     };
 
 private:
+    juce::UndoManager undoManager;
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<AppContext> appContext;
-    juce::UndoManager undoManager;
+    std::unique_ptr<MidiController> midiController;
     std::unique_ptr<TenpinLookAndFeel> lookAndFeel;
 };
 

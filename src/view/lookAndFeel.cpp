@@ -26,7 +26,7 @@
 
 TenpinLookAndFeel::TenpinLookAndFeel (const AppContext& appContext)
 : persistentContext { appContext }
-, palette { appContext }
+, palette { persistentContext }
 {
     // initialize the built-in colors from the palette
     updateFromPalette ();
