@@ -64,6 +64,8 @@ set(SOURCES_MAIN
     src/Main.cpp
     src/MainComponent.h
     src/MainComponent.cpp
+    src/mainWindow.h
+    src/mainWindow.cpp
 )
 
 set (SOURCES_CONTROLLER
