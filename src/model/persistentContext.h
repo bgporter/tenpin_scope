@@ -26,6 +26,21 @@
 
 #include <JuceHeader.h>
 
+#include "utility/logger.h"
+
+/**
+ * @class PersistentContext
+ * @brief This class is used to store the persistent context of the application.
+ * It is a child of the AppContext class and is used to store the persistent
+ * context of the application in a .prefs file.
+ *
+ * The main app code will create an instance of this and add it as a child
+ * of the AppContext object.
+ *
+ * We will load that file into this object at app startup time, and periodically
+ * check to see if it needs to be saved to disk, and save it if needed.
+ *
+ */
 class PersistentContext : public cello::Object
 {
 public:
@@ -52,17 +67,14 @@ public:
     juce::Result save (const juce::File& file)
     {
         auto ok = cello::Object::save (file);
-        if (!ok)
+        if (ok)
         {
-            juce::String msg { "Failed to save file " + file.getFullPathName () };
-            msg << ": " << ok.getErrorMessage ();
-            jassertfalse;
-            return juce::Result::fail (msg);
+            // we use the undo manager to track changes to the prefs file -- if there's nothing
+            // undoable, then we know we haven't been changed.
+            clearUndoHistory ();
+            return ok;
         }
-        // we use the undo manager to track changes to the prefs file -- if there's nothing
-        // undoable, then we know we haven't been changed.
-        clearUndoHistory ();
-        return juce::Result::ok ();
+        return juce::Result::fail ("Failed to save file " + file.getFullPathName () + ": " + ok.getErrorMessage ());
     }
 
     /**
@@ -76,6 +88,7 @@ public:
 
     MAKE_VALUE_MEMBER (juce::String, windowState, {});
     MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
+    MAKE_VALUE_MEMBER (LogWriter::Level, logLevel, LogWriter::Level::info);
     /// @brief True when we're in the middle of a drag operation, to prevent saving prefs mid-drag.
     MAKE_VALUE_MEMBER (bool, dragging, false);
 };

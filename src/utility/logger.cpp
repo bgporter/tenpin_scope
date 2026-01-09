@@ -44,23 +44,6 @@ juce::String cleanEventName (const juce::String& eventName)
     return eventName.replace (" ", "_");
 }
 
-juce::String getLevelName (LogWriter::Level level)
-{
-    switch (level)
-    {
-        case LogWriter::Level::error:
-            return "ERROR";
-        case LogWriter::Level::warn:
-            return "WARN";
-        case LogWriter::Level::info:
-            return "INFO";
-        case LogWriter::Level::debug:
-            return "DEBUG";
-        case LogWriter::Level::trace:
-            return "TRACE";
-    }
-}
-
 void trimLogFile (juce::File logFile, int maxLines)
 {
     juce::StringArray lines;
@@ -225,6 +208,23 @@ void LogWriter::init (const juce::File& theLogFile, int flushInterval, int maxPe
     auto& delegate { getDelegate () };
     delegate.init (theLogFile, flushInterval, maxPendingEvents);
     TRACE_ ("Logger is initialized!");
+}
+
+juce::String LogWriter::getLevelName (LogWriter::Level level)
+{
+    switch (level)
+    {
+        case LogWriter::Level::error:
+            return "ERROR";
+        case LogWriter::Level::warn:
+            return "WARN";
+        case LogWriter::Level::info:
+            return "INFO";
+        case LogWriter::Level::debug:
+            return "DEBUG";
+        case LogWriter::Level::trace:
+            return "TRACE";
+    }
 }
 
 void LogWriter::setLogLevel (Level theLogLevel)

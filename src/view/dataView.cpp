@@ -24,6 +24,8 @@
 
 #include "dataView.h"
 
+#include "palette.h"
+
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 {
@@ -31,7 +33,8 @@ DataView::DataView (AppContext& theAppContext)
 
 void DataView::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::pink);
+    Palette palette { PersistentContext { appContext } };
+    g.fillAll (palette.windowBackground.get ());
 }
 
 void DataView::resized () {}

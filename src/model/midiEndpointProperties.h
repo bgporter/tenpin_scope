@@ -37,4 +37,8 @@ public:
     ~MidiEndpointProperties () override;
 
     MAKE_VALUE_MEMBER (juce::ump::EndpointId, endpointId, {});
+    /// This is used to track the number of messages received from this endpoint.
+    MAKE_VALUE_MEMBER (int, rxCount, 0);
+    /// keep track of the number of messages transmitted to this endpoint.
+    MAKE_VALUE_MEMBER (int, txCount, 0);
 };

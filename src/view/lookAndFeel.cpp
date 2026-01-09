@@ -31,7 +31,7 @@ TenpinLookAndFeel::TenpinLookAndFeel (const AppContext& appContext)
     // initialize the built-in colors from the palette
     updateFromPalette ();
 
-    palette.onPropertyChange ([this] (const juce::Identifier& id) { updateFromPalette (); });
+    palette.onPropertyChange ([this] (const juce::Identifier& /*id*/) { updateFromPalette (); });
 }
 
 void TenpinLookAndFeel::updateFromPalette ()

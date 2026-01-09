@@ -65,14 +65,18 @@ public:
         LogWriter::enableLogging (true);
 
         initializeAppContext ();
+        PersistentContext pc { *appContext };
+
+        LogWriter::setLogLevel (pc.logLevel);
+
         lookAndFeel = std::make_unique<TenpinLookAndFeel> (*appContext);
+        juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get ());
 
         midiController = std::make_unique<MidiController> (getApplicationName (), *appContext);
 
-        juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get ());
         mainWindow = std::make_unique<MainWindow> (getApplicationName (), *appContext);
-        PersistentContext pc { *appContext };
         mainWindow->restoreWindowStateFromString (pc.windowState);
+        // Each timer callback we'll see if the prefs file needs to be flushed to disk
         startTimer (1000);
     }
 
@@ -106,6 +110,7 @@ public:
     void initializeLogger ()
     {
         LogWriter::init (getLogPath ());
+        INFO_ ("==============================================");
         INFO_ ({
             {    "msg",                                                       "STARTING"},
             {   "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z")},

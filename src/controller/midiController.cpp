@@ -57,7 +57,6 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
     {
         if (auto endpoint = endpoints->getEndpoint (endpointId))
         {
-            DBG ("Found device: " << endpoint->getName ());
             INFO_ ({
                 {  "msg",                          "Device found"},
                 { "name",                    endpoint->getName ()},

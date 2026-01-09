@@ -30,7 +30,6 @@
  * @file VariantConverters.h
  * @brief A place to put commonly-used variant converters to prevent
  * duplications.
- *
  */
 
 namespace juce
@@ -133,7 +132,5 @@ template <> struct VariantConverter<juce::ump::EndpointId>
         return s;
     }
 };
-
-
 
 } // namespace juce

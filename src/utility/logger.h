@@ -42,6 +42,13 @@ public:
     };
 
     /**
+     * @brief Get the name of the log level as a string.
+     *
+     * @param level
+     * @return juce::String
+     */
+    static juce::String getLevelName (LogWriter::Level level);
+    /**
      * @brief Initialize the logger. Your code should do this before executing
      * anything that might want to log something, so we know where to write the
      * log file!
@@ -241,6 +248,10 @@ private:
 
 namespace juce
 {
+/**
+ * @brief It's nicer to be able to store log levels as strings in the prefs file as
+ * plain text.
+ */
 template <> struct VariantConverter<LogWriter::Level>
 {
     static LogWriter::Level fromVar (const juce::var& v)
@@ -259,24 +270,7 @@ template <> struct VariantConverter<LogWriter::Level>
         return LogWriter::Level::info;
     }
 
-    static juce::var toVar (LogWriter::Level val)
-    {
-        switch (val)
-        {
-            case LogWriter::Level::error:
-                return "ERROR";
-            case LogWriter::Level::warn:
-                return "WARN";
-            case LogWriter::Level::info:
-                return "INFO";
-            case LogWriter::Level::debug:
-                return "DEBUG";
-            case LogWriter::Level::trace:
-                return "TRACE";
-            default:
-                return "INFO";
-        }
-    }
+    static juce::var toVar (LogWriter::Level val) { return LogWriter::getLevelName (val); }
 };
 
 } // namespace juce
