@@ -31,6 +31,7 @@
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
 
+class EndpointController;
 class MidiController : public juce::ump::EndpointsListener
 {
 public:
@@ -38,13 +39,25 @@ public:
 
     ~MidiController () override;
 
-    void endpointsChanged () override {}
+    /**
+     * @brief This controller owns the one Session object that
+     * manages all MIDI connections for the lifetime of the app.
+     *
+     * @return juce::ump::Session*
+     */
+    juce::ump::Session* getSession () { return &session; }
+
+    void endpointsChanged () override;
 
     void virtualMidiServiceActiveChanged () override {}
 
 private:
+    void addEndpointController (juce::ump::EndpointId endpointId);
+    void updateEndpointController (juce::ump::EndpointId endpointId);
+
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
     juce::ump::Endpoints* endpoints;
     juce::ump::Session session;
+    std::vector<std::unique_ptr<EndpointController>> endpointControllers;
 };

@@ -68,7 +68,13 @@ public:
         initializeAppContext ();
         PersistentContext pc { *appContext };
 
+#if JUCE_DEBUG
+        // in debug builds, we want to log everything.
+        LogWriter::setLogLevel (LogWriter::Level::trace);
+#else
+        // in release builds, we want to log at the level specified in the prefs file.
         LogWriter::setLogLevel (pc.logLevel);
+#endif
 
         lookAndFeel = std::make_unique<TenpinLookAndFeel> (*appContext);
         juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get ());

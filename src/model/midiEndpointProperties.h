@@ -26,17 +26,40 @@
 
 #include <JuceHeader.h>
 
+#include "utility/variantConverters.h"
+
+namespace
+{
+juce::String makeEndpointIdString (juce::ump::EndpointId endpointId)
+{
+    return endpointId.get (juce::ump::IOKind::src) + "-" + endpointId.get (juce::ump::IOKind::dst);
+}
+} // namespace
+
 class MidiEndpointProperties : public cello::Object
 {
 public:
     static const inline juce::Identifier type { "MidiEndpointProperties" };
-    MidiEndpointProperties (juce::ump::EndpointId endpointId)
+    MidiEndpointProperties (juce::ump::EndpointId theEndpointId)
     : cello::Object { type.toString (), nullptr }
     {
+        endpointId = theEndpointId;
     }
-    ~MidiEndpointProperties () override;
 
+    MidiEndpointProperties (const juce::ValueTree& valueTree)
+    : cello::Object { type.toString (), valueTree }
+    {
+    }
+    // ~MidiEndpointProperties () override;
+
+    MAKE_VALUE_MEMBER (juce::String, name, "");
     MAKE_VALUE_MEMBER (juce::ump::EndpointId, endpointId, {});
+    MAKE_COMPUTED_VALUE_MEMBER (juce::String, endpointIdString,
+                                [this] () -> juce::String { return makeEndpointIdString (endpointId.get ()); })
+    MAKE_VALUE_MEMBER (bool, isInputAlive, false);
+    MAKE_VALUE_MEMBER (bool, isOutputAlive, false);
+    MAKE_COMPUTED_VALUE_MEMBER (bool, isAlive,
+                                [this] () -> bool { return isInputAlive.get () || isOutputAlive.get (); });
     /// This is used to track the number of messages received from this endpoint.
     MAKE_VALUE_MEMBER (int, rxCount, 0);
     /// keep track of the number of messages transmitted to this endpoint.

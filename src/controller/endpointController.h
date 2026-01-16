@@ -26,12 +26,50 @@
 
 #include <JuceHeader.h>
 
-class EndpointController
+#include "model/midiEndpointProperties.h"
+#include "model/midiProperties.h"
+
+class MidiController;
+
+class EndpointController : public juce::ump::DisconnectionListener,
+                           private juce::ump::Consumer
 {
 public:
-    EndpointController (juce::ump::EndpointId endpointId);
-    ~EndpointController ();
+    /**
+     * @brief Construct a new Endpoint Controller object inside the MidiController.
+     *
+     * @param id -- NOTE that we don't pass in an endpoint object, because
+     * its state is ephemeral; when you need updated endpoint information, fetch a
+     * fresh Endpoint instance using the ID.
+     * @param parent
+     */
+    EndpointController (juce::ump::EndpointId id, MidiController* parent);
+
+    /**
+     * @brief Destructor for the Endpoint Controller object.
+     */
+    ~EndpointController () override;
+
+    juce::ValueTree getEndpointProperties () const { return midiEndpointProperties; }
+
+    /**
+     * @brief attempt to make fresh input/output connections.
+     *
+     */
+
+    void connectEndpoint ();
+
+    void disconnected () override;
+
+    juce::ump::EndpointId getEndpointId () const { return endpointId; }
+
+private:
+    void consume (juce::ump::Iterator b, juce::ump::Iterator e, double time) override;
 
 private:
     juce::ump::EndpointId endpointId;
+    MidiEndpointProperties midiEndpointProperties;
+    MidiController* parentController;
+    juce::ump::Input input;
+    juce::ump::Output output;
 };

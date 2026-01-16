@@ -70,7 +70,9 @@ set(SOURCES_MAIN
 
 set (SOURCES_CONTROLLER
     src/controller/midiController.h
-    src/controller/midiController.cpp)
+    src/controller/midiController.cpp
+    src/controller/endpointController.h
+    src/controller/endpointController.cpp)
 
 set (SOURCES_MODEL
     src/model/appContext.h

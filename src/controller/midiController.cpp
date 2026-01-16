@@ -24,6 +24,7 @@
 
 #include "midiController.h"
 
+#include "endpointController.h"
 #include "utility/logger.h"
 
 MidiController::MidiController (juce::StringRef sessionName, const AppContext& appContext)
@@ -51,33 +52,95 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
         // !!! We should throw an exception here
     }
 
-    const auto endpointIds = endpoints->getEndpoints ();
-    int i                  = 0;
-    for (const auto& endpointId : endpointIds)
+    int i = 0;
+    for (const auto& endpointId : endpoints->getEndpoints ())
     {
         if (auto endpoint = endpoints->getEndpoint (endpointId))
         {
-            INFO_ ({
-                {  "msg",                          "Device found"},
-                { "name",                    endpoint->getName ()},
-                {"srcId", endpointId.get (juce::ump::IOKind::src)},
-                {"dstId", endpointId.get (juce::ump::IOKind::dst)}
-            });
+            addEndpointController (endpointId);
             ++i;
-            // midiProperties.addEndpoint (endpoint);
-            // create a new EndpointController object (that we'll own), which will
-            // itself create a new MidiEndpointProperties object added into the properties
-            // tree for the rest of the application to use.
         }
     }
     INFO_ ({
         {  "msg", "Found MIDI endpoints"},
         {"count",                      i}
     });
+
+    DBG ("MIDI endpoints: " << midiProperties.toXmlString ());
     endpoints->addListener (*this);
 }
 
 MidiController::~MidiController ()
 {
     endpoints->removeListener (*this);
+    endpointControllers.clear ();
+}
+
+void MidiController::endpointsChanged ()
+{
+    INFO_ ("Endpoints changed");
+
+    // posibilities:
+    // an endpoint was disconnected
+    const auto availableEndpoints = endpoints->getEndpoints ();
+    for (const auto& endpointController : endpointControllers)
+    {
+        // any endpoints IDs that we know about but are no longer present in the
+        // vector of connected endpoints has been disconnected. We set it
+        // as such but do NOT delete it.
+        if (std::find_if (availableEndpoints.begin (), availableEndpoints.end (),
+                          [&] (const auto& endpointId)
+                          { return endpointController->getEndpointId () == endpointId; }) == availableEndpoints.end ())
+            endpointController->disconnected ();
+    }
+    // an endpoint was added or otherwise modified.
+    for (const auto& endpointId : availableEndpoints)
+    {
+        if (auto ec = std::find_if (endpointControllers.begin (), endpointControllers.end (),
+                                    [&] (const auto& endpointController)
+                                    { return endpointController->getEndpointId () == endpointId; });
+            ec != endpointControllers.end ())
+            updateEndpointController (endpointId);
+        else
+            addEndpointController (endpointId);
+    }
+}
+
+void MidiController::addEndpointController (juce::ump::EndpointId endpointId)
+{
+    DEBUG_ ("Adding endpoint controller");
+    auto endpoint = endpoints->getEndpoint (endpointId);
+    INFO_ ({
+        {  "msg",                          "Device found"},
+        { "name",                    endpoint->getName ()},
+        {"srcId", endpointId.get (juce::ump::IOKind::src)},
+        {"dstId", endpointId.get (juce::ump::IOKind::dst)}
+    });
+    auto endpointController = std::make_unique<EndpointController> (endpointId, this);
+    endpointController->connectEndpoint ();
+    // we keep track of two things:
+    // 1. the EndpointController object (which only we here inside the MidiController have direct access to)
+    // 2. the MidiEndpointProperties object (which we use to track the state of the endpoint and is
+    //    shared with the rest of the app, available via the RuntimeContext/MidiProperties object)
+    MidiEndpointProperties endpointProperties (endpointController->getEndpointProperties ());
+    midiProperties.append (&endpointProperties);
+    endpointControllers.push_back (std::move (endpointController));
+}
+
+void MidiController::updateEndpointController (juce::ump::EndpointId endpointId)
+{
+    // 1. find the endpoint controller in our list of endpoint controllers
+    auto endpointController = std::find_if (endpointControllers.begin (), endpointControllers.end (),
+                                            [&] (const auto& endpointController)
+                                            { return endpointController->getEndpointId () == endpointId; });
+    if (endpointController == endpointControllers.end ())
+    {
+        ERROR_ ({
+            {"msg",                                                         "Endpoint controller not found"},
+            { "id", endpointId.get (juce::ump::IOKind::src) + "-" + endpointId.get (juce::ump::IOKind::dst)}
+        });
+        return;
+    }
+    // 2. update the endpoint controller
+    (*endpointController)->connectEndpoint ();
 }
