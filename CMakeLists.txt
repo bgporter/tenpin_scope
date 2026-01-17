@@ -98,6 +98,8 @@ set(SOURCES_VIEW
     src/view/dataView.cpp
     src/view/deviceView.h
     src/view/deviceView.cpp
+    src/view/endpointView.h
+    src/view/endpointView.cpp
     src/view/palette.h
     src/view/palette.cpp    
     src/view/lookAndFeel.h

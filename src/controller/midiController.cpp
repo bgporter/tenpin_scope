@@ -118,10 +118,12 @@ void MidiController::addEndpointController (juce::ump::EndpointId endpointId)
     });
     auto endpointController = std::make_unique<EndpointController> (endpointId, this);
     endpointController->connectEndpoint ();
+
     // we keep track of two things:
-    // 1. the EndpointController object (which only we here inside the MidiController have direct access to)
-    // 2. the MidiEndpointProperties object (which we use to track the state of the endpoint and is
-    //    shared with the rest of the app, available via the RuntimeContext/MidiProperties object)
+    // 1. the EndpointController object (which only we here inside the MidiController
+    //    have direct access to)
+    // 2. the MidiEndpointProperties object (which we use to track the state of the
+    //    endpoint and is shared with the rest of the app, available via the RuntimeContext/MidiProperties object)
     MidiEndpointProperties endpointProperties (endpointController->getEndpointProperties ());
     midiProperties.append (&endpointProperties);
     endpointControllers.push_back (std::move (endpointController));
