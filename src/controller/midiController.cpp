@@ -66,7 +66,6 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
         {"count",                      i}
     });
 
-    DBG ("MIDI endpoints: " << midiProperties.toXmlString ());
     endpoints->addListener (*this);
 }
 
@@ -109,6 +108,7 @@ void MidiController::endpointsChanged ()
 void MidiController::addEndpointController (juce::ump::EndpointId endpointId)
 {
     DEBUG_ ("Adding endpoint controller");
+    jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
     auto endpoint = endpoints->getEndpoint (endpointId);
     INFO_ ({
         {  "msg",                          "Device found"},
@@ -116,16 +116,14 @@ void MidiController::addEndpointController (juce::ump::EndpointId endpointId)
         {"srcId", endpointId.get (juce::ump::IOKind::src)},
         {"dstId", endpointId.get (juce::ump::IOKind::dst)}
     });
-    auto endpointController = std::make_unique<EndpointController> (endpointId, this);
-    endpointController->connectEndpoint ();
+    auto endpointController = std::make_unique<EndpointController> (endpointId, midiProperties);
+    endpointController->connectEndpoint (&session);
 
     // we keep track of two things:
     // 1. the EndpointController object (which only we here inside the MidiController
     //    have direct access to)
     // 2. the MidiEndpointProperties object (which we use to track the state of the
     //    endpoint and is shared with the rest of the app, available via the RuntimeContext/MidiProperties object)
-    MidiEndpointProperties endpointProperties (endpointController->getEndpointProperties ());
-    midiProperties.append (&endpointProperties);
     endpointControllers.push_back (std::move (endpointController));
 }
 
@@ -144,5 +142,5 @@ void MidiController::updateEndpointController (juce::ump::EndpointId endpointId)
         return;
     }
     // 2. update the endpoint controller
-    (*endpointController)->connectEndpoint ();
-}
+    (*endpointController)->connectEndpoint (&session);
+};

@@ -24,16 +24,76 @@
 
 #include "endpointView.h"
 
-EndpointView::EndpointView (AppContext& theAppContext)
+EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
 : appContext { theAppContext }
+, endpointProperties { tree }
 {
+    jassert (endpointProperties.wasWrapped ());
+    nameLabel.setJustificationType (juce::Justification::centredLeft);
+    rxTitleLabel.setJustificationType (juce::Justification::centredLeft);
+    rxValueLabel.setJustificationType (juce::Justification::centredLeft);
+    txTitleLabel.setJustificationType (juce::Justification::centredLeft);
+    txValueLabel.setJustificationType (juce::Justification::centredLeft);
+
+    addAndMakeVisible (nameLabel);
+    addAndMakeVisible (rxTitleLabel);
+    addAndMakeVisible (rxValueLabel);
+    addAndMakeVisible (txTitleLabel);
+    addAndMakeVisible (txValueLabel);
+
+    rxTitleLabel.setText ("Rx:", juce::dontSendNotification);
+    txTitleLabel.setText ("Tx:", juce::dontSendNotification);
+
+    nameLabel.setText (endpointProperties.name.get (), juce::dontSendNotification);
+    endpointProperties.name.onPropertyChange (
+        [this] (const juce::Identifier&)
+        {
+            nameLabel.setText (endpointProperties.name.get (), juce::dontSendNotification);
+            repaint ();
+        });
+
+    auto updateRx = [this] ()
+    { rxValueLabel.setText (juce::String (endpointProperties.rxCount.get ()), juce::dontSendNotification); };
+
+    auto updateTx = [this] ()
+    { txValueLabel.setText (juce::String (endpointProperties.txCount.get ()), juce::dontSendNotification); };
+
+    updateRx ();
+    updateTx ();
+
+    endpointProperties.rxCount.onPropertyChange ([updateRx] (const juce::Identifier&) { updateRx (); });
+    endpointProperties.txCount.onPropertyChange ([updateTx] (const juce::Identifier&) { updateTx (); });
+    endpointProperties.isInputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+    endpointProperties.isOutputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
 }
 
 void EndpointView::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::blue);
+    juce::Colour backgroundColor = juce::Colours::darkgrey;
+    if (endpointProperties.isAlive)
+    {
+        backgroundColor = endpointProperties.isInputAlive.get () ? juce::Colours::green : juce::Colours::red;
+    }
+    g.fillAll (backgroundColor);
+
+    g.setColour (juce::Colours::black);
+    const auto bounds = getLocalBounds ();
+    const auto y      = static_cast<float> (bounds.getBottom ()) - 1.0f;
+    g.drawLine (0.0f, y, static_cast<float> (bounds.getWidth ()), y, 2.0f);
 }
 
 void EndpointView::resized ()
 {
+    auto bounds       = getLocalBounds ();
+    const auto topRow = bounds.removeFromTop (bounds.getHeight () / 2);
+    nameLabel.setBounds (topRow);
+
+    auto bottomRow    = bounds;
+    const auto width  = bottomRow.getWidth ();
+    const auto labelW = width / 4;
+
+    rxTitleLabel.setBounds (bottomRow.removeFromLeft (labelW));
+    rxValueLabel.setBounds (bottomRow.removeFromLeft (labelW));
+    txTitleLabel.setBounds (bottomRow.removeFromLeft (labelW));
+    txValueLabel.setBounds (bottomRow.removeFromLeft (labelW));
 }

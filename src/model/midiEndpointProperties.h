@@ -50,7 +50,13 @@ public:
     : cello::Object { type.toString (), valueTree }
     {
     }
-    // ~MidiEndpointProperties () override;
+
+    MidiEndpointProperties (const MidiEndpointProperties& other)
+    : cello::Object { type.toString (), other }
+    {
+    }
+
+    ~MidiEndpointProperties () override {}
 
     /// The name of the endpoint.
     MAKE_VALUE_MEMBER (juce::String, name, "");
@@ -70,4 +76,6 @@ public:
     MAKE_VALUE_MEMBER (int, rxCount, 0);
     /// keep track of the number of messages transmitted to this endpoint.
     MAKE_VALUE_MEMBER (int, txCount, 0);
+    /// TEMPORARY DEBUG: UUID string for debugging purposes.
+    MAKE_VALUE_MEMBER (juce::String, debugUuid, juce::Uuid ().toString ());
 };

@@ -24,7 +24,6 @@
 
 #include "endpointController.h"
 
-#include "midiController.h"
 #include "utility/logger.h"
 
 namespace
@@ -61,11 +60,10 @@ bool hasFunctionBlockInDirection (const ump::Endpoint& e, ump::IOKind direction)
 }
 } // namespace
 
-EndpointController::EndpointController (juce::ump::EndpointId id, MidiController* parent)
-: endpointId { id }
-, midiEndpointProperties { id }
-, parentController { parent }
+EndpointController::EndpointController (juce::ump::EndpointId id, MidiProperties& midiProperties)
+: midiEndpointProperties { id }
 {
+    midiProperties.append (&midiEndpointProperties);
 }
 
 EndpointController::~EndpointController ()
@@ -78,9 +76,8 @@ EndpointController::~EndpointController ()
     output = {};
 }
 
-void EndpointController::connectEndpoint ()
+void EndpointController::connectEndpoint (juce::ump::Session* session)
 {
-    auto session = parentController->getSession ();
     if (!session->isAlive ())
     {
         ERROR_ ("Session is not alive");
@@ -88,20 +85,18 @@ void EndpointController::connectEndpoint ()
     }
 
     auto endpoints              = juce::ump::Endpoints::getInstance ();
+    auto endpointId             = midiEndpointProperties.endpointId.get ();
     auto endpoint               = endpoints->getEndpoint (endpointId);
     midiEndpointProperties.name = endpoint->getName ();
 
-    // !!! NOTE: borrowed from the JUCE demo code. Doesn't make 100% sense fo r
+    // !!! NOTE: borrowed from the JUCE demo code. Doesn't make 100% sense for
     // us here; we will be doing CI ourselves, so what we really want to know is
     // whether the endpoint supports comms for that purpose, not the UI hint.
     if (hasFunctionBlockInDirection (*endpoint, ump::IOKind::src))
     {
         input = session->connectInput (endpointId, juce::ump::PacketProtocol::MIDI_2_0);
         if (input.isAlive ())
-        {
             input.addConsumer (*this);
-            DBG ("Added consumer to input");
-        }
     }
 
     if (hasFunctionBlockInDirection (*endpoint, ump::IOKind::dst))
@@ -111,11 +106,11 @@ void EndpointController::connectEndpoint ()
     midiEndpointProperties.isOutputAlive = output.isAlive ();
 
     INFO_ ({
-        {   "msg",                                           "Connected endpoint"},
-        {  "name",                             midiEndpointProperties.name.get ()},
-        {    "id",                 midiEndpointProperties.endpointIdString.get ()},
-        { "input",  midiEndpointProperties.isInputAlive.get () ? "alive" : "dead"},
-        {"output", midiEndpointProperties.isOutputAlive.get () ? "alive" : "dead"}
+        {   "msg",                                    "Connected endpoint"},
+        {  "name",                      midiEndpointProperties.name.get ()},
+        {    "id",          midiEndpointProperties.endpointIdString.get ()},
+        { "input",  midiEndpointProperties.isInputAlive ? "alive" : "dead"},
+        {"output", midiEndpointProperties.isOutputAlive ? "alive" : "dead"}
     });
 }
 void EndpointController::disconnected ()
@@ -131,8 +126,18 @@ void EndpointController::consume (juce::ump::Iterator b, juce::ump::Iterator e, 
 {
     for (const auto& v : makeRange (b, e))
     {
-        midiEndpointProperties.rxCount++;
+        // This method is called from the thread that handles MIDI input; we
+        // make an async call so that we can handle the packet in the message thread.
+        juce::MessageManager::callAsync ([this, v, time] { processPacket (v, time); });
     }
+}
+
+void EndpointController::processPacket (const juce::ump::View& packet, double time)
+{
+    jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
+
+    midiEndpointProperties.rxCount++;
+
     TRACE_ ({
         {       "msg",                        "MIDI message received"},
         {      "time",                  juce::String::formatted ("%f",time) },

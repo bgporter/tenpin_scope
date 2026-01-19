@@ -28,6 +28,7 @@
 
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
+
 {
 }
 

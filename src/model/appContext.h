@@ -29,9 +29,8 @@
 #include "persistentContext.h"
 #include "runtimeContext.h"
 
-class AppContext : public cello::Object
+struct AppContext : public cello::Object
 {
-public:
     static const inline juce::Identifier type { "root" };
 
     /**
@@ -52,6 +51,5 @@ public:
 
     ~AppContext () = default;
 
-private:
     RuntimeContext runtimeContext;
 };

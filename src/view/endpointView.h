@@ -27,15 +27,22 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
+#include "model/midiEndpointProperties.h"
 
 class EndpointView : public juce::Component
 {
 public:
-    EndpointView (AppContext& theAppContext);
+    EndpointView (AppContext& theAppContext, juce::ValueTree tree);
     void paint (juce::Graphics& g) override;
     void resized () override;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EndpointView)
     AppContext appContext;
+    MidiEndpointProperties endpointProperties;
+    juce::Label nameLabel;
+    juce::Label rxTitleLabel;
+    juce::Label rxValueLabel;
+    juce::Label txTitleLabel;
+    juce::Label txValueLabel;
 };

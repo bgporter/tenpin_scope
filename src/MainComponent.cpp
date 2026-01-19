@@ -15,7 +15,7 @@ MainComponent::MainComponent (AppContext& theAppContext)
     persistentContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 }
 
-void MainComponent::paint (juce::Graphics& ) {}
+void MainComponent::paint (juce::Graphics&) {}
 
 void MainComponent::resized ()
 {

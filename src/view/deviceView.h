@@ -26,7 +26,9 @@
 
 #include <JuceHeader.h>
 
+#include "endpointView.h"
 #include "model/appContext.h"
+#include "model/midiProperties.h"
 
 class ResizeHandle : public juce::Component
 {
@@ -52,10 +54,18 @@ public:
     void paint (juce::Graphics& g) override;
     void resized () override;
 
+    /**
+     * @brief Create a child component for each endpoint that we've
+     * known about, whether it's active now or not.
+     */
+    void rebuild ();
+
 private:
     static const inline int resizeHandleWidth { 5 };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
     AppContext appContext;
+    MidiProperties midiProperties;
     ResizeHandle resizer;
+    std::vector<std::unique_ptr<EndpointView>> endpointViews;
 };

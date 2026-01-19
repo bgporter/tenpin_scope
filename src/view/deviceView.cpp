@@ -24,6 +24,9 @@
 
 #include "deviceView.h"
 
+#include "model/midiEndpointProperties.h"
+#include "palette.h"
+
 ResizeHandle::ResizeHandle (AppContext& context)
 : appContext { context }
 {
@@ -61,18 +64,55 @@ void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
 
 DeviceView::DeviceView (AppContext& theAppContext)
 : appContext { theAppContext }
+, midiProperties { appContext.runtimeContext }
 , resizer { theAppContext }
 {
+    if (!midiProperties.wasWrapped ())
+    {
+        ERROR_ ("MidiProperties not wrapped");
+    }
     addAndMakeVisible (resizer);
+    rebuild ();
+
+    // set up the callbacks....
+    midiProperties.onChildAdded   = [this] (juce::ValueTree&, int, int) { rebuild (); };
+    midiProperties.onChildRemoved = [this] (juce::ValueTree&, int, int) { rebuild (); };
+    midiProperties.onChildMoved   = [this] (juce::ValueTree&, int, int) { rebuild (); };
 }
 
 void DeviceView::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::blue);
+    Palette palette { PersistentContext { appContext } };
+    g.fillAll (palette.windowBackground.get ());
 }
 
 void DeviceView::resized ()
 {
     auto bounds = getLocalBounds ();
     resizer.setBounds (bounds.removeFromRight (resizeHandleWidth));
+
+    constexpr int endpointRowHeight = 50;
+    for (auto& endpointView : endpointViews)
+    {
+        endpointView->setBounds (bounds.removeFromTop (endpointRowHeight));
+    }
+}
+
+void DeviceView::rebuild ()
+{
+    endpointViews.clear ();
+#if 0
+    for (auto i { 0 }; i < midiProperties.getNumChildren (); ++i)
+    {
+        endpointViews.push_back (std::make_unique<EndpointView> (appContext, midiProperties[i]));
+        addAndMakeVisible (endpointViews.back ().get ());
+    }
+#else
+    for (const auto& endpoint : midiProperties)
+    {
+        endpointViews.push_back (std::make_unique<EndpointView> (appContext, endpoint));
+        addAndMakeVisible (endpointViews.back ().get ());
+    }
+#endif
+    resized ();
 }

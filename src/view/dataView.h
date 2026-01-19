@@ -27,6 +27,7 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
+#include "model/midiProperties.h"
 
 class DataView : public juce::Component
 {
