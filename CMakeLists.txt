@@ -79,7 +79,9 @@ set (SOURCES_MODEL
     src/model/midiProperties.h
     src/model/midiEndpointProperties.h
     src/model/persistentContext.h
-    src/model/runtimeContext.h)
+    src/model/runtimeContext.h
+    src/model/bitField.h
+    src/model/umpEvent.h)
 
 
 set(SOURCES_UTILITY

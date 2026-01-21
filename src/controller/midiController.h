@@ -52,7 +52,7 @@ public:
     void virtualMidiServiceActiveChanged () override {}
 
 private:
-    void addEndpointController (juce::ump::EndpointId endpointId);
+    void addEndpointController (int index, juce::ump::EndpointId endpointId);
     void updateEndpointController (juce::ump::EndpointId endpointId);
 
     RuntimeContext runtimeContext;

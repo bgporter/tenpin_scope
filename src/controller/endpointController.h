@@ -36,12 +36,13 @@ public:
     /**
      * @brief Construct a new Endpoint Controller object.
      *
+     * @param index The index of this endpoint.
      * @param id -- NOTE that we don't pass in an endpoint object, because
      * its state is ephemeral; when you need updated endpoint information, fetch a
      * fresh Endpoint instance using the ID.
      * @param midiProperties The MidiProperties object to append this endpoint's properties to.
      */
-    EndpointController (juce::ump::EndpointId id, MidiProperties& midiProperties);
+    EndpointController (int index, juce::ump::EndpointId id, MidiProperties& midiProperties);
 
     /**
      * @brief Destructor for the Endpoint Controller object.
@@ -60,14 +61,17 @@ public:
 
     void disconnected () override;
 
-    juce::ump::EndpointId getEndpointId () const { return midiEndpointProperties.endpointId.get (); }
+    juce::ump::EndpointId getEndpointId () const { return midiEndpointProperties.endpointId; }
 
 private:
     void consume (juce::ump::Iterator b, juce::ump::Iterator e, double time) override;
     void processPacket (const juce::ump::View& packet, double time);
 
 private:
-    MidiEndpointProperties midiEndpointProperties;
+    int endpointIndex { -1 };
     juce::ump::Input input;
     juce::ump::Output output;
+    MidiEndpointProperties midiEndpointProperties;
+    /// @brief The time when the first packet was received from any endpoint.
+    static inline double startTime { -1 };
 };

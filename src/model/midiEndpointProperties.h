@@ -64,7 +64,7 @@ public:
     MAKE_VALUE_MEMBER (juce::ump::EndpointId, endpointId, {});
     /// The endpoint ID as a string.
     MAKE_COMPUTED_VALUE_MEMBER (juce::String, endpointIdString,
-                                [this] () -> juce::String { return makeEndpointIdString (endpointId.get ()); })
+                                [this] () -> juce::String { return makeEndpointIdString (endpointId.get ()); });
     /// Whether the input is alive.
     MAKE_VALUE_MEMBER (bool, isInputAlive, false);
     /// Whether the output is alive.

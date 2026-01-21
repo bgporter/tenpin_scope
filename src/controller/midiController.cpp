@@ -57,7 +57,7 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
     {
         if (auto endpoint = endpoints->getEndpoint (endpointId))
         {
-            addEndpointController (endpointId);
+            addEndpointController (i, endpointId);
             ++i;
         }
     }
@@ -101,11 +101,11 @@ void MidiController::endpointsChanged ()
             ec != endpointControllers.end ())
             updateEndpointController (endpointId);
         else
-            addEndpointController (endpointId);
+            addEndpointController (static_cast<int> (endpointControllers.size ()), endpointId);
     }
 }
 
-void MidiController::addEndpointController (juce::ump::EndpointId endpointId)
+void MidiController::addEndpointController (int index, juce::ump::EndpointId endpointId)
 {
     DEBUG_ ("Adding endpoint controller");
     jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
@@ -116,7 +116,7 @@ void MidiController::addEndpointController (juce::ump::EndpointId endpointId)
         {"srcId", endpointId.get (juce::ump::IOKind::src)},
         {"dstId", endpointId.get (juce::ump::IOKind::dst)}
     });
-    auto endpointController = std::make_unique<EndpointController> (endpointId, midiProperties);
+    auto endpointController = std::make_unique<EndpointController> (index, endpointId, midiProperties);
     endpointController->connectEndpoint (&session);
 
     // we keep track of two things:
