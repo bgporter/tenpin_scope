@@ -202,6 +202,22 @@ public:
                   expect (event2.program == 20);
               });
 
+        test ("per-note management",
+              [&] ()
+              {
+                  Midi2PerNoteManagementEvent event (1, 2, 60, true, false);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::perNoteManagement);
+                  expect (event.channel == 2);
+                  expect (event.note == 60);
+                  expect (event.detach == true);
+                  expect (event.reset == false);
+
+                  Midi2PerNoteManagementEvent event2 (1, 2, 60, false, true);
+                  expect (event2.detach == false);
+                  expect (event2.reset == true);
+              });
+
         test ("poly pressure",
               [&] ()
               {
@@ -228,6 +244,20 @@ public:
 
                   Midi2ChannelPressureEvent event2 (1, 2, MidiUnipolarFloat (1.0f));
                   expect (event2.value == 0xFFFFFFFF);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
+              });
+
+        test ("pitch bend",
+              [&] ()
+              {
+                  Midi2PitchBendEvent event (1, 2, (int32_t) -100);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::pitchBend);
+                  expect (event.channel == 2);
+                  expect (event.value == -100);
+
+                  Midi2PitchBendEvent event2 (1, 2, MidiBipolarFloat (1.0f));
+                  expect (event2.value == 2147483647);
                   expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
               });
     }

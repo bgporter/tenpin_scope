@@ -177,6 +177,28 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
         });
 };
 
+struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2PerNoteManagementEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2PerNoteManagementEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, bool theDetach,
+                                 bool theReset)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::perNoteManagement, theChannel)
+    {
+        jassert (theDetach || theReset);
+        note   = theNote;
+        detach = theDetach;
+        reset  = theReset;
+    }
+
+    MAKE_BITFIELD (int, note, 0, 8, 8);
+    MAKE_BITFIELD (bool, detach, 0, 1, 1);
+    MAKE_BITFIELD (bool, reset, 0, 1, 0);
+};
+
 struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
 {
     Midi2PolyPressureEvent (UmpEvent& event)
@@ -227,6 +249,31 @@ struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+};
+
+struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2PitchBendEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2PitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, int32_t theValue)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::pitchBend, theChannel)
+    {
+        value = theValue;
+    }
+
+    Midi2PitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, MidiBipolarFloat theValue)
+    : Midi2PitchBendEvent (theGroup, theChannel, theValue.toInt32 ())
+    {
+    }
+
+    MAKE_BITFIELD (int32_t, value, 1, 32, 0);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        float, valueFloat, [this] () -> float { return MidiBipolarFloat::fromInt32 (value.get ()); },
+        [this] (const MidiBipolarFloat& val) { value = val.toInt32 (); });
 };
 
 struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
