@@ -42,7 +42,7 @@ template <typename T, int wordIndex, int dataWidth, int shiftBits> class BitFiel
 {
 public:
     using cello::ComputedValue<T>::operator=;
-    constexpr static uint32_t mask = (dataWidth == 32) ? 0xFFFFFFFF : (1u << dataWidth) - 1;
+    constexpr static uint32_t mask         = (dataWidth == 32) ? 0xFFFFFFFF : (1u << dataWidth) - 1;
 
     BitField (cello::Object& object, const juce::Identifier& id)
     : cello::ComputedValue<T> { object, id }

@@ -137,6 +137,15 @@ public:
     float get () const { return value; }
     operator float () const { return get (); }
 
+    uint16_t toUint16 () const { return static_cast<uint16_t> (0.5f + value * 65535.0f); }
+    uint32_t toUint32 () const { return static_cast<uint32_t> (0.5 + static_cast<double> (value) * 4294967295.0); }
+
+    static float fromUint16 (uint16_t theValue) { return static_cast<float> (theValue) / 65535.0f; }
+    static float fromUint32 (uint32_t theValue)
+    {
+        return static_cast<float> (static_cast<double> (theValue) / 4294967295.0);
+    }
+
 private:
     float value;
 };
@@ -152,6 +161,20 @@ public:
     }
     float get () const { return value; }
     operator float () const { return get (); }
+
+    int32_t toInt32 () const
+    {
+        if (value >= 0.0f)
+            return static_cast<int32_t> (static_cast<double> (value) * 2147483647.0 + 0.5);
+        return static_cast<int32_t> (static_cast<double> (value) * 2147483648.0 - 0.5);
+    }
+
+    static float fromInt32 (int32_t theValue)
+    {
+        if (theValue >= 0)
+            return static_cast<float> (static_cast<double> (theValue) / 2147483647.0);
+        return static_cast<float> (static_cast<double> (theValue) / 2147483648.0);
+    }
 
 private:
     float value;

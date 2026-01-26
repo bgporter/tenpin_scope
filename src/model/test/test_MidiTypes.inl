@@ -45,6 +45,42 @@ public:
                   MidiLong q2 (MidiByte (0x7F), MidiByte (0x7F), MidiByte (0x7F), MidiByte (0x7F));
                   expect (q2.get () == 268435455);
               });
+
+        test ("MidiUnipolarFloat - conversions",
+              [&] ()
+              {
+                  MidiUnipolarFloat f1 (0.0f);
+                  expect (f1.toUint32 () == 0);
+                  expect (MidiUnipolarFloat::fromUint32 (0) == 0.0f);
+
+                  MidiUnipolarFloat f2 (1.0f);
+                  expect (f2.toUint32 () == 0xFFFFFFFF);
+                  expect (MidiUnipolarFloat::fromUint32 (0xFFFFFFFF) == 1.0f);
+
+                  MidiUnipolarFloat f3 (0.5f);
+                  // 0.5 * 4294967295 = 2147483647.5 -> rounded to 2147483648
+                  expect (f3.toUint32 () == 2147483648);
+
+                  MidiUnipolarFloat f4 (1.0f);
+                  expect (f4.toUint16 () == 65535);
+                  expect (MidiUnipolarFloat::fromUint16 (65535) == 1.0f);
+              });
+
+        test ("MidiBipolarFloat - conversions",
+              [&] ()
+              {
+                  MidiBipolarFloat f1 (0.0f);
+                  expect (f1.toInt32 () == 0);
+                  expect (MidiBipolarFloat::fromInt32 (0) == 0.0f);
+
+                  MidiBipolarFloat f2 (1.0f);
+                  expect (f2.toInt32 () == 2147483647);
+                  expect (MidiBipolarFloat::fromInt32 (2147483647) == 1.0f);
+
+                  MidiBipolarFloat f3 (-1.0f);
+                  expect (f3.toInt32 () == -2147483648);
+                  expect (MidiBipolarFloat::fromInt32 ((int32_t) -2147483648) == -1.0f);
+              });
     }
 
 private:

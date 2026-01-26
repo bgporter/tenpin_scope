@@ -86,16 +86,74 @@ public:
         test ("assignable per-note controller",
               [&] ()
               {
-                  Midi2AssignablePerNoteControllerEvent event (1, 2, 60, 5, 0x12345678);
+                  Midi2AssignablePerNoteControllerEvent event (1, 2, 60,  5, 0x12345678);
                   expect (event.group == 1);
                   expect (event.status == UmpValues::assignablePerNoteController);
                   expect (event.channel == 2);
                   expect (event.note == 60);
                   expect (event.controller == 5);
-                  expect (event.getattr<uint32_t> (UmpWords::data1Id, 0) == 0x12345678);
+                  expect (event.value == 0x12345678);
 
-                  Midi2AssignablePerNoteControllerEvent event2 (1, 2, 60, 5, MidiUnipolarFloat (0.5f));
-                  expect (event2.getattr<uint32_t> (UmpWords::data1Id, 0) == 0x80000000);
+                  Midi2AssignablePerNoteControllerEvent event2 (1, 2, 60,  5, MidiUnipolarFloat (0.5f));
+                  expect (event2.value == 0x80000000);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 0.5f, 0.0001f);
+              });
+
+        test ("registered controller",
+              [&] ()
+              {
+                  Midi2RegisteredControllerEvent event (1, 2, 0, 1, 0x12345678);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::registeredController);
+                  expect (event.channel == 2);
+                  expect (event.bank == 0);
+                  expect (event.controller == 1);
+                  expect (event.value == 0x12345678);
+              });
+
+        test ("assignable controller",
+              [&] ()
+              {
+                  Midi2AssignableControllerEvent event (1, 2, 127, 2, 0x80000000);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::assignableController);
+                  expect (event.channel == 2);
+                  expect (event.bank == 127);
+                  expect (event.controller == 2);
+                  expect (event.value == 0x80000000);
+              });
+
+        test ("relative registered controller",
+              [&] ()
+              {
+                  Midi2RelativeRegisteredControllerEvent event (1, 2, 0, 1, (int32_t) -100);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::relativeRegisteredController);
+                  expect (event.channel == 2);
+                  expect (event.bank == 0);
+                  expect (event.controller == 1);
+                  expect (event.value == -100);
+
+                  Midi2RelativeRegisteredControllerEvent event2 (1, 2, 0, 1, MidiBipolarFloat (-1.0f));
+                  expect (event2.value == -2147483648);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), -1.0f, 0.0001f);
+              });
+
+        test ("relative assignable controller",
+              [&] ()
+              {
+                  Midi2RelativeAssignableControllerEvent event (1, 2, 127, 2, (int32_t) 100);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::relativeAssignableController);
+                  expect (event.channel == 2);
+                  expect (event.bank == 127);
+                  expect (event.controller == 2);
+                  expect (event.value == 100);
+
+                  Midi2RelativeAssignableControllerEvent event2 (1, 2, 127, 2, MidiBipolarFloat (1.0f));
+            DBG(event2.value);
+                  expect (event2.value == 2147483647);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
               });
     }
 
