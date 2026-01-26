@@ -151,8 +151,51 @@ public:
                   expect (event.value == 100);
 
                   Midi2RelativeAssignableControllerEvent event2 (1, 2, 127, 2, MidiBipolarFloat (1.0f));
-            DBG(event2.value);
                   expect (event2.value == 2147483647);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
+              });
+
+        test ("per-note pitch bend",
+              [&] ()
+              {
+                  Midi2PerNotePitchBendEvent event (1, 2, 60, (int32_t) -100);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::perNotePitchBend);
+                  expect (event.channel == 2);
+                  expect (event.note == 60);
+                  expect (event.value == -100);
+
+                  Midi2PerNotePitchBendEvent event2 (1, 2, 60, MidiBipolarFloat (1.0f));
+                  expect (event2.value == 2147483647);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
+              });
+
+        test ("poly pressure",
+              [&] ()
+              {
+                  Midi2PolyPressureEvent event (1, 2, 60, 0x12345678);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::polyPressure);
+                  expect (event.channel == 2);
+                  expect (event.note == 60);
+                  expect (event.value == 0x12345678);
+
+                  Midi2PolyPressureEvent event2 (1, 2, 60, MidiUnipolarFloat (1.0f));
+                  expect (event2.value == 0xFFFFFFFF);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
+              });
+
+        test ("channel pressure",
+              [&] ()
+              {
+                  Midi2ChannelPressureEvent event (1, 2, 0x12345678);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::channelPressure);
+                  expect (event.channel == 2);
+                  expect (event.value == 0x12345678);
+
+                  Midi2ChannelPressureEvent event2 (1, 2, MidiUnipolarFloat (1.0f));
+                  expect (event2.value == 0xFFFFFFFF);
                   expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
               });
     }

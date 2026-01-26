@@ -82,6 +82,85 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
 };
 
+struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2PerNotePitchBendEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2PerNotePitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, int32_t theValue)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::perNotePitchBend, theChannel)
+    {
+        note  = theNote;
+        value = theValue;
+    }
+
+    Midi2PerNotePitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, MidiBipolarFloat theValue)
+    : Midi2PerNotePitchBendEvent (theGroup, theChannel, theNote, theValue.toInt32 ())
+    {
+    }
+
+    MAKE_BITFIELD (int, note, 0, 8, 8);
+    MAKE_BITFIELD (int32_t, value, 1, 32, 0);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        float, valueFloat, [this] () -> float { return MidiBipolarFloat::fromInt32 (value.get ()); },
+        [this] (const MidiBipolarFloat& val) { value = val.toInt32 (); });
+};
+
+struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2PolyPressureEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2PolyPressureEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, uint32_t theValue)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::polyPressure, theChannel)
+    {
+        note  = theNote;
+        value = theValue;
+    }
+
+    Midi2PolyPressureEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, MidiUnipolarFloat theValue)
+    : Midi2PolyPressureEvent (theGroup, theChannel, theNote, theValue.toUint32 ())
+    {
+    }
+
+    MAKE_BITFIELD (int, note, 0, 8, 8);
+    MAKE_BITFIELD (uint32_t, value, 1, 32, 0);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
+        [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+};
+
+struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2ChannelPressureEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2ChannelPressureEvent (MidiNibble theGroup, MidiNibble theChannel, uint32_t theValue)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::channelPressure, theChannel)
+    {
+        value = theValue;
+    }
+
+    Midi2ChannelPressureEvent (MidiNibble theGroup, MidiNibble theChannel, MidiUnipolarFloat theValue)
+    : Midi2ChannelPressureEvent (theGroup, theChannel, theValue.toUint32 ())
+    {
+    }
+
+    MAKE_BITFIELD (uint32_t, value, 1, 32, 0);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
+        [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+};
+
 struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
 {
     Midi2RegisteredPerNoteControllerEvent (UmpEvent& event)
