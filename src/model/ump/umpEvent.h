@@ -29,6 +29,26 @@
 #include "bitField.h"
 #include "utility/variantConverters.h"
 
+namespace UmpValues
+{
+/// @brief Channel voice status values
+constexpr int registeredPerNoteController  = 0x0;
+constexpr int assignablePerNoteController  = 0x1;
+constexpr int registeredController         = 0x2;
+constexpr int assignableController         = 0x3;
+constexpr int relativeRegisteredController = 0x4;
+constexpr int relativeAssignableController = 0x5;
+constexpr int perNotePitchBend             = 0x6;
+constexpr int noteOff                      = 0x8;
+constexpr int noteOn                       = 0x9;
+constexpr int polyPressure                 = 0xA;
+constexpr int controlChange                = 0xB;
+constexpr int programChange                = 0xC;
+constexpr int channelPressure              = 0xD;
+constexpr int pitchBend                    = 0xE;
+constexpr int perNoteManagement            = 0xF;
+} // namespace UmpValues
+
 struct UmpEvent : public cello::Object
 {
     static const inline juce::Identifier type { "UmpEvent" };
@@ -38,21 +58,28 @@ struct UmpEvent : public cello::Object
         // is this too clever?
         switch (view.size ())
         {
+            // we use the 'Pythonic' setattr style to create and populate 1 to 4
+            // data words at construction time.
             case 4:
-                data3 = view[3];
+                setattr<uint32_t> (UmpWords::data3Id, view[3]);
                 [[fallthrough]];
             case 3:
-                data2 = view[2];
+                setattr<uint32_t> (UmpWords::data2Id, view[2]);
                 [[fallthrough]];
             case 2:
-                data1 = view[1];
+                setattr<uint32_t> (UmpWords::data1Id, view[1]);
                 [[fallthrough]];
             default:
-                data0 = view[0];
+                setattr<uint32_t> (UmpWords::data0Id, view[0]);
                 break;
         }
         this->timestamp     = timestamp;
         this->endpointIndex = endpointIndex;
+    }
+
+    UmpEvent ()
+    : cello::Object { type.toString (), nullptr }
+    {
     }
 
     UmpEvent (juce::ValueTree valueTree)
@@ -61,12 +88,10 @@ struct UmpEvent : public cello::Object
         jassert (valueTree.getType () == type);
     }
 
-    MAKE_VALUE_MEMBER (uint32_t, data0, 0);
-    MAKE_VALUE_MEMBER (uint32_t, data1, 0);
-    MAKE_VALUE_MEMBER (uint32_t, data2, 0);
-    MAKE_VALUE_MEMBER (uint32_t, data3, 0);
     MAKE_VALUE_MEMBER (double, timestamp, 0.0);
     MAKE_VALUE_MEMBER (int, endpointIndex, 0);
 
     MAKE_BITFIELD (int, messageType, 0, 4, 28);
+
+    // we'll also create and populate 1 to 4 data words at construction time.
 };

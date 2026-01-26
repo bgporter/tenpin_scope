@@ -53,16 +53,17 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
         });
 
     auto updateRx = [this] ()
-    { rxValueLabel.setText (juce::String (endpointProperties.rxCount.get ()), juce::dontSendNotification); };
+    { rxValueLabel.setText (juce::String (endpointProperties.received.count.get ()), juce::dontSendNotification); };
 
     auto updateTx = [this] ()
-    { txValueLabel.setText (juce::String (endpointProperties.txCount.get ()), juce::dontSendNotification); };
+    { txValueLabel.setText (juce::String (endpointProperties.transmitted.count.get ()), juce::dontSendNotification); };
 
+    // execute the callbacks to set the initial values.
     updateRx ();
     updateTx ();
 
-    endpointProperties.rxCount.onPropertyChange ([updateRx] (const juce::Identifier&) { updateRx (); });
-    endpointProperties.txCount.onPropertyChange ([updateTx] (const juce::Identifier&) { updateTx (); });
+    endpointProperties.received.count.onPropertyChange ([updateRx] (const juce::Identifier&) { updateRx (); });
+    endpointProperties.transmitted.count.onPropertyChange ([updateTx] (const juce::Identifier&) { updateTx (); });
     endpointProperties.isInputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
     endpointProperties.isOutputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
 }

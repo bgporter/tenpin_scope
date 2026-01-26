@@ -24,7 +24,7 @@
 
 #include "endpointController.h"
 
-#include "model/umpEvent.h"
+#include "model/ump/umpEvent.h"
 #include "utility/logger.h"
 
 namespace
@@ -138,7 +138,6 @@ void EndpointController::processPacket (const juce::ump::View& packet, double ti
 {
     jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
 
-    midiEndpointProperties.rxCount++;
     // for now, our t=0 time is set by the first packet received from any endpoint.
     if (startTime < 0)
         startTime = time;
@@ -146,6 +145,9 @@ void EndpointController::processPacket (const juce::ump::View& packet, double ti
 
     UmpEvent umpEvent (packet, elapsed, endpointIndex);
     DBG (umpEvent.toXmlString ());
+    midiEndpointProperties.received.addEvent (umpEvent);
+    jassert (midiEndpointProperties.received.count.get () ==
+             ValueTree (midiEndpointProperties.received).getNumChildren ());
 
     juce::String data;
     for (const auto& dw : packet)
@@ -154,13 +156,13 @@ void EndpointController::processPacket (const juce::ump::View& packet, double ti
     }
 
     TRACE_ ({
-        {        "msg",                        "MIDI message received"},
-        {       "time",                  juce::String::formatted ("%f",elapsed) },
-        {       "data",                                           data                                             },
-        {"messageType",                    umpEvent.messageType.get () },
-        {       "name",             midiEndpointProperties.name.get ()                                             },
-        {    "rxCount",          midiEndpointProperties.rxCount.get () },
-        {    "txCount",          midiEndpointProperties.txCount.get ()                                             },
-        { "endpointId", midiEndpointProperties.endpointIdString.get () }
+        {        "msg",                         "MIDI message received"},
+        {       "time",                   juce::String::formatted ("%f",elapsed) },
+        {       "data",                                            data                                              },
+        {"messageType",                     umpEvent.messageType.get () },
+        {       "name",              midiEndpointProperties.name.get ()                                              },
+        {    "rxCount",    midiEndpointProperties.received.count.get () },
+        {    "txCount", midiEndpointProperties.transmitted.count.get ()                                              },
+        { "endpointId",  midiEndpointProperties.endpointIdString.get () }
     });
 }

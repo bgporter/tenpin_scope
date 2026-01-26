@@ -80,8 +80,10 @@ set (SOURCES_MODEL
     src/model/midiEndpointProperties.h
     src/model/persistentContext.h
     src/model/runtimeContext.h
-    src/model/bitField.h
-    src/model/umpEvent.h)
+    src/model/ump/bitField.h
+    src/model/ump/channelVoice2.h
+    src/model/ump/channelVoice2.cpp
+    src/model/ump/umpEvent.h)
 
 
 set(SOURCES_UTILITY

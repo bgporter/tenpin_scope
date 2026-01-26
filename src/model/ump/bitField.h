@@ -26,6 +26,14 @@
 
 #include <JuceHeader.h>
 
+namespace UmpWords
+{
+const juce::Identifier data0Id { "data0" };
+const juce::Identifier data1Id { "data1" };
+const juce::Identifier data2Id { "data2" };
+const juce::Identifier data3Id { "data3" };
+} // namespace UmpWords
+
 /**
  * @class BitField
  * @brief A class that represents a bit field within a larger value.
@@ -33,7 +41,9 @@
 template <typename T, int wordIndex, int dataWidth, int shiftBits> class BitField : public cello::ComputedValue<T>
 {
 public:
+    using cello::ComputedValue<T>::operator=;
     constexpr static uint32_t mask = (dataWidth == 32) ? 0xFFFFFFFF : (1u << dataWidth) - 1;
+
     BitField (cello::Object& object, const juce::Identifier& id)
     : cello::ComputedValue<T> { object, id }
     {
@@ -60,15 +70,15 @@ public:
      *
      * @return juce::Identifier
      */
-    juce::Identifier getDataId () const
+    static juce::Identifier getDataId ()
     {
         // clang-format off
         switch (wordIndex)
         {
-            case 0: return "data0";
-            case 1: return "data1";
-            case 2: return "data2";
-            case 3: return "data3";
+            case 0: return UmpWords::data0Id;
+            case 1: return UmpWords::data1Id;
+            case 2: return UmpWords::data2Id;
+            case 3: return UmpWords::data3Id;
             default: jassertfalse; return {};
         }
         // clang-format on

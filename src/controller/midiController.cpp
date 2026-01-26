@@ -131,8 +131,8 @@ void MidiController::updateEndpointController (juce::ump::EndpointId endpointId)
 {
     // 1. find the endpoint controller in our list of endpoint controllers
     auto endpointController = std::find_if (endpointControllers.begin (), endpointControllers.end (),
-                                            [&] (const auto& endpointController)
-                                            { return endpointController->getEndpointId () == endpointId; });
+                                            [&] (const auto& controller)
+                                            { return controller->getEndpointId () == endpointId; });
     if (endpointController == endpointControllers.end ())
     {
         ERROR_ ({
@@ -143,4 +143,4 @@ void MidiController::updateEndpointController (juce::ump::EndpointId endpointId)
     }
     // 2. update the endpoint controller
     (*endpointController)->connectEndpoint (&session);
-};
+}

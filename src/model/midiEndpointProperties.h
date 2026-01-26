@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "ump/umpEvent.h"
 #include "utility/variantConverters.h"
 
 namespace
@@ -36,6 +37,33 @@ juce::String makeEndpointIdString (juce::ump::EndpointId endpointId)
 }
 } // namespace
 
+/**
+ * @brief We'll maintain two lists of events as we send/receive to/from
+ * this endpoint. Initially, these will only store UmpEvents, but as we add
+ * support for more complex/compound events (Sysex, CI, PE, etc) we'll also
+ *
+ */
+struct Events : public cello::Object
+{
+    Events (juce::StringRef type, const cello::Object& parentOrSelf)
+    : cello::Object { type, parentOrSelf }
+    {
+    }
+
+    void addEvent (UmpEvent& event)
+    {
+        count++;
+        append (&event);
+    }
+
+    void clearEvents ()
+    {
+        count = 0;
+        data.removeAllChildren (getUndoManager ());
+    }
+
+    MAKE_VALUE_MEMBER (int, count, 0);
+};
 class MidiEndpointProperties : public cello::Object
 {
 public:
@@ -72,10 +100,9 @@ public:
     /// true when either the input or output is alive.
     MAKE_COMPUTED_VALUE_MEMBER (bool, isAlive,
                                 [this] () -> bool { return isInputAlive.get () || isOutputAlive.get (); });
-    /// This is used to track the number of messages received from this endpoint.
-    MAKE_VALUE_MEMBER (int, rxCount, 0);
-    /// keep track of the number of messages transmitted to this endpoint.
-    MAKE_VALUE_MEMBER (int, txCount, 0);
     /// TEMPORARY DEBUG: UUID string for debugging purposes.
     MAKE_VALUE_MEMBER (juce::String, debugUuid, juce::Uuid ().toString ());
+
+    Events received { "received", *this };
+    Events transmitted { "transmitted", *this };
 };
