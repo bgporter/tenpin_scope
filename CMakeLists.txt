@@ -78,6 +78,8 @@ set (SOURCES_MODEL
     src/model/appContext.h
     src/model/midiProperties.h
     src/model/midiEndpointProperties.h
+    src/model/midiTypes.h
+    src/model/midiTypes.cpp
     src/model/persistentContext.h
     src/model/runtimeContext.h
     src/model/ump/bitField.h

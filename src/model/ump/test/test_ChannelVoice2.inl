@@ -27,7 +27,7 @@ public:
         test ("note off - simple creation",
               [&] ()
               {
-                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, 100);
+                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, (uint16_t) 100);
                   expect (noteOffEvent.group == 1);
                   expect (noteOffEvent.status == UmpValues::noteOff);
                   expect (noteOffEvent.channel == 2);
@@ -43,7 +43,7 @@ public:
         test ("note off - roundtrip",
               [&] ()
               {
-                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, 100);
+                  Midi2NoteOffEvent noteOffEvent (1, 2, 60,(uint16_t)  100);
                   juce::ValueTree valueTree = noteOffEvent;
                   expect (valueTree.isValid ());
                   DBG (valueTree.toXmlString ());
@@ -61,7 +61,7 @@ public:
         test ("note off -- velocity conversion",
               [&] ()
               {
-                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, 100);
+                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, (uint16_t) 100);
                   expectWithinAbsoluteError (noteOffEvent.velocityFloat.get (), 100.0f / 65535.0f, 0.0001f);
                   noteOffEvent.velocityFloat = 0.5f;
                   expect (noteOffEvent.velocity == 32768);
@@ -71,16 +71,31 @@ public:
         test ("note off - float velocity",
               [&] ()
               {
-                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, 0.5f);
+                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, MidiUnipolarFloat(0.5f));
                   expect (noteOffEvent.velocity == 32768);
 
                   // create a note off event with the velocity as an int and verify that the values
                   // match between the two, and that the underlying value trees are the same
                   // using the ValueTree::isEquivalentTo method.
-                  Midi2NoteOffEvent noteOffEvent2 (1, 2, 60, 32768);
+                  Midi2NoteOffEvent noteOffEvent2 (1, 2, 60, (uint16_t) 32768);
                   juce::ValueTree tree1 { noteOffEvent };
                   juce::ValueTree tree2 { noteOffEvent2 };
                   expect (tree1.isEquivalentTo (tree2));
+              });
+
+        test ("assignable per-note controller",
+              [&] ()
+              {
+                  Midi2AssignablePerNoteControllerEvent event (1, 2, 60, 5, 0x12345678);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::assignablePerNoteController);
+                  expect (event.channel == 2);
+                  expect (event.note == 60);
+                  expect (event.controller == 5);
+                  expect (event.getattr<uint32_t> (UmpWords::data1Id, 0) == 0x12345678);
+
+                  Midi2AssignablePerNoteControllerEvent event2 (1, 2, 60, 5, MidiUnipolarFloat (0.5f));
+                  expect (event2.getattr<uint32_t> (UmpWords::data1Id, 0) == 0x80000000);
               });
     }
 
