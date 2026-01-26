@@ -43,7 +43,7 @@ public:
         test ("note off - roundtrip",
               [&] ()
               {
-                  Midi2NoteOffEvent noteOffEvent (1, 2, 60,(uint16_t)  100);
+                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, (uint16_t) 100);
                   juce::ValueTree valueTree = noteOffEvent;
                   expect (valueTree.isValid ());
                   DBG (valueTree.toXmlString ());
@@ -71,7 +71,7 @@ public:
         test ("note off - float velocity",
               [&] ()
               {
-                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, MidiUnipolarFloat(0.5f));
+                  Midi2NoteOffEvent noteOffEvent (1, 2, 60, MidiUnipolarFloat (0.5f));
                   expect (noteOffEvent.velocity == 32768);
 
                   // create a note off event with the velocity as an int and verify that the values
@@ -86,7 +86,7 @@ public:
         test ("assignable per-note controller",
               [&] ()
               {
-                  Midi2AssignablePerNoteControllerEvent event (1, 2, 60,  5, 0x12345678);
+                  Midi2AssignablePerNoteControllerEvent event (1, 2, 60, 5, 0x12345678);
                   expect (event.group == 1);
                   expect (event.status == UmpValues::assignablePerNoteController);
                   expect (event.channel == 2);
@@ -94,7 +94,7 @@ public:
                   expect (event.controller == 5);
                   expect (event.value == 0x12345678);
 
-                  Midi2AssignablePerNoteControllerEvent event2 (1, 2, 60,  5, MidiUnipolarFloat (0.5f));
+                  Midi2AssignablePerNoteControllerEvent event2 (1, 2, 60, 5, MidiUnipolarFloat (0.5f));
                   expect (event2.value == 0x80000000);
                   expectWithinAbsoluteError (event2.valueFloat.get (), 0.5f, 0.0001f);
               });
@@ -168,6 +168,38 @@ public:
                   Midi2PerNotePitchBendEvent event2 (1, 2, 60, MidiBipolarFloat (1.0f));
                   expect (event2.value == 2147483647);
                   expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
+              });
+
+        test ("control change",
+              [&] ()
+              {
+                  Midi2ControlChangeEvent event (1, 2, 7, 0x12345678);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::controlChange);
+                  expect (event.channel == 2);
+                  expect (event.controller == 7);
+                  expect (event.value == 0x12345678);
+
+                  Midi2ControlChangeEvent event2 (1, 2, 7, MidiUnipolarFloat (1.0f));
+                  expect (event2.value == 0xFFFFFFFF);
+                  expectWithinAbsoluteError (event2.valueFloat.get (), 1.0f, 0.0001f);
+              });
+
+        test ("program change",
+              [&] ()
+              {
+                  Midi2ProgramChangeEvent event (1, 2, MidiWord (0x1234), 10);
+                  expect (event.group == 1);
+                  expect (event.status == UmpValues::programChange);
+                  expect (event.channel == 2);
+                  expect (event.bankValid == true);
+                  expect (event.bank == 0x1234);
+                  expect (event.program == 10);
+
+                  Midi2ProgramChangeEvent event2 (1, 2, 20);
+                  expect (event2.bankValid == false);
+                  expect (event2.bank == 0);
+                  expect (event2.program == 20);
               });
 
         test ("poly pressure",

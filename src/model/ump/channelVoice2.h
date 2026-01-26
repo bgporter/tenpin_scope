@@ -42,9 +42,10 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
         // we need to add the properties for the raw data words to the value tree.
         setattr<uint32_t> (UmpWords::data0Id, 0);
         setattr<uint32_t> (UmpWords::data1Id, 0);
-        group   = theGroup;
-        status  = theStatus;
-        channel = theChannel;
+        messageType = MessageTypes::channelVoice2;
+        group       = theGroup;
+        status      = theStatus;
+        channel     = theChannel;
     }
 
     MAKE_BITFIELD (int, group, 0, 4, 24);
@@ -107,6 +108,73 @@ struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiBipolarFloat::fromInt32 (value.get ()); },
         [this] (const MidiBipolarFloat& val) { value = val.toInt32 (); });
+};
+
+struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2ControlChangeEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2ControlChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theController, uint32_t theValue)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::controlChange, theChannel)
+    {
+        controller = theController;
+        value      = theValue;
+    }
+
+    Midi2ControlChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theController,
+                             MidiUnipolarFloat theValue)
+    : Midi2ControlChangeEvent (theGroup, theChannel, theController, theValue.toUint32 ())
+    {
+    }
+
+    MAKE_BITFIELD (int, controller, 0, 8, 8);
+    MAKE_BITFIELD (uint32_t, value, 1, 32, 0);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
+        [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+};
+
+struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
+{
+    Midi2ProgramChangeEvent (UmpEvent& event)
+    : Midi2ChannelVoiceEvent (event)
+    {
+    }
+
+    Midi2ProgramChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiWord theBank, MidiByte theProgram)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::programChange, theChannel)
+    {
+        bankValid = true;
+        bank      = theBank;
+        program   = theProgram;
+    }
+
+    Midi2ProgramChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theProgram)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::programChange, theChannel)
+    {
+        bankValid = false;
+        bankMsb   = 0;
+        bankLsb   = 0;
+        program   = theProgram;
+    }
+
+    MAKE_BITFIELD (bool, bankValid, 0, 1, 0);
+    MAKE_BITFIELD (int, program, 1, 7, 24);
+    MAKE_BITFIELD (int, bankMsb, 1, 7, 8);
+    MAKE_BITFIELD (int, bankLsb, 1, 7, 0);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        int, bank, [this] () -> int { return (bankMsb.get () << 7) | bankLsb.get (); },
+        [this] (const int& val)
+        {
+            MidiWord w { val };
+            bankMsb = w.getMsb ();
+            bankLsb = w.getLsb ();
+        });
 };
 
 struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent

@@ -54,7 +54,7 @@ public:
         this->getImpl = [this] () -> T
         {
             const auto raw = getRawWord ();
-            return static_cast<T> (raw >> shiftBits) & mask;
+            return static_cast<T> ((raw >> shiftBits) & mask);
         };
 
         this->setImpl = [this] (const T& val)
