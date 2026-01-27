@@ -50,6 +50,51 @@ private:
 };
 
 /**
+ * @brief A template class for values in the range 1-16.
+ */
+template <typename Tag> class MidiRange1To16
+{
+public:
+    static const inline int minValue = 1;
+    static const inline int maxValue = 16;
+    MidiRange1To16 (int theValue)
+    {
+        if (theValue < minValue || theValue > maxValue)
+            ERROR_ ("Value must be between 1 and 16");
+        value = std::clamp (theValue, minValue, maxValue);
+    }
+
+    int get () const { return value; }
+    operator int () const { return get (); }
+
+private:
+    int value;
+};
+
+/**
+ * @brief A class that represents a MIDI group (1-16).
+ */
+using MidiGroup = MidiRange1To16<struct GroupTag>;
+
+/**
+ * @brief A class that represents a MIDI channel (1-16).
+ */
+using MidiChannel = MidiRange1To16<struct ChannelTag>;
+
+namespace midi_literals
+{
+inline MidiGroup operator"" _gr (unsigned long long val)
+{
+    return MidiGroup (static_cast<int> (val));
+}
+
+inline MidiChannel operator"" _ch (unsigned long long val)
+{
+    return MidiChannel (static_cast<int> (val));
+}
+} // namespace midi_literals
+
+/**
  * @brief A class that represents a MIDI (7-bit) data byte, clamped to the range 0-127.
  */
 class MidiByte

@@ -81,6 +81,17 @@ public:
                   expect (f3.toInt32 () == -2147483648);
                   expect (MidiBipolarFloat::fromInt32 ((int32_t) -2147483648) == -1.0f);
               });
+
+        test ("Literals",
+              [&] ()
+              {
+                  using namespace midi_literals;
+                  MidiGroup g = 5_gr;
+                  expect (g.get () == 5);
+
+                  MidiChannel c = 10_ch;
+                  expect (c.get () == 10);
+              });
     }
 
 private:

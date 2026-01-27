@@ -36,21 +36,28 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
     {
     }
 
-    Midi2ChannelVoiceEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel)
+    Midi2ChannelVoiceEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel)
     : UmpEvent ()
     {
         // we need to add the properties for the raw data words to the value tree.
         setattr<uint32_t> (UmpWords::data0Id, 0);
         setattr<uint32_t> (UmpWords::data1Id, 0);
         messageType = MessageTypes::channelVoice2;
-        group       = theGroup;
+        userGroup   = theGroup;
         status      = theStatus;
-        channel     = theChannel;
+        userChannel = theChannel;
     }
 
     MAKE_BITFIELD (int, group, 0, 4, 24);
     MAKE_BITFIELD (int, status, 0, 4, 20);
     MAKE_BITFIELD (int, channel, 0, 4, 16);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        int, userChannel, [this] () -> int { return channel.get () + 1; },
+        [this] (const int& val) { channel = val - 1; });
 };
 
 struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
@@ -59,7 +66,7 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
     : Midi2ChannelVoiceEvent (event)
     {
     }
-    Midi2PerNoteEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theNote,
+    Midi2PerNoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
                        uint8_t theController, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
     {
@@ -68,7 +75,7 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
         setattr<uint32_t> (UmpWords::data1Id, theValue);
     }
 
-    Midi2PerNoteEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theNote,
+    Midi2PerNoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
                        uint8_t theController, MidiUnipolarFloat theValue)
     : Midi2PerNoteEvent (theGroup, theStatus, theChannel, theNote, theController, theValue.toUint32 ())
     {
@@ -90,14 +97,14 @@ struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2PerNotePitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, int32_t theValue)
+    Midi2PerNotePitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, int32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::perNotePitchBend, theChannel)
     {
         note  = theNote;
         value = theValue;
     }
 
-    Midi2PerNotePitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, MidiBipolarFloat theValue)
+    Midi2PerNotePitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiBipolarFloat theValue)
     : Midi2PerNotePitchBendEvent (theGroup, theChannel, theNote, theValue.toInt32 ())
     {
     }
@@ -117,14 +124,14 @@ struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2ControlChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theController, uint32_t theValue)
+    Midi2ControlChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theController, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::controlChange, theChannel)
     {
         controller = theController;
         value      = theValue;
     }
 
-    Midi2ControlChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theController,
+    Midi2ControlChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theController,
                              MidiUnipolarFloat theValue)
     : Midi2ControlChangeEvent (theGroup, theChannel, theController, theValue.toUint32 ())
     {
@@ -145,7 +152,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2ProgramChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiWord theBank, MidiByte theProgram)
+    Midi2ProgramChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiWord theBank, MidiByte theProgram)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::programChange, theChannel)
     {
         bankValid = true;
@@ -153,7 +160,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
         program   = theProgram;
     }
 
-    Midi2ProgramChangeEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theProgram)
+    Midi2ProgramChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theProgram)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::programChange, theChannel)
     {
         bankValid = false;
@@ -184,7 +191,7 @@ struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2PerNoteManagementEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, bool theDetach,
+    Midi2PerNoteManagementEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, bool theDetach,
                                  bool theReset)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::perNoteManagement, theChannel)
     {
@@ -206,14 +213,14 @@ struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2PolyPressureEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, uint32_t theValue)
+    Midi2PolyPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::polyPressure, theChannel)
     {
         note  = theNote;
         value = theValue;
     }
 
-    Midi2PolyPressureEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, MidiUnipolarFloat theValue)
+    Midi2PolyPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiUnipolarFloat theValue)
     : Midi2PolyPressureEvent (theGroup, theChannel, theNote, theValue.toUint32 ())
     {
     }
@@ -233,13 +240,13 @@ struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2ChannelPressureEvent (MidiNibble theGroup, MidiNibble theChannel, uint32_t theValue)
+    Midi2ChannelPressureEvent (MidiGroup theGroup, MidiChannel theChannel, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::channelPressure, theChannel)
     {
         value = theValue;
     }
 
-    Midi2ChannelPressureEvent (MidiNibble theGroup, MidiNibble theChannel, MidiUnipolarFloat theValue)
+    Midi2ChannelPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiUnipolarFloat theValue)
     : Midi2ChannelPressureEvent (theGroup, theChannel, theValue.toUint32 ())
     {
     }
@@ -258,13 +265,13 @@ struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2PitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, int32_t theValue)
+    Midi2PitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, int32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::pitchBend, theChannel)
     {
         value = theValue;
     }
 
-    Midi2PitchBendEvent (MidiNibble theGroup, MidiNibble theChannel, MidiBipolarFloat theValue)
+    Midi2PitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiBipolarFloat theValue)
     : Midi2PitchBendEvent (theGroup, theChannel, theValue.toInt32 ())
     {
     }
@@ -282,13 +289,13 @@ struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
     : Midi2PerNoteEvent (event)
     {
     }
-    Midi2RegisteredPerNoteControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote,
+    Midi2RegisteredPerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, uint32_t theValue)
     : Midi2PerNoteEvent (theGroup, UmpValues::registeredPerNoteController, theChannel, theNote, theController, theValue)
     {
     }
 
-    Midi2RegisteredPerNoteControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote,
+    Midi2RegisteredPerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, MidiUnipolarFloat theValue)
     : Midi2RegisteredPerNoteControllerEvent (theGroup, theChannel, theNote, theController, theValue.toUint32 ())
     {
@@ -301,13 +308,13 @@ struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
     : Midi2PerNoteEvent (event)
     {
     }
-    Midi2AssignablePerNoteControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote,
+    Midi2AssignablePerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, uint32_t theValue)
     : Midi2PerNoteEvent (theGroup, UmpValues::assignablePerNoteController, theChannel, theNote, theController, theValue)
     {
     }
 
-    Midi2AssignablePerNoteControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote,
+    Midi2AssignablePerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, MidiUnipolarFloat theValue)
     : Midi2AssignablePerNoteControllerEvent (theGroup, theChannel, theNote, theController, theValue.toUint32 ())
     {
@@ -320,7 +327,7 @@ struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
     : Midi2ChannelVoiceEvent (event)
     {
     }
-    Midi2ControllerEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theBank,
+    Midi2ControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
                           uint8_t theController, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
     {
@@ -329,7 +336,7 @@ struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
         setattr<uint32_t> (UmpWords::data1Id, theValue);
     }
 
-    Midi2ControllerEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theBank,
+    Midi2ControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
                           uint8_t theController, MidiUnipolarFloat theValue)
     : Midi2ControllerEvent (theGroup, theStatus, theChannel, theBank, theController, theValue.toUint32 ())
     {
@@ -350,13 +357,13 @@ struct Midi2RegisteredControllerEvent : public Midi2ControllerEvent
     : Midi2ControllerEvent (event)
     {
     }
-    Midi2RegisteredControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank, uint8_t theController,
+    Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
                                     uint32_t theValue)
     : Midi2ControllerEvent (theGroup, UmpValues::registeredController, theChannel, theBank, theController, theValue)
     {
     }
 
-    Midi2RegisteredControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank, uint8_t theController,
+    Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
                                     MidiUnipolarFloat theValue)
     : Midi2RegisteredControllerEvent (theGroup, theChannel, theBank, theController, theValue.toUint32 ())
     {
@@ -369,13 +376,13 @@ struct Midi2AssignableControllerEvent : public Midi2ControllerEvent
     : Midi2ControllerEvent (event)
     {
     }
-    Midi2AssignableControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank, uint8_t theController,
+    Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
                                     uint32_t theValue)
     : Midi2ControllerEvent (theGroup, UmpValues::assignableController, theChannel, theBank, theController, theValue)
     {
     }
 
-    Midi2AssignableControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank, uint8_t theController,
+    Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
                                     MidiUnipolarFloat theValue)
     : Midi2AssignableControllerEvent (theGroup, theChannel, theBank, theController, theValue.toUint32 ())
     {
@@ -388,7 +395,7 @@ struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
     : Midi2ChannelVoiceEvent (event)
     {
     }
-    Midi2RelativeControllerEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theBank,
+    Midi2RelativeControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
                                   uint8_t theController, int32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
     {
@@ -397,7 +404,7 @@ struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
         setattr<int32_t> (UmpWords::data1Id, theValue);
     }
 
-    Midi2RelativeControllerEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theBank,
+    Midi2RelativeControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
                                   uint8_t theController, MidiBipolarFloat theValue)
     : Midi2RelativeControllerEvent (theGroup, theStatus, theChannel, theBank, theController, theValue.toInt32 ())
     {
@@ -418,14 +425,14 @@ struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEv
     : Midi2RelativeControllerEvent (event)
     {
     }
-    Midi2RelativeRegisteredControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank,
+    Midi2RelativeRegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, int32_t theValue)
     : Midi2RelativeControllerEvent (theGroup, UmpValues::relativeRegisteredController, theChannel, theBank,
                                     theController, theValue)
     {
     }
 
-    Midi2RelativeRegisteredControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank,
+    Midi2RelativeRegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, MidiBipolarFloat theValue)
     : Midi2RelativeRegisteredControllerEvent (theGroup, theChannel, theBank, theController, theValue.toInt32 ())
     {
@@ -438,14 +445,14 @@ struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEv
     : Midi2RelativeControllerEvent (event)
     {
     }
-    Midi2RelativeAssignableControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank,
+    Midi2RelativeAssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, int32_t theValue)
     : Midi2RelativeControllerEvent (theGroup, UmpValues::relativeAssignableController, theChannel, theBank,
                                     theController, theValue)
     {
     }
 
-    Midi2RelativeAssignableControllerEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theBank,
+    Midi2RelativeAssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, MidiBipolarFloat theValue)
     : Midi2RelativeAssignableControllerEvent (theGroup, theChannel, theBank, theController, theValue.toInt32 ())
     {
@@ -459,7 +466,7 @@ struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
     {
     }
 
-    Midi2NoteEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theNote,
+    Midi2NoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
                     uint16_t theVelocity)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
     {
@@ -467,7 +474,7 @@ struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
         velocity = theVelocity;
     }
 
-    Midi2NoteEvent (MidiNibble theGroup, MidiNibble theStatus, MidiNibble theChannel, MidiByte theNote,
+    Midi2NoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
                     MidiUnipolarFloat theVelocity)
     : Midi2NoteEvent (theGroup, theStatus, theChannel, theNote, theVelocity.toUint16 ())
     {
@@ -489,12 +496,12 @@ struct Midi2NoteOffEvent : public Midi2NoteEvent
     {
     }
 
-    Midi2NoteOffEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, MidiUnipolarFloat theVelocity)
+    Midi2NoteOffEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiUnipolarFloat theVelocity)
     : Midi2NoteOffEvent (theGroup, theChannel, theNote, theVelocity.toUint16 ())
     {
     }
 
-    Midi2NoteOffEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, uint16_t theVelocity)
+    Midi2NoteOffEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint16_t theVelocity)
     : Midi2NoteEvent (theGroup, UmpValues::noteOff, theChannel, theNote, theVelocity)
     {
     }
@@ -506,11 +513,11 @@ struct Midi2NoteOnEvent : public Midi2NoteEvent
     : Midi2NoteEvent (event)
     {
     }
-    Midi2NoteOnEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, MidiUnipolarFloat theVelocity)
+    Midi2NoteOnEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiUnipolarFloat theVelocity)
     : Midi2NoteOnEvent (theGroup, theChannel, theNote, theVelocity.toUint16 ())
     {
     }
-    Midi2NoteOnEvent (MidiNibble theGroup, MidiNibble theChannel, MidiByte theNote, uint16_t theVelocity)
+    Midi2NoteOnEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint16_t theVelocity)
     : Midi2NoteEvent (theGroup, UmpValues::noteOn, theChannel, theNote, theVelocity)
     {
     }
