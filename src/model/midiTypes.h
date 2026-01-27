@@ -34,7 +34,7 @@
 class MidiNibble
 {
 public:
-    static const inline int maxValue = 15;
+    static const inline int maxValue = 15; // 0x0F
     MidiNibble (int theValue)
     {
         if (theValue < 0 || theValue > maxValue)
@@ -55,8 +55,8 @@ private:
 template <typename Tag> class MidiRange1To16
 {
 public:
-    static const inline int minValue = 1;
-    static const inline int maxValue = 16;
+    static const inline int minValue = 1;  // 0x01
+    static const inline int maxValue = 16; // 0x10
     MidiRange1To16 (int theValue)
     {
         if (theValue < minValue || theValue > maxValue)
@@ -100,7 +100,7 @@ inline MidiChannel operator"" _ch (unsigned long long val)
 class MidiByte
 {
 public:
-    static const inline int maxValue = 127;
+    static const inline int maxValue = 127; // 0x7F
     MidiByte (int theValue)
     {
         if (theValue < 0 || theValue > maxValue)
@@ -120,7 +120,7 @@ private:
 class MidiWord
 {
 public:
-    static const inline int maxValue = 16383;
+    static const inline int maxValue = 16383; // 0x3FFF
     MidiWord (int theValue)
     {
         if (theValue < 0 || theValue > maxValue)
@@ -145,7 +145,7 @@ private:
 class MidiLong
 {
 public:
-    static const inline int maxValue = 268435455;
+    static const inline int maxValue = 268435455; // 0x0FFFFFFF
     MidiLong (int theValue)
     {
         if (theValue < 0 || theValue > maxValue)
