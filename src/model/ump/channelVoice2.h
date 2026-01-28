@@ -31,8 +31,8 @@
 
 struct Midi2ChannelVoiceEvent : public UmpEvent
 {
-    Midi2ChannelVoiceEvent (UmpEvent& event)
-    : UmpEvent (static_cast<juce::ValueTree> (event))
+    Midi2ChannelVoiceEvent (const UmpEvent& event)
+    : UmpEvent (event)
     {
     }
 
@@ -62,7 +62,7 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
 
 struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2PerNoteEvent (UmpEvent& event)
+    Midi2PerNoteEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -92,7 +92,7 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2PerNotePitchBendEvent (UmpEvent& event)
+    Midi2PerNotePitchBendEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -119,7 +119,7 @@ struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2ControlChangeEvent (UmpEvent& event)
+    Midi2ControlChangeEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -147,7 +147,7 @@ struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2ProgramChangeEvent (UmpEvent& event)
+    Midi2ProgramChangeEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -186,7 +186,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2PerNoteManagementEvent (UmpEvent& event)
+    Midi2PerNoteManagementEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -208,7 +208,7 @@ struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2PolyPressureEvent (UmpEvent& event)
+    Midi2PolyPressureEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -235,7 +235,7 @@ struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2ChannelPressureEvent (UmpEvent& event)
+    Midi2ChannelPressureEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -260,7 +260,7 @@ struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2PitchBendEvent (UmpEvent& event)
+    Midi2PitchBendEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -285,7 +285,7 @@ struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
 {
-    Midi2RegisteredPerNoteControllerEvent (UmpEvent& event)
+    Midi2RegisteredPerNoteControllerEvent (const UmpEvent& event)
     : Midi2PerNoteEvent (event)
     {
     }
@@ -304,7 +304,7 @@ struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
 
 struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
 {
-    Midi2AssignablePerNoteControllerEvent (UmpEvent& event)
+    Midi2AssignablePerNoteControllerEvent (const UmpEvent& event)
     : Midi2PerNoteEvent (event)
     {
     }
@@ -323,7 +323,7 @@ struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
 
 struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2ControllerEvent (UmpEvent& event)
+    Midi2ControllerEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -353,7 +353,7 @@ struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2RegisteredControllerEvent : public Midi2ControllerEvent
 {
-    Midi2RegisteredControllerEvent (UmpEvent& event)
+    Midi2RegisteredControllerEvent (const UmpEvent& event)
     : Midi2ControllerEvent (event)
     {
     }
@@ -372,7 +372,7 @@ struct Midi2RegisteredControllerEvent : public Midi2ControllerEvent
 
 struct Midi2AssignableControllerEvent : public Midi2ControllerEvent
 {
-    Midi2AssignableControllerEvent (UmpEvent& event)
+    Midi2AssignableControllerEvent (const UmpEvent& event)
     : Midi2ControllerEvent (event)
     {
     }
@@ -391,7 +391,7 @@ struct Midi2AssignableControllerEvent : public Midi2ControllerEvent
 
 struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2RelativeControllerEvent (UmpEvent& event)
+    Midi2RelativeControllerEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -421,7 +421,7 @@ struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEvent
 {
-    Midi2RelativeRegisteredControllerEvent (UmpEvent& event)
+    Midi2RelativeRegisteredControllerEvent (const UmpEvent& event)
     : Midi2RelativeControllerEvent (event)
     {
     }
@@ -441,7 +441,7 @@ struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEv
 
 struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEvent
 {
-    Midi2RelativeAssignableControllerEvent (UmpEvent& event)
+    Midi2RelativeAssignableControllerEvent (const UmpEvent& event)
     : Midi2RelativeControllerEvent (event)
     {
     }
@@ -461,7 +461,7 @@ struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEv
 
 struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
 {
-    Midi2NoteEvent (UmpEvent& event)
+    Midi2NoteEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
     }
@@ -491,7 +491,7 @@ struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
 
 struct Midi2NoteOffEvent : public Midi2NoteEvent
 {
-    Midi2NoteOffEvent (UmpEvent& event)
+    Midi2NoteOffEvent (const UmpEvent& event)
     : Midi2NoteEvent (event)
     {
     }
@@ -509,7 +509,7 @@ struct Midi2NoteOffEvent : public Midi2NoteEvent
 
 struct Midi2NoteOnEvent : public Midi2NoteEvent
 {
-    Midi2NoteOnEvent (UmpEvent& event)
+    Midi2NoteOnEvent (const UmpEvent& event)
     : Midi2NoteEvent (event)
     {
     }

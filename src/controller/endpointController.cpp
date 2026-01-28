@@ -144,7 +144,6 @@ void EndpointController::processPacket (const juce::ump::View& packet, double ti
     const auto elapsed = time - startTime;
 
     UmpEvent umpEvent (packet, elapsed, endpointIndex);
-    DBG (umpEvent.toXmlString ());
     midiEndpointProperties.received.addEvent (umpEvent);
     jassert (midiEndpointProperties.received.count.get () ==
              ValueTree (midiEndpointProperties.received).getNumChildren ());
