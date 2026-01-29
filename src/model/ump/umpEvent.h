@@ -31,22 +31,22 @@
 
 namespace MessageTypes
 {
-constexpr int utility        = 0x0;
-constexpr int commonRealtime = 0x1;
-constexpr int channelVoice1  = 0x2;
-constexpr int sysex7         = 0x3;
-constexpr int channelVoice2  = 0x4;
-constexpr int sysex8         = 0x5;
-constexpr int reserved_6     = 0x6;
-constexpr int reserved_7     = 0x7;
-constexpr int reserved_8     = 0x8;
-constexpr int reserved_9     = 0x9;
-constexpr int reserved_a     = 0xa;
-constexpr int reserved_b     = 0xb;
-constexpr int reserved_c     = 0xc;
-constexpr int flexData       = 0xd;
-constexpr int reserved_e     = 0xe;
-constexpr int stream         = 0xf;
+constexpr int utility           = 0x0;
+constexpr int commonRealtime    = 0x1;
+constexpr int midi1ChannelVoice = 0x2;
+constexpr int sysex7            = 0x3;
+constexpr int midi2ChannelVoice = 0x4;
+constexpr int sysex8            = 0x5;
+constexpr int reserved_6        = 0x6;
+constexpr int reserved_7        = 0x7;
+constexpr int reserved_8        = 0x8;
+constexpr int reserved_9        = 0x9;
+constexpr int reserved_a        = 0xa;
+constexpr int reserved_b        = 0xb;
+constexpr int reserved_c        = 0xc;
+constexpr int flexData          = 0xd;
+constexpr int reserved_e        = 0xe;
+constexpr int stream            = 0xf;
 } // namespace MessageTypes
 
 namespace UmpValues

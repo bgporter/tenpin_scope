@@ -42,7 +42,7 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
         // we need to add the properties for the raw data words to the value tree.
         setattr<uint32_t> (UmpWords::data0Id, 0);
         setattr<uint32_t> (UmpWords::data1Id, 0);
-        messageType = MessageTypes::channelVoice2;
+        messageType = MessageTypes::midi2ChannelVoice;
         userGroup   = theGroup;
         status      = theStatus;
         userChannel = theChannel;

@@ -28,8 +28,17 @@
 
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
-
+, runtimeContext { appContext }
+, midiProperties { runtimeContext }
+, dataViewHandler { *this }
 {
+    for (const auto& endpoint : midiProperties)
+    {
+        addEndpoint (endpoint, 0);
+    }
+    midiProperties.onChildAdded = [this] (juce::ValueTree& vt, int _, int index) { addEndpoint (vt, index); };
+
+    midiProperties.onChildRemoved = [this] (juce::ValueTree& vt, int index, int _) { removeEndpoint (vt, index); };
 }
 
 void DataView::paint (juce::Graphics& g)
@@ -39,3 +48,23 @@ void DataView::paint (juce::Graphics& g)
 }
 
 void DataView::resized () {}
+
+void DataView::addEndpoint (juce::ValueTree vt, int index)
+{
+    auto endpointProperties = std::make_unique<MidiEndpointProperties> (vt);
+
+    endpointProperties->received.onChildAdded = [this] (juce::ValueTree& vt, int, int)
+    { dataViewHandler.handle (UmpEvent (vt)); };
+    endpoints.push_back (std::move (endpointProperties));
+    DBG ("========= endpoint added: " << endpoints.back ()->name.get ());
+}
+
+void DataView::removeEndpoint (juce::ValueTree vt, int index)
+{
+    auto endpointIdString = MidiEndpointProperties { vt }.endpointIdString.get ();
+    endpoints.erase (std::remove_if (endpoints.begin (), endpoints.end (),
+                                     [&] (const auto& endpoint)
+                                     { return endpoint->endpointIdString.get () == endpointIdString; }),
+                     endpoints.end ());
+    DBG ("========= endpoint removed: " << endpointIdString);
+}

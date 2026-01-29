@@ -74,6 +74,10 @@ set (SOURCES_CONTROLLER
     src/controller/endpointController.h
     src/controller/endpointController.cpp)
 
+set (SOURCES_HANDLER
+    src/handler/umpHandler.h
+    src/handler/umpHandler.cpp)
+
 set (SOURCES_MODEL
     src/model/appContext.h
     src/model/midiProperties.h
@@ -115,6 +119,7 @@ set(SOURCES_VIEW
 set(APP_SOURCES
     ${SOURCES_MAIN}
     ${SOURCES_CONTROLLER}
+    ${SOURCES_HANDLER}
     ${SOURCES_MODEL}
     ${SOURCES_UTILITY}
     ${SOURCES_VIEW}
