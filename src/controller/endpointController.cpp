@@ -126,22 +126,28 @@ void EndpointController::disconnected ()
 
 void EndpointController::consume (juce::ump::Iterator b, juce::ump::Iterator e, double time)
 {
+    int i { 0 };
     for (const auto& v : makeRange (b, e))
     {
         // This method is called from the thread that handles MIDI input; we
         // make an async call so that we can handle the packet in the message thread.
-        juce::MessageManager::callAsync ([this, v, time] { processPacket (v, time); });
+        const uint32 calledTime = juce::Time::getMillisecondCounter ();
+        juce::MessageManager::callAsync ([this, v, time, calledTime] { processPacket (v, time, calledTime); });
+        ++i;
     }
+    DBG ("EndpointController::consume: " << i << " packets received");
 }
 
-void EndpointController::processPacket (const juce::ump::View& packet, double time)
+void EndpointController::processPacket (const juce::ump::View& packet, double time, double calledTime)
 {
     jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
 
     // for now, our t=0 time is set by the first packet received from any endpoint.
     if (startTime < 0)
         startTime = time;
-    const auto elapsed = time - startTime;
+    const auto elapsed      = time - startTime;
+    const auto entry        = juce::Time::getMillisecondCounterHiRes ();
+    const auto asyncLatency = entry - calledTime;
 
     UmpEvent umpEvent (packet, elapsed, endpointIndex);
     midiEndpointProperties.received.addEvent (umpEvent);
@@ -154,14 +160,18 @@ void EndpointController::processPacket (const juce::ump::View& packet, double ti
         data += juce::String::formatted ("%08X ", dw);
     }
 
+    const auto exit           = juce::Time::getMillisecondCounterHiRes ();
+    const auto processingTime = exit - entry;
     TRACE_ ({
-        {        "msg",                         "MIDI message received"},
-        {       "time",                   juce::String::formatted ("%f",elapsed) },
-        {       "data",                                            data                                              },
-        {"messageType",                     umpEvent.messageType.get () },
-        {       "name",              midiEndpointProperties.name.get ()                                              },
-        {    "rxCount",    midiEndpointProperties.received.count.get () },
-        {    "txCount", midiEndpointProperties.transmitted.count.get ()                                              },
-        { "endpointId",  midiEndpointProperties.endpointIdString.get () }
+        {           "msg",                         "MIDI message received"},
+        {  "asyncLatency",                                    asyncLatency},
+        {"processingTime",                                  processingTime},
+        {          "time",                   juce::String::formatted ("%f",elapsed) },
+        {          "data",                                            data                                              },
+        {   "messageType",                     umpEvent.messageType.get () },
+        {          "name",              midiEndpointProperties.name.get ()                                              },
+        {       "rxCount",    midiEndpointProperties.received.count.get () },
+        {       "txCount", midiEndpointProperties.transmitted.count.get ()                                              },
+        {    "endpointId",  midiEndpointProperties.endpointIdString.get () }
     });
 }

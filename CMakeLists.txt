@@ -110,6 +110,10 @@ set(SOURCES_VIEW
     src/view/deviceView.cpp
     src/view/endpointView.h
     src/view/endpointView.cpp
+    src/view/eventView.h
+    src/view/eventView.cpp
+    src/view/eventListView.h
+    src/view/eventListView.cpp
     src/view/palette.h
     src/view/palette.cpp    
     src/view/lookAndFeel.h

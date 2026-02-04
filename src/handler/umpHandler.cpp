@@ -32,14 +32,20 @@ UmpHandler::~UmpHandler () {}
 
 UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
 {
-    switch (event.messageType)
+    Result result { preDispatch (event) };
+    if (result == Result::ok)
     {
-        case MessageTypes::midi2ChannelVoice:
-            return handleMidi2ChannelVoiceEvent (event);
-            break;
-        default:
-            return onUmpEvent (event);
+        switch (event.messageType)
+        {
+            case MessageTypes::midi2ChannelVoice:
+                result = handleMidi2ChannelVoiceEvent (event);
+                break;
+            default:
+                result = onUmpEvent (event);
+                break;
+        }
     }
+    return postDispatch (result);
 }
 
 UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& event)

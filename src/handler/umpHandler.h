@@ -48,6 +48,24 @@ protected:
 
 private:
     Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
+
+    /**
+     * @brief A place to do any per-handler preparation for handing an event. This is called before the event is
+     * dispatched to the onUmpEvent handler.
+     *
+     * @param event
+     * @return Result
+     */
+    virtual Result preDispatch (const UmpEvent& event) { return Result::ok; }
+
+    /**
+     * @brief A place to do any per-handler post-processing for handing an event. This is called after the event is
+     *
+     * @param pendingResult Result of having handled the event.
+     * @return Result
+     */
+    virtual Result postDispatch (Result pendingResult) { return pendingResult; }
+
     virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMidi2ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMidi2NoteOffEvent (const UmpEvent&) { return defaultResult; }

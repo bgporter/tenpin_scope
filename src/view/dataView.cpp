@@ -30,8 +30,12 @@ DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
 , midiProperties { runtimeContext }
-, dataViewHandler { *this }
+, dataViewHandler { std::make_unique<DataViewHandler> (*this, appContext) }
+, eventListView { appContext }
 {
+    addAndMakeVisible (viewport);
+    viewport.setViewedComponent (&eventListView, false);
+
     for (const auto& endpoint : midiProperties)
     {
         addEndpoint (endpoint, 0);
@@ -47,14 +51,30 @@ void DataView::paint (juce::Graphics& g)
     g.fillAll (palette.windowBackground.get ());
 }
 
-void DataView::resized () {}
+void DataView::resized ()
+{
+    viewport.setBounds (getLocalBounds ());
+    eventListView.parentSizeChanged ();
+}
+
+void DataView::addEventView (std::unique_ptr<EventView> eventView)
+{
+    eventListView.addEventView (std::move (eventView));
+    viewport.setViewPositionProportionately (0.0, 1.0);
+}
 
 void DataView::addEndpoint (juce::ValueTree vt, int index)
 {
     auto endpointProperties = std::make_unique<MidiEndpointProperties> (vt);
 
     endpointProperties->received.onChildAdded = [this] (juce::ValueTree& vt, int, int)
-    { dataViewHandler.handle (UmpEvent (vt)); };
+    {
+        const auto entry = juce::Time::getMillisecondCounterHiRes ();
+        dataViewHandler->handle (UmpEvent (vt));
+        const auto exit           = juce::Time::getMillisecondCounterHiRes ();
+        const auto processingTime = exit - entry;
+        DBG ("******* UMP HANDLER time: " << processingTime);
+    };
     endpoints.push_back (std::move (endpointProperties));
     DBG ("========= endpoint added: " << endpoints.back ()->name.get ());
 }

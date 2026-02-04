@@ -65,7 +65,7 @@ public:
 
 private:
     void consume (juce::ump::Iterator b, juce::ump::Iterator e, double time) override;
-    void processPacket (const juce::ump::View& packet, double time);
+    void processPacket (const juce::ump::View& packet, double time, double calledTime);
 
 private:
     int endpointIndex { -1 };
