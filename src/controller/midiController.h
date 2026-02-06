@@ -32,7 +32,8 @@
 #include "model/runtimeContext.h"
 
 class EndpointController;
-class MidiController : public juce::ump::EndpointsListener
+class MidiController : public juce::ump::EndpointsListener,
+                       public juce::Timer
 {
 public:
     MidiController (juce::StringRef sessionName, const AppContext& appContext);
@@ -50,6 +51,8 @@ public:
     void endpointsChanged () override;
 
     void virtualMidiServiceActiveChanged () override {}
+
+    void timerCallback () override;
 
 private:
     void addEndpointController (int index, juce::ump::EndpointId endpointId);

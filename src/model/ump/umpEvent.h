@@ -97,6 +97,29 @@ struct UmpEvent : public cello::Object
         this->endpointIndex = endpointIndex;
     }
 
+    UmpEvent (const uint32_t* data, size_t size, double timestamp, int endpointIndex)
+    : cello::Object { type.toString (), nullptr }
+    {
+        // Constructor taking raw packet data directly (for thread-safe queueing)
+        switch (size)
+        {
+            case 4:
+                setattr<uint32_t> (UmpWords::data3Id, data[3]);
+                [[fallthrough]];
+            case 3:
+                setattr<uint32_t> (UmpWords::data2Id, data[2]);
+                [[fallthrough]];
+            case 2:
+                setattr<uint32_t> (UmpWords::data1Id, data[1]);
+                [[fallthrough]];
+            default:
+                setattr<uint32_t> (UmpWords::data0Id, data[0]);
+                break;
+        }
+        this->timestamp     = timestamp;
+        this->endpointIndex = endpointIndex;
+    }
+
     UmpEvent ()
     : cello::Object { type.toString (), nullptr }
     {

@@ -25,9 +25,21 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <array>
+#include <queue>
 
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
+#include "model/ump/umpEvent.h"
+
+/// @brief Raw packet data to queue from MIDI thread for processing on message thread
+struct RawPacketData
+{
+    std::array<uint32_t, 4> data;
+    size_t size;
+    double timestamp;
+    int endpointIndex;
+};
 
 class EndpointController : public juce::ump::DisconnectionListener,
                            private juce::ump::Consumer
@@ -63,9 +75,11 @@ public:
 
     juce::ump::EndpointId getEndpointId () const { return midiEndpointProperties.endpointId; }
 
+    void processUmpEvents ();
+
 private:
     void consume (juce::ump::Iterator b, juce::ump::Iterator e, double time) override;
-    void processPacket (const juce::ump::View& packet, double time, double calledTime);
+    void createUmpEvent (const juce::ump::View& packet, double time);
 
 private:
     int endpointIndex { -1 };
@@ -74,4 +88,6 @@ private:
     MidiEndpointProperties midiEndpointProperties;
     /// @brief The time when the first packet was received from any endpoint.
     static inline double startTime { -1 };
+    std::queue<RawPacketData> eventQueue;
+    juce::CriticalSection queueLock;
 };

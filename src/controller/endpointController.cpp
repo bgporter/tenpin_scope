@@ -129,49 +129,81 @@ void EndpointController::consume (juce::ump::Iterator b, juce::ump::Iterator e, 
     int i { 0 };
     for (const auto& v : makeRange (b, e))
     {
-        // This method is called from the thread that handles MIDI input; we
-        // make an async call so that we can handle the packet in the message thread.
-        const uint32 calledTime = juce::Time::getMillisecondCounter ();
-        juce::MessageManager::callAsync ([this, v, time, calledTime] { processPacket (v, time, calledTime); });
+        createUmpEvent (v, time);
         ++i;
     }
-    DBG ("EndpointController::consume: " << i << " packets received");
+    DBG ("EndpointController::consume: " << i << " packets queued");
 }
 
-void EndpointController::processPacket (const juce::ump::View& packet, double time, double calledTime)
+void EndpointController::createUmpEvent (const juce::ump::View& packet, double time)
+{
+    // This runs on MIDI thread - queue raw packet data only
+    if (startTime < 0)
+        startTime = time;
+
+    const auto elapsed = time - startTime;
+
+    RawPacketData rawData;
+    rawData.size          = packet.size ();
+    rawData.timestamp     = elapsed;
+    rawData.endpointIndex = endpointIndex;
+
+    // Copy the raw uint32 data from the packet
+    size_t i = 0;
+    for (const auto& dw : packet)
+    {
+        rawData.data[i++] = dw;
+    }
+
+    const juce::ScopedLock lock (queueLock);
+    eventQueue.push (rawData);
+}
+
+void EndpointController::processUmpEvents ()
 {
     jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
 
-    // for now, our t=0 time is set by the first packet received from any endpoint.
-    if (startTime < 0)
-        startTime = time;
-    const auto elapsed      = time - startTime;
-    const auto entry        = juce::Time::getMillisecondCounterHiRes ();
-    const auto asyncLatency = entry - calledTime;
+    const auto batchStartTime = juce::Time::getMillisecondCounterHiRes ();
 
-    UmpEvent umpEvent (packet, elapsed, endpointIndex);
-    midiEndpointProperties.received.addEvent (umpEvent);
-    jassert (midiEndpointProperties.received.count.get () ==
-             ValueTree (midiEndpointProperties.received).getNumChildren ());
-
-    juce::String data;
-    for (const auto& dw : packet)
+    std::queue<RawPacketData> localQueue;
     {
-        data += juce::String::formatted ("%08X ", dw);
+        const juce::ScopedLock lock (queueLock);
+        std::swap (localQueue, eventQueue);
     }
 
-    const auto exit           = juce::Time::getMillisecondCounterHiRes ();
-    const auto processingTime = exit - entry;
-    TRACE_ ({
-        {           "msg",                         "MIDI message received"},
-        {  "asyncLatency",                                    asyncLatency},
-        {"processingTime",                                  processingTime},
-        {          "time",                   juce::String::formatted ("%f",elapsed) },
-        {          "data",                                            data                                              },
-        {   "messageType",                     umpEvent.messageType.get () },
-        {          "name",              midiEndpointProperties.name.get ()                                              },
-        {       "rxCount",    midiEndpointProperties.received.count.get () },
-        {       "txCount", midiEndpointProperties.transmitted.count.get ()                                              },
-        {    "endpointId",  midiEndpointProperties.endpointIdString.get () }
+    const size_t eventCount = localQueue.size ();
+    if (eventCount == 0)
+        return;
+
+    while (!localQueue.empty ())
+    {
+        auto rawData = localQueue.front ();
+        localQueue.pop ();
+
+        // Create UmpEvent on message thread from raw data using new constructor
+        UmpEvent umpEvent (rawData.data.data (), rawData.size, rawData.timestamp, rawData.endpointIndex);
+        midiEndpointProperties.received.addEvent (umpEvent);
+
+        //        TRACE_ ({
+        //            {        "msg",                       "MIDI message processed"},
+        //            {       "time",                  juce::String::formatted ("%f",umpEvent.timestamp.get ()) },
+        //            {"messageType",                    umpEvent.messageType.get () }, {       "name",
+        //            midiEndpointProperties.name.get () }, {    "rxCount",   midiEndpointProperties.received.count.get
+        //            ()                                             }, { "endpointId",
+        //            midiEndpointProperties.endpointIdString.get () }
+        //        });
+    }
+
+    const auto batchEndTime = juce::Time::getMillisecondCounterHiRes ();
+    const auto totalTime    = batchEndTime - batchStartTime;
+    const auto meanTime     = totalTime / static_cast<double> (eventCount);
+
+    DEBUG_ ({
+        {       "msg",                              "Batch processed"},
+        {"eventCount",                               (int) eventCount},
+        { "totalTime",             juce::String::formatted ("%.3f ms",totalTime) },
+        {  "meanTime",             juce::String::formatted ("%.3f ms",                                             meanTime) },
+        {      "name",             midiEndpointProperties.name.get ()   },
+        {"endpointId", midiEndpointProperties.endpointIdString.get ()        }
     });
 }
