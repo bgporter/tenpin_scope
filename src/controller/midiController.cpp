@@ -67,7 +67,7 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
     });
 
     endpoints->addListener (*this);
-    startTimer (50); // 20 times per second
+    startTimer (33); // 30 times per second (30 Hz)
 }
 
 MidiController::~MidiController ()

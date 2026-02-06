@@ -37,10 +37,12 @@
 class DataViewHandler;
 class EventView;
 
-class DataView : public juce::Component
+class DataView : public juce::Component,
+                 public juce::ScrollBar::Listener
 {
 public:
     DataView (AppContext& appContext);
+    ~DataView () override;
 
     void paint (juce::Graphics& g) override;
 
@@ -49,6 +51,9 @@ public:
     void addEndpoint (juce::ValueTree vt, int index);
     void removeEndpoint (juce::ValueTree vt, int index);
     void addEventView (std::unique_ptr<EventView> eventView);
+
+    // ScrollBar::Listener
+    void scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart) override;
 
 private:
     AppContext appContext;

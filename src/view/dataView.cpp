@@ -36,6 +36,9 @@ DataView::DataView (AppContext& theAppContext)
     addAndMakeVisible (viewport);
     viewport.setViewedComponent (&eventListView, false);
 
+    // Add scroll listener for virtual scrolling
+    viewport.getVerticalScrollBar ().addListener (this);
+
     for (const auto& endpoint : midiProperties)
     {
         addEndpoint (endpoint, 0);
@@ -43,6 +46,11 @@ DataView::DataView (AppContext& theAppContext)
     midiProperties.onChildAdded = [this] (juce::ValueTree& vt, int _, int index) { addEndpoint (vt, index); };
 
     midiProperties.onChildRemoved = [this] (juce::ValueTree& vt, int index, int _) { removeEndpoint (vt, index); };
+}
+
+DataView::~DataView ()
+{
+    viewport.getVerticalScrollBar ().removeListener (this);
 }
 
 void DataView::paint (juce::Graphics& g)
@@ -55,12 +63,22 @@ void DataView::resized ()
 {
     viewport.setBounds (getLocalBounds ());
     eventListView.parentSizeChanged ();
+
+    // Establish visible area for virtual scrolling
+    eventListView.visibleAreaChanged (viewport.getViewArea ());
 }
 
 void DataView::addEventView (std::unique_ptr<EventView> eventView)
 {
+    // Check if we're already at the bottom before adding
+    const bool wasAtBottom =
+        viewport.getViewPositionY () + viewport.getViewHeight () >= viewport.getViewedComponent ()->getHeight () - 10;
+
     eventListView.addEventView (std::move (eventView));
-    viewport.setViewPositionProportionately (0.0, 1.0);
+
+    // Only auto-scroll if we were already at the bottom
+    if (wasAtBottom)
+        viewport.setViewPositionProportionately (0.0, 1.0);
 }
 
 void DataView::addEndpoint (juce::ValueTree vt, int index)
@@ -87,4 +105,10 @@ void DataView::removeEndpoint (juce::ValueTree vt, int index)
                                      { return endpoint->endpointIdString.get () == endpointIdString; }),
                      endpoints.end ());
     DBG ("========= endpoint removed: " << endpointIdString);
+}
+
+void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)
+{
+    // Notify EventListView of visible area change for virtual scrolling
+    eventListView.visibleAreaChanged (viewport.getViewArea ());
 }
