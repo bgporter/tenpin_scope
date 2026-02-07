@@ -37,7 +37,18 @@ public:
 
     void resized () override;
 
-    int getContentHeight () const { return 16; }
+    int getContentHeight () const
+    {
+        // Variable height based on width for testing virtual scrolling
+        int w = getWidth ();
+        if (w < 200)
+            return 32;
+        else if (w < 600)
+            return 24;
+        else
+            return 16;
+    }
+
     juce::String getDescription () const { return eventDescription; }
 
 private:
