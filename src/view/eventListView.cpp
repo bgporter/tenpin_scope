@@ -48,10 +48,11 @@ void EventListView::paint (juce::Graphics& g)
 void EventListView::resized ()
 {
     // Width change requires remeasuring and repositioning active views
+    const int width = getWidth ();
     for (auto& [index, view] : activeViews)
     {
         int oldHeight = eventHeights[index];
-        int newHeight = view->getContentHeight (); // Remeasure with new width
+        int newHeight = view->getContentHeight (width);
 
         if (newHeight != oldHeight)
         {
@@ -68,8 +69,11 @@ void EventListView::resized ()
 
 void EventListView::addEventView (std::unique_ptr<EventView> eventView)
 {
+    const int width     = getWidth ();
+    const int newHeight = eventView->getContentHeight (width);
+    eventView->setSize (width, newHeight);
+
     const int eventIndex = static_cast<int> (eventHeights.size ());
-    const int newHeight  = eventView->getContentHeight ();
 
     // Store metadata (always)
     eventHeights.push_back (newHeight);
@@ -187,6 +191,9 @@ void EventListView::createViewsInRange (const juce::Range<int>& range)
 
         // Recreate view from stored data
         auto view = std::make_unique<EventView> (appContext, eventData[i]);
+        const int width  = getWidth ();
+        const int height = view->getContentHeight (width);
+        view->setSize (width, height);
         if (eventHeights[i] > 0)
             addAndMakeVisible (view.get ());
         activeViews[i] = std::move (view);
