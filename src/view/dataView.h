@@ -68,20 +68,22 @@ private:
 class DataViewHandler : public UmpHandler
 {
 public:
-    DataViewHandler (DataView& theDataView, AppContext& theAppContext)
+    DataViewHandler (AppContext& theAppContext)
     : appContext (theAppContext)
-    , dataView (theDataView)
     {
     }
-    ~DataViewHandler () override {}
+    ~DataViewHandler () override { eventView.reset (); }
+
+    std::unique_ptr<EventView> getEventView () { return std::move (eventView); }
 
 private:
     AppContext appContext;
-    DataView& dataView;
     juce::String eventDescription;
+    std::unique_ptr<EventView> eventView;
 
     UmpHandler::Result preDispatch (const UmpEvent& event) override
     {
+        eventView.reset ();
         eventDescription.clear ();
         eventDescription << event.timestamp << " ";
         return Result::ok;
@@ -90,9 +92,7 @@ private:
     UmpHandler::Result postDispatch (UmpHandler::Result pendingResult) override
     {
         if (pendingResult == UmpHandler::Result::ok)
-        {
-            dataView.addEventView (std::make_unique<EventView> (appContext, eventDescription));
-        }
+            eventView = std::make_unique<EventView> (appContext, eventDescription);
         eventDescription.clear ();
         return pendingResult;
     }

@@ -30,7 +30,7 @@ DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
 , midiProperties { runtimeContext }
-, dataViewHandler { std::make_unique<DataViewHandler> (*this, appContext) }
+, dataViewHandler { std::make_unique<DataViewHandler> (appContext) }
 , eventListView { appContext }
 {
     addAndMakeVisible (viewport);
@@ -87,8 +87,10 @@ void DataView::addEndpoint (juce::ValueTree vt, int index)
 
     endpointProperties->received.onChildAdded = [this] (juce::ValueTree& vt, int, int)
     {
-        const auto entry = juce::Time::getMillisecondCounterHiRes ();
-        dataViewHandler->handle (UmpEvent (vt));
+        const auto entry  = juce::Time::getMillisecondCounterHiRes ();
+        const auto result = dataViewHandler->handle (UmpEvent (vt));
+        if (result == UmpHandler::Result::ok)
+            addEventView (std::move (dataViewHandler->getEventView ()));
         const auto exit           = juce::Time::getMillisecondCounterHiRes ();
         const auto processingTime = exit - entry;
         DBG ("******* UMP HANDLER time: " << processingTime);
