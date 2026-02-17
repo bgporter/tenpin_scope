@@ -27,6 +27,7 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
+#include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
@@ -57,9 +58,26 @@ public:
 private:
     void addEndpointController (int index, juce::ump::EndpointId endpointId);
     void updateEndpointController (juce::ump::EndpointId endpointId);
+    /**
+     * @brief We've received a new MIDI event. PAss it to the filter function to
+     * see if it should be added to the event list. If it should, add it to the event list.
+     *
+     * @param event
+     */
+    void addMidiEvent (UmpEvent& event);
+
+    /**
+     * @brief Filter a MIDI event to see if it should be added to the event list.
+     *
+     * @param event
+     * @return true if the event should be added to the event list
+     * @return false if the event should not be added to the event list
+     */
+    bool filterMidiEvent (UmpEvent& event);
 
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
+    std::vector<std::unique_ptr<MidiEndpointProperties>> endpointProperties;
     juce::ump::Endpoints* endpoints;
     juce::ump::Session session;
     std::vector<std::unique_ptr<EndpointController>> endpointControllers;

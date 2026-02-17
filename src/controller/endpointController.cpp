@@ -65,7 +65,7 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id, Mid
 : endpointIndex { index }
 , midiEndpointProperties { id }
 {
-    midiProperties.append (&midiEndpointProperties);
+    midiProperties.endpoints.append (&midiEndpointProperties);
 }
 
 EndpointController::~EndpointController ()

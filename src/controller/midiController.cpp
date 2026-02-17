@@ -52,6 +52,33 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
         // !!! We should throw an exception here
     }
 
+    // !!! listen for new endpoints added to the endpoints object
+    midiProperties.endpoints.onChildAdded = [this] (juce::ValueTree& vt, int _, int index)
+    {
+        // we've added a new endpointProperties child to the midiProperties object.
+        // we want to add listeners to the sent/received lists.
+        auto thisEndpointProperties = std::make_unique<MidiEndpointProperties> (vt);
+        const auto propIndex        = endpointProperties.size ();
+
+        thisEndpointProperties->received.onChildAdded = [this, propIndex] (juce::ValueTree& vt, int, int)
+        {
+            UmpEvent event (vt);
+            const auto endpointProps { endpointProperties[propIndex].get () };
+            event.endpointName = endpointProps->name.get ();
+            event.isReceived   = true;
+            addMidiEvent (event);
+        };
+        thisEndpointProperties->transmitted.onChildAdded = [this, propIndex] (juce::ValueTree& vt, int, int)
+        {
+            UmpEvent event (vt);
+            const auto endpointProps { endpointProperties[propIndex].get () };
+            event.endpointName = endpointProps->name.get ();
+            event.isReceived   = false;
+            addMidiEvent (event);
+        };
+        endpointProperties.push_back (std::move (thisEndpointProperties));
+    };
+
     int i = 0;
     for (const auto& endpointId : endpoints->getEndpoints ())
     {
@@ -153,4 +180,15 @@ void MidiController::timerCallback ()
     {
         endpointController->processUmpEvents ();
     }
+}
+
+void MidiController::addMidiEvent (UmpEvent& event)
+{
+    if (filterMidiEvent (event))
+        midiProperties.midiEvents.addEvent (event);
+}
+
+bool MidiController::filterMidiEvent (UmpEvent& event)
+{
+    return true;
 }

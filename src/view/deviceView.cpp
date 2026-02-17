@@ -75,9 +75,9 @@ DeviceView::DeviceView (AppContext& theAppContext)
     rebuild ();
 
     // set up the callbacks....
-    midiProperties.onChildAdded   = [this] (juce::ValueTree&, int, int) { rebuild (); };
-    midiProperties.onChildRemoved = [this] (juce::ValueTree&, int, int) { rebuild (); };
-    midiProperties.onChildMoved   = [this] (juce::ValueTree&, int, int) { rebuild (); };
+    midiProperties.endpoints.onChildAdded   = [this] (juce::ValueTree&, int, int) { rebuild (); };
+    midiProperties.endpoints.onChildRemoved = [this] (juce::ValueTree&, int, int) { rebuild (); };
+    midiProperties.endpoints.onChildMoved   = [this] (juce::ValueTree&, int, int) { rebuild (); };
 }
 
 void DeviceView::paint (juce::Graphics& g)
@@ -108,7 +108,7 @@ void DeviceView::rebuild ()
         addAndMakeVisible (endpointViews.back ().get ());
     }
 #else
-    for (const auto& endpoint : midiProperties)
+    for (const auto& endpoint : midiProperties.endpoints)
     {
         endpointViews.push_back (std::make_unique<EndpointView> (appContext, endpoint));
         addAndMakeVisible (endpointViews.back ().get ());

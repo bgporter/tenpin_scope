@@ -48,8 +48,6 @@ public:
 
     void resized () override;
 
-    void addEndpoint (juce::ValueTree vt, int index);
-    void removeEndpoint (juce::ValueTree vt, int index);
     void addEventView (std::unique_ptr<EventView> eventView);
 
     // ScrollBar::Listener
@@ -60,7 +58,7 @@ private:
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
     std::unique_ptr<DataViewHandler> dataViewHandler;
-    std::vector<std::unique_ptr<MidiEndpointProperties>> endpoints;
+    // std::vector<std::unique_ptr<MidiEndpointProperties>> endpoints;
     juce::Viewport viewport;
     EventListView eventListView;
 };
@@ -86,6 +84,8 @@ private:
         eventView.reset ();
         eventDescription.clear ();
         eventDescription << event.timestamp << " ";
+        eventDescription << event.endpointName << " ";
+        eventDescription << (event.isReceived ? "Rx" : "Tx") << " ";
         return Result::ok;
     }
 

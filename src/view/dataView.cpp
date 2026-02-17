@@ -39,13 +39,16 @@ DataView::DataView (AppContext& theAppContext)
     // Add scroll listener for virtual scrolling
     viewport.getVerticalScrollBar ().addListener (this);
 
-    for (const auto& endpoint : midiProperties)
+    midiProperties.midiEvents.onChildAdded = [this] (juce::ValueTree& vt, int, int)
     {
-        addEndpoint (endpoint, 0);
-    }
-    midiProperties.onChildAdded = [this] (juce::ValueTree& vt, int _, int index) { addEndpoint (vt, index); };
-
-    midiProperties.onChildRemoved = [this] (juce::ValueTree& vt, int index, int _) { removeEndpoint (vt, index); };
+        const auto entry  = juce::Time::getMillisecondCounterHiRes ();
+        const auto result = dataViewHandler->handle (UmpEvent (vt));
+        if (result == UmpHandler::Result::ok)
+            addEventView (std::move (dataViewHandler->getEventView ()));
+        const auto exit           = juce::Time::getMillisecondCounterHiRes ();
+        const auto processingTime = exit - entry;
+        DBG ("******* UMP HANDLER time: " << processingTime);
+    };
 }
 
 DataView::~DataView ()
@@ -79,34 +82,6 @@ void DataView::addEventView (std::unique_ptr<EventView> eventView)
     // Only auto-scroll if we were already at the bottom
     if (wasAtBottom)
         viewport.setViewPositionProportionately (0.0, 1.0);
-}
-
-void DataView::addEndpoint (juce::ValueTree vt, int index)
-{
-    auto endpointProperties = std::make_unique<MidiEndpointProperties> (vt);
-
-    endpointProperties->received.onChildAdded = [this] (juce::ValueTree& vt, int, int)
-    {
-        const auto entry  = juce::Time::getMillisecondCounterHiRes ();
-        const auto result = dataViewHandler->handle (UmpEvent (vt));
-        if (result == UmpHandler::Result::ok)
-            addEventView (std::move (dataViewHandler->getEventView ()));
-        const auto exit           = juce::Time::getMillisecondCounterHiRes ();
-        const auto processingTime = exit - entry;
-        DBG ("******* UMP HANDLER time: " << processingTime);
-    };
-    endpoints.push_back (std::move (endpointProperties));
-    DBG ("========= endpoint added: " << endpoints.back ()->name.get ());
-}
-
-void DataView::removeEndpoint (juce::ValueTree vt, int index)
-{
-    auto endpointIdString = MidiEndpointProperties { vt }.endpointIdString.get ();
-    endpoints.erase (std::remove_if (endpoints.begin (), endpoints.end (),
-                                     [&] (const auto& endpoint)
-                                     { return endpoint->endpointIdString.get () == endpointIdString; }),
-                     endpoints.end ());
-    DBG ("========= endpoint removed: " << endpointIdString);
 }
 
 void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)
