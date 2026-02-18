@@ -41,10 +41,9 @@ DataView::DataView (AppContext& theAppContext)
 
     midiProperties.midiEvents.onChildAdded = [this] (juce::ValueTree& vt, int, int)
     {
-        const auto entry  = juce::Time::getMillisecondCounterHiRes ();
-        const auto result = dataViewHandler->handle (UmpEvent (vt));
-        if (result == UmpHandler::Result::ok)
-            addEventView (std::move (dataViewHandler->getEventView ()));
+        const auto entry = juce::Time::getMillisecondCounterHiRes ();
+        if (const auto result = dataViewHandler->handle (UmpEvent (vt)); result == UmpHandler::Result::ok)
+            addEventView (dataViewHandler->getEventView ());
         const auto exit           = juce::Time::getMillisecondCounterHiRes ();
         const auto processingTime = exit - entry;
         DBG ("******* UMP HANDLER time: " << processingTime);
