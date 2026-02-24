@@ -27,6 +27,8 @@
 #include <cello/cello.h>
 
 #include "eventList.h"
+#include "midiProperties.h"
+
 class RuntimeContext : public cello::Object
 {
 public:
@@ -49,4 +51,5 @@ public:
     /// a 'temp' var where we can store the *last* sidebar width value during dragging.
     MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
     EventList eventList;
+    MidiProperties midiProperties { *this };
 };

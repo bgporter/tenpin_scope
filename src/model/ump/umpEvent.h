@@ -128,7 +128,11 @@ struct UmpEvent : public cello::Object
     UmpEvent (juce::ValueTree valueTree)
     : cello::Object { type.toString (), valueTree }
     {
-        jassert (valueTree.getType () == type);
+        if (valueTree.getType() != type)
+        {
+            DBG("Expected " << type.toString() << " got " << valueTree.getType().toString());
+            jassertfalse;
+        }
     }
 
     MAKE_VALUE_MEMBER (double, timestamp, 0.0);

@@ -21,7 +21,7 @@ public:
                   expect (el.getNumChildren () == 0);
               });
 
-        test ("reset",
+        test ("reset - onChildrenCleared fires when same object clears",
               [&] ()
               {
                   EventList el;
@@ -35,10 +35,31 @@ public:
                   }
                   expect (el.getNumChildren () == 10);
 
-                  el.onTreeRedirected = [&] () { wasReset = true; };
+                  el.onChildrenCleared = [&] () { wasReset = true; };
                   el.clear ();
                   expect (wasReset);
                   expect (el.getNumChildren () == 0);
+              });
+
+        test ("reset - onChildrenCleared fires on listener when other object clears same tree",
+              [&] ()
+              {
+                  EventList el;
+                  for (int i = 0; i < 10; i++)
+                  {
+                      EventList child;
+                      el.append (&child);
+                  }
+                  expect (el.getNumChildren () == 10);
+
+                  EventList elCopy { el };
+                  elCopy.onChildrenCleared = [&] () { wasReset = true; };
+
+                  el.clear ();
+
+                  expect (wasReset);
+                  expect (el.getNumChildren () == 0);
+                  expect (elCopy.getNumChildren () == 0);
               });
     }
 

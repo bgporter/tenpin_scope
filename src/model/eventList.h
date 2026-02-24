@@ -37,8 +37,8 @@ public:
     /**
      * @brief Construct a new EventList object ex nihilo
      */
-    EventList ()
-    : cello::Object { type.toString (), nullptr }
+    EventList (juce::StringRef typeName = type.toString ())
+    : cello::Object { typeName, nullptr }
     {
     }
 
@@ -67,16 +67,14 @@ public:
 
     void addEvent (UmpEvent& event)
     {
-        count++;
         append (&event);
+        count++;
     }
 
-    void clear () { *this = EventList (); }
-
-    EventList& operator= (const EventList& rhs)
+    void clear ()
     {
-        cello::Object::operator= (rhs);
-        return *this;
+        data.removeAllChildren (getUndoManager ());
+        count = 0;
     }
 
     MAKE_VALUE_MEMBER (int, count, 0);

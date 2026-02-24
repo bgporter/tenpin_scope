@@ -61,8 +61,9 @@ bool hasFunctionBlockInDirection (const ump::Endpoint& e, ump::IOKind direction)
 }
 } // namespace
 
-EndpointController::EndpointController (int index, juce::ump::EndpointId id, MidiProperties& midiProperties)
+EndpointController::EndpointController (int index, juce::ump::EndpointId id, const MidiProperties& mp)
 : endpointIndex { index }
+, midiProperties { mp }
 , midiEndpointProperties { id }
 {
     midiProperties.endpoints.append (&midiEndpointProperties);
@@ -182,6 +183,8 @@ void EndpointController::processUmpEvents ()
 
         // Create UmpEvent on message thread from raw data using new constructor
         UmpEvent umpEvent (rawData.data.data (), rawData.size, rawData.timestamp, rawData.endpointIndex);
+        umpEvent.endpointName = midiEndpointProperties.name.get ();
+        umpEvent.isReceived   = true;
         midiEndpointProperties.received.addEvent (umpEvent);
 
         //        TRACE_ ({

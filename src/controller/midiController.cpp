@@ -25,19 +25,15 @@
 #include "midiController.h"
 
 #include "endpointController.h"
+#include "model/ump/umpEvent.h"
 #include "utility/logger.h"
 
-MidiController::MidiController (juce::StringRef sessionName, const AppContext& appContext)
+MidiController::MidiController (juce::StringRef sessionName, AppContext& appContext)
 : runtimeContext { appContext }
 , midiProperties { runtimeContext }
 , endpoints { juce::ump::Endpoints::getInstance () }
 , session { endpoints->makeSession (sessionName) }
 {
-    if (!midiProperties.wasInitialized ())
-    {
-        ERROR_ ("MidiProperties not initialized");
-    }
-
     if (!endpoints)
     {
         ERROR_ ("Endpoints not initialized");
@@ -62,12 +58,28 @@ MidiController::MidiController (juce::StringRef sessionName, const AppContext& a
 
         thisEndpointProperties->received.onChildAdded = [this, propIndex] (juce::ValueTree& vt, int, int)
         {
-            UmpEvent event (vt);
-            const auto endpointProps { endpointProperties[propIndex].get () };
-            event.endpointName = endpointProps->name.get ();
-            event.isReceived   = true;
+            UmpEvent event (vt.createCopy ());
+
+            // const auto endpointProps { endpointProperties[propIndex].get () };
+            // event.endpointName = endpointProps->name.get ();
+            // event.isReceived   = true;
             addMidiEvent (event);
         };
+        thisEndpointProperties->received.onChildRemoved = [this, propIndex] (juce::ValueTree& vt, int, int)
+        { DBG ("REMOVING EVENT FROM " << endpointProperties[propIndex]->name); };
+        // TEMPORARY: clear this endpoint's received list when count hits 100, 200, etc.
+        thisEndpointProperties->received.count.onPropertyChange (
+            [this, propIndex] (const juce::Identifier&)
+            {
+                const int c = endpointProperties[propIndex]->received.count.get ();
+                if (c > 0 && c % 300 == 0)
+                {
+                    DBG ("&&&&& CLEARING EVENTS FrOM " << endpointProperties[propIndex]->name);
+                    endpointProperties[propIndex]->received.clear ();
+                    midiProperties.midiEvents.clear ();
+                    rebuildMidiEventsFromEndpoints ();
+                }
+            });
         thisEndpointProperties->transmitted.onChildAdded = [this, propIndex] (juce::ValueTree& vt, int, int)
         {
             UmpEvent event (vt);
@@ -186,6 +198,98 @@ void MidiController::addMidiEvent (UmpEvent& event)
 {
     if (filterMidiEvent (event))
         midiProperties.midiEvents.addEvent (event);
+}
+
+void MidiController::rebuildMidiEventsFromEndpoints ()
+{
+#if 1
+    // concatenate all the events from all the endpoints into a single event list
+    EventList currentEvents { "midiEvents" };
+    for (const auto& ep : endpointProperties)
+    {
+        DBG ("REBUILDING FROM " << ep->name << " has " << ep->received.getNumChildren ());
+        int i { 0 };
+        for (; i < ep->received.getNumChildren (); ++i)
+        {
+            auto ev = ep->received[i].createCopy ();
+            DBG (ev.toXmlString ());
+            UmpEvent evCopy (ep->received[i].createCopy ());
+            if (filterMidiEvent (evCopy))
+                currentEvents.addEvent (evCopy);
+        }
+        DBG ("Added " << i << " RX events from  " << ep->name);
+        for (i =  0; i < ep->transmitted.getNumChildren (); ++i)
+        {
+            UmpEvent evCopy (ep->transmitted[i].createCopy ());
+            if (filterMidiEvent (evCopy))
+                currentEvents.addEvent (evCopy);
+        }
+        DBG ("Added " << ep->transmitted.count.get () << " TX events from  " << ep->name);
+    }
+    // sort the events by timestamp
+    cello::Query sorter { currentEvents.getType () };
+    sorter.addComparison (
+        [] (const juce::ValueTree& a, const juce::ValueTree& b)
+        { return a.getProperty (UmpEvent::timestampId, 0.0) < b.getProperty (UmpEvent::timestampId, 0.0) ? -1 : 1; });
+    sorter.sort (currentEvents);
+
+    // add the events to the midiProperties.midiEvents list
+    midiProperties.midiEvents.clear ();
+    int i { 0 };
+    for (const auto& ev : currentEvents)
+    {
+        UmpEvent evCopy (ev);
+        midiProperties.midiEvents.addEvent (evCopy);
+        ++i;
+    }
+    DBG ("rebuilt midiEvents from endpoints: " << i << " events");
+#else
+    midiProperties.midiEvents.clear ();
+
+    for (const auto& ep : endpointProperties)
+    {
+        const auto& name = ep->name.get ();
+        for (int i = 0; i < ep->received.getNumChildren (); ++i)
+        {
+            UmpEvent ev (ep->received[i].createCopy ());
+            ev.endpointName = name;
+            ev.isReceived   = true;
+            if (filterMidiEvent (ev))
+            {
+                midiProperties.midiEvents.append (&ev);
+                midiProperties.midiEvents.count.set (midiProperties.midiEvents.count.get () + 1);
+            }
+        }
+        for (int i = 0; i < ep->transmitted.getNumChildren (); ++i)
+        {
+            UmpEvent ev (ep->transmitted[i].createCopy ());
+            ev.endpointName = name;
+            ev.isReceived   = false;
+            if (filterMidiEvent (ev))
+            {
+                midiProperties.midiEvents.append (&ev);
+                midiProperties.midiEvents.count.set (midiProperties.midiEvents.count.get () + 1);
+            }
+        }
+    }
+
+    struct TimestampSort
+    {
+        int compareElements (const juce::ValueTree& a, const juce::ValueTree& b)
+        {
+            double ta = a.getProperty (UmpEvent::timestampId, 0.0);
+            double tb = b.getProperty (UmpEvent::timestampId, 0.0);
+            return ta < tb ? -1 : (ta > tb ? 1 : 0);
+        }
+    };
+    TimestampSort comp;
+    midiProperties.midiEvents.sort (comp, true);
+
+    constexpr int kMaxEvents = 100;
+    while (midiProperties.midiEvents.getNumChildren () > kMaxEvents)
+        midiProperties.midiEvents.remove (0);
+    midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
+#endif
 }
 
 bool MidiController::filterMidiEvent (UmpEvent& event)

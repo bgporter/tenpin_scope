@@ -64,13 +64,10 @@ void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
 
 DeviceView::DeviceView (AppContext& theAppContext)
 : appContext { theAppContext }
-, midiProperties { appContext.runtimeContext }
+, runtimeContext { appContext }
+, midiProperties { runtimeContext }
 , resizer { theAppContext }
 {
-    if (!midiProperties.wasWrapped ())
-    {
-        ERROR_ ("MidiProperties not wrapped");
-    }
     addAndMakeVisible (resizer);
     rebuild ();
 

@@ -37,7 +37,7 @@ class MidiController : public juce::ump::EndpointsListener,
                        public juce::Timer
 {
 public:
-    MidiController (juce::StringRef sessionName, const AppContext& appContext);
+    MidiController (juce::StringRef sessionName, AppContext& appContext);
 
     ~MidiController () override;
 
@@ -65,6 +65,13 @@ private:
      * @param event
      */
     void addMidiEvent (UmpEvent& event);
+
+    /**
+     * @brief Rebuild the top-level midiEvents list from all per-endpoint
+     * received/transmitted lists. Used when clearing at capacity so we retain
+     * the most recent events across all endpoints rather than discarding them.
+     */
+    void rebuildMidiEventsFromEndpoints ();
 
     /**
      * @brief Filter a MIDI event to see if it should be added to the event list.

@@ -54,7 +54,7 @@ public:
      * fresh Endpoint instance using the ID.
      * @param midiProperties The MidiProperties object to append this endpoint's properties to.
      */
-    EndpointController (int index, juce::ump::EndpointId id, MidiProperties& midiProperties);
+    EndpointController (int index, juce::ump::EndpointId id, const MidiProperties& midiProperties);
 
     /**
      * @brief Destructor for the Endpoint Controller object.
@@ -85,6 +85,7 @@ private:
     int endpointIndex { -1 };
     juce::ump::Input input;
     juce::ump::Output output;
+    MidiProperties midiProperties;
     MidiEndpointProperties midiEndpointProperties;
     /// @brief The time when the first packet was received from any endpoint.
     static inline double startTime { -1 };

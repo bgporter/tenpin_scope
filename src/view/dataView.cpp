@@ -29,25 +29,33 @@
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
-, midiProperties { runtimeContext }
-, dataViewHandler { std::make_unique<DataViewHandler> (appContext) }
-, eventListView { appContext }
+, eventListView {
+      appContext,
+      [this] (EventListChange change, int newCount)
+      {
+          if (change == EventListChange::appended)
+          {
+              eventListView.visibleAreaChanged (viewport.getViewArea ());
+              if (wasAtBottomBeforeAdd)
+                  viewport.setViewPositionProportionately (0.0, 1.0);
+          }
+          else if (change == EventListChange::cleared)
+          {
+              viewport.setViewPositionProportionately (0.0, 0.0);
+          }
+      },
+      [this]
+      {
+          wasAtBottomBeforeAdd =
+              viewport.getViewPositionY () + viewport.getViewHeight () >=
+              viewport.getViewedComponent ()->getHeight () - 10;
+      }
+  }
 {
     addAndMakeVisible (viewport);
     viewport.setViewedComponent (&eventListView, false);
 
-    // Add scroll listener for virtual scrolling
     viewport.getVerticalScrollBar ().addListener (this);
-
-    midiProperties.midiEvents.onChildAdded = [this] (juce::ValueTree& vt, int, int)
-    {
-        const auto entry = juce::Time::getMillisecondCounterHiRes ();
-        if (const auto result = dataViewHandler->handle (UmpEvent (vt)); result == UmpHandler::Result::ok)
-            addEventView (dataViewHandler->getEventView ());
-        const auto exit           = juce::Time::getMillisecondCounterHiRes ();
-        const auto processingTime = exit - entry;
-        DBG ("******* UMP HANDLER time: " << processingTime);
-    };
 }
 
 DataView::~DataView ()
@@ -66,25 +74,10 @@ void DataView::resized ()
     viewport.setBounds (getLocalBounds ());
     eventListView.parentSizeChanged ();
 
-    // Establish visible area for virtual scrolling
     eventListView.visibleAreaChanged (viewport.getViewArea ());
-}
-
-void DataView::addEventView (std::unique_ptr<EventView> eventView)
-{
-    // Check if we're already at the bottom before adding
-    const bool wasAtBottom =
-        viewport.getViewPositionY () + viewport.getViewHeight () >= viewport.getViewedComponent ()->getHeight () - 10;
-
-    eventListView.addEventView (std::move (eventView));
-
-    // Only auto-scroll if we were already at the bottom
-    if (wasAtBottom)
-        viewport.setViewPositionProportionately (0.0, 1.0);
 }
 
 void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)
 {
-    // Notify EventListView of visible area change for virtual scrolling
     eventListView.visibleAreaChanged (viewport.getViewArea ());
 }
