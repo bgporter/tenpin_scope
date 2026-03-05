@@ -29,28 +29,7 @@
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
-, eventListView {
-      appContext,
-      [this] (EventListChange change, int newCount)
-      {
-          if (change == EventListChange::appended)
-          {
-              eventListView.visibleAreaChanged (viewport.getViewArea ());
-              if (wasAtBottomBeforeAdd)
-                  viewport.setViewPositionProportionately (0.0, 1.0);
-          }
-          else if (change == EventListChange::cleared)
-          {
-              viewport.setViewPositionProportionately (0.0, 0.0);
-          }
-      },
-      [this]
-      {
-          wasAtBottomBeforeAdd =
-              viewport.getViewPositionY () + viewport.getViewHeight () >=
-              viewport.getViewedComponent ()->getHeight () - 10;
-      }
-  }
+, eventListView { appContext }
 {
     addAndMakeVisible (viewport);
     viewport.setViewedComponent (&eventListView, false);
@@ -72,7 +51,7 @@ void DataView::paint (juce::Graphics& g)
 void DataView::resized ()
 {
     viewport.setBounds (getLocalBounds ());
-    eventListView.parentSizeChanged ();
+    eventListView.widthChanged (getWidth ());
 
     eventListView.visibleAreaChanged (viewport.getViewArea ());
 }

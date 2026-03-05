@@ -28,108 +28,93 @@
 #include "palette.h"
 #include "utility/logger.h"
 
-EventListView::EventListView (AppContext& theAppContext, OnEventListChangedFn onEventListChangedFn,
-                              OnBeforeEventAddedFn onBeforeEventAddedFn)
+EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
-, onEventListChanged { std::move (onEventListChangedFn) }
-, onBeforeEventAdded { std::move (onBeforeEventAddedFn) }
 , handler { std::make_unique<EventListViewHandler> (appContext) }
+, eventViewPool { appContext }
 {
-    eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { handleEventAdded (vt); };
-    eventList.onChildrenCleared = [this] () { handleChildrenCleared (); };
+    eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };
+    eventList.onChildrenCleared = [this] () { clear (); };
 
-    // Sync initial state if list already has events
-    const int count = eventList.getNumChildren ();
-    if (count > 0)
-    {
-        for (int i = 0; i < count; ++i)
-        {
-            UmpEvent event (eventList[i]);
-            if (handler->handle (event) == UmpHandler::Result::ok)
-            {
-                auto view           = handler->getEventView ();
-                const int width     = getWidth ();
-                const int newHeight = view->getContentHeight (width);
-                eventHeights.push_back (newHeight);
-                int prevCumulative = cumulativeHeights.empty () ? 0 : cumulativeHeights.back ();
-                cumulativeHeights.push_back (prevCumulative + newHeight);
-            }
-        }
-    }
+    // Sync initial state if list already has events?
+    // I'm not sure if this can happen, figure it out later.
+    // iterate through the event list,
 }
 
-void EventListView::handleEventAdded (juce::ValueTree& vt)
+void EventListView::clear ()
 {
-    if (onBeforeEventAdded)
-        onBeforeEventAdded ();
+    TRACE_ ("EventListView::clear");
+    for (; !visibleEventViews.empty (); visibleEventViews.pop_front ())
+    {
+        eventViewPool.returnEventView (std::move (visibleEventViews.front ()));
+    }
+    visibleEventViews.clear ();
+    eventPositions.clear ();
+    eventPositions.push_back (0);
+    setSize (getWidth (), 0);
+}
 
+void EventListView::addEvent (juce::ValueTree& vt)
+{
     UmpEvent event (vt);
-    if (handler->handle (event) != UmpHandler::Result::ok)
-        return;
-
-    auto eventView      = handler->getEventView ();
-    const int width     = getWidth ();
-    const int newHeight = eventView->getContentHeight (width);
-    eventView->setSize (width, newHeight);
-
-    const int eventIndex = static_cast<int> (eventHeights.size ());
-
-    eventHeights.push_back (newHeight);
-    int prevCumulative = cumulativeHeights.empty () ? 0 : cumulativeHeights.back ();
-    cumulativeHeights.push_back (prevCumulative + newHeight);
-
-    // After a clear, currentVisibleRange is empty; establish it so new events get views
-    if (currentVisibleRange.isEmpty ())
-        currentVisibleRange = juce::Range<int> (eventIndex, eventIndex + 1);
-
-    if (isInBufferZone (eventIndex))
+    auto eventView { eventViewPool.getEventView () };
+    const auto result { handler->handle (event, eventList.getNumChildren (), eventView.get (), getWidth ()) };
+    if (result != UmpHandler::Result::ok)
     {
-        if (newHeight > 0)
-            addAndMakeVisible (eventView.get ());
-        activeViews[eventIndex] = std::move (eventView);
-        positionView (eventIndex);
+        const auto fmt { juce::XmlElement::TextFormat ().singleLine ().withoutHeader () };
+        WARN_ ({
+            {   "msg",  "Failed to handle event"},
+            { "event",      vt.toXmlString (fmt)},
+            {"result", static_cast<int> (result)}
+        });
+        return;
     }
 
-    updateContentSize ();
+    // we always need to know where this new view should be positioned, and we
+    // always need to grow the component to hold it, whether we are about to actually
+    // display it or not.
+    // calculate the y-position of the view & add it to the event positions
 
-    if (onEventListChanged)
-        onEventListChanged (EventListChange::appended, eventList.getNumChildren ());
+    const auto eventPosition = [this, &eventView] () -> int
+    {
+        if (eventPositions.empty ())
+            return 0;
+        return eventPositions.back () + eventView->getHeight ();
+    }();
+    eventPositions.push_back (eventPosition);
+    setSize (getWidth (), eventPosition + eventView->getHeight ());
+
+    if (shouldDisplayNewEvent ())
+    {
+        addAndMakeVisible (eventView.get ());
+        eventView->setTopLeftPosition (0, eventPosition);
+        DBG ("Adding event " << eventPositions.size () - 1 << " view at position: " << eventPosition);
+        DBG ("event bounds: " << eventView->getBounds ().toString ());
+        visibleEventViews.push_back (std::move (eventView));
+        viewport->setViewPositionProportionately (0.0, 1.0);
+    }
+    else
+    {
+        // we only needed to create the view to calculate its size, so
+        // we can return it to the pool.
+        eventViewPool.returnEventView (std::move (eventView));
+    }
 }
 
-void EventListView::handleChildrenCleared ()
+void EventListView::widthChanged (int newWidth)
 {
-    // for (auto& [index, view] : activeViews)
-    //     removeChildComponent (view.get ());
-    activeViews.clear ();
-    eventHeights.clear ();
-    cumulativeHeights.clear ();
-    currentVisibleRange = juce::Range<int> ();
+    DBG ("EventListView::widthChanged: " << newWidth);
+    // for now, just update the width. We'll need to recalc the positions
+    // which will also update the height.
+    setSize (newWidth, getHeight ());
+}
 
-    // const int count = eventList.getNumChildren ();
-    // if (count > 0)
-    // {
-    //     for (int i = 0; i < count; ++i)
-    //     {
-    //         UmpEvent event (eventList[i]);
-    //         if (handler->handle (event) == UmpHandler::Result::ok)
-    //         {
-    //             auto view           = handler->getEventView ();
-    //             const int width     = getWidth ();
-    //             const int newHeight = view->getContentHeight (width);
-    //             eventHeights.push_back (newHeight);
-    //             int prevCumulative = cumulativeHeights.empty () ? 0 : cumulativeHeights.back ();
-    //             cumulativeHeights.push_back (prevCumulative + newHeight);
-    //         }
-    //     }
-    // }
-
-    updateContentSize ();
-
-    if (onEventListChanged)
-        onEventListChanged (EventListChange::cleared, 0);
+bool EventListView::shouldDisplayNewEvent () const
+{
+    return true;
 }
 
 void EventListView::paint (juce::Graphics& g)
@@ -144,153 +129,47 @@ void EventListView::paint (juce::Graphics& g)
 
 void EventListView::resized ()
 {
-    const int width = getWidth ();
-    for (auto& [index, view] : activeViews)
-    {
-        int oldHeight = eventHeights[index];
-        int newHeight = view->getContentHeight (width);
+    // const int width = getWidth ();
+    // for (auto& [index, view] : activeViews)
+    // {
+    //     int oldHeight = eventHeights[index];
+    //     int newHeight = view->getContentHeight (width);
 
-        if (newHeight != oldHeight)
-        {
-            eventHeights[index] = newHeight;
-            recalculateCumulativeHeightsFrom (index);
-        }
+    //     if (newHeight != oldHeight)
+    //     {
+    //         eventHeights[index] = newHeight;
+    //         recalculateCumulativeHeightsFrom (index);
+    //     }
 
-        positionView (index);
-    }
+    //     positionView (index);
+    // }
 
-    updateContentSize ();
-}
-
-int EventListView::getContentHeight () const
-{
-    return cumulativeHeights.empty () ? 0 : cumulativeHeights.back ();
-}
-
-void EventListView::parentSizeChanged ()
-{
-    const auto newWidth { getParentWidth () };
-    const auto newHeight { std::max (getContentHeight (), getParentHeight ()) };
-
-    if (newWidth != getWidth () || newHeight != getHeight ())
-        setSize (newWidth, newHeight);
-    else
-        resized ();
+    // updateContentSize ();
 }
 
 void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleArea)
 {
-    if (eventHeights.empty ())
+    if (visibleArea == newVisibleArea)
         return;
+
+    visibleArea = newVisibleArea;
 
     int firstVisible = findEventAtYPosition (newVisibleArea.getY ());
     int lastVisible  = findEventAtYPosition (newVisibleArea.getBottom ());
-
-    int bufferStart = std::max (0, firstVisible - bufferZoneEvents);
-    int bufferEnd   = std::min (static_cast<int> (eventHeights.size ()) - 1, lastVisible + bufferZoneEvents);
-
-    juce::Range<int> newBufferRange (bufferStart, bufferEnd + 1);
-
-    if (newBufferRange == currentVisibleRange)
-        return;
-
-    cullViewsOutsideRange (newBufferRange);
-    createViewsInRange (newBufferRange);
-
-    currentVisibleRange = newBufferRange;
 }
 
 int EventListView::findEventAtYPosition (int yPos) const
 {
-    if (cumulativeHeights.empty ())
+    if (eventPositions.empty ())
         return 0;
 
-    auto it = std::upper_bound (cumulativeHeights.begin (), cumulativeHeights.end (), yPos);
-    if (it == cumulativeHeights.end ())
-        return static_cast<int> (eventHeights.size ()) - 1;
-
-    return static_cast<int> (std::distance (cumulativeHeights.begin (), it));
-}
-
-void EventListView::cullViewsOutsideRange (const juce::Range<int>& keepRange)
-{
-    std::vector<int> toRemove;
-
-    for (const auto& [index, view] : activeViews)
+    int prevPosition = 0;
+    for (int i = 1; i < static_cast<int> (eventPositions.size ()); ++i)
     {
-        if (!keepRange.contains (index))
-            toRemove.push_back (index);
+        const int currentPosition = eventPositions[i];
+        if (yPos < currentPosition && yPos >= prevPosition)
+            return i - 1;
+        prevPosition = currentPosition;
     }
-
-    for (int index : toRemove)
-    {
-        removeChildComponent (activeViews[index].get ());
-        activeViews.erase (index);
-    }
-}
-
-void EventListView::createViewsInRange (const juce::Range<int>& range)
-{
-    const int modelSize = eventList.getNumChildren ();
-
-    for (int i = range.getStart (); i < range.getEnd (); ++i)
-    {
-        if (i >= modelSize || activeViews.count (i) > 0)
-            continue;
-
-        UmpEvent event (eventList[i]);
-        if (handler->handle (event) != UmpHandler::Result::ok)
-            continue;
-
-        auto view        = handler->getEventView ();
-        const int width  = getWidth ();
-        const int height = view->getContentHeight (width);
-        view->setSize (width, height);
-        if (i < static_cast<int> (eventHeights.size ()) && eventHeights[i] > 0)
-            addAndMakeVisible (view.get ());
-        activeViews[i] = std::move (view);
-        positionView (i);
-    }
-}
-
-void EventListView::positionView (int index)
-{
-    if (activeViews.count (index) == 0)
-        return;
-
-    int yPos   = (index == 0) ? 0 : cumulativeHeights[index - 1];
-    int height = eventHeights[index];
-
-    activeViews[index]->setBounds (0, yPos, getWidth (), height);
-}
-
-void EventListView::recalculateCumulativeHeightsFrom (int startIndex)
-{
-    if (startIndex >= static_cast<int> (eventHeights.size ()))
-        return;
-
-    int cumulative = (startIndex == 0) ? 0 : cumulativeHeights[startIndex - 1];
-
-    for (int i = startIndex; i < static_cast<int> (eventHeights.size ()); ++i)
-    {
-        cumulative += eventHeights[i];
-        cumulativeHeights[i] = cumulative;
-    }
-}
-
-void EventListView::updateContentSize ()
-{
-    const auto newWidth { getParentWidth () };
-    const auto newHeight { std::max (getContentHeight (), getParentHeight ()) };
-
-    if (newWidth != getWidth () || newHeight != getHeight ())
-        setSize (newWidth, newHeight);
-}
-
-bool EventListView::isInBufferZone (int eventIndex) const
-{
-    if (currentVisibleRange.isEmpty ())
-        return false;
-
-    return currentVisibleRange.contains (eventIndex);
+    return static_cast<int> (eventPositions.size ()) - 1;
 }

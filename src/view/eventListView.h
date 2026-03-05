@@ -45,65 +45,86 @@ enum class EventListChange
 class EventListView : public juce::Component
 {
 public:
-    using OnEventListChangedFn = std::function<void (EventListChange change, int newCount)>;
-    using OnBeforeEventAddedFn = std::function<void ()>;
-
-    EventListView (AppContext& theAppContext, OnEventListChangedFn onEventListChanged = nullptr,
-                   OnBeforeEventAddedFn onBeforeEventAdded = nullptr);
+    EventListView (AppContext& theAppContext);
 
     void paint (juce::Graphics& g) override;
 
     void resized () override;
 
     /**
-     * @brief respond to resize events affecting the viewport that owns this component.
-     */
-    void parentSizeChanged () override;
-
-    /**
-     * @brief Calculate the sum of the heights of our contained components.
+     * @brief Removes all EventViews from the list/display, returning them to the pool
+     * and clears the event positions.
      *
-     * @return int total required height.
      */
-    int getContentHeight () const;
+    void clear ();
 
     /**
-     * @brief Called when viewport scrolls to update visible views
+     * @brief Called when viewport scrolls to update visible views.
+     * We need to:
+     * - map from the visible area to the event indices
+     * - remove any views that are no longer needed
+     * - create any views that are needed, and add them to the visible event views
+     * - position the views
      */
     void visibleAreaChanged (const juce::Rectangle<int>& newVisibleArea);
+
+    /**
+     * @brief Called when the width of the list changes, so we can recalculate the positions of the events.
+     */
+    void widthChanged (int newWidth);
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventListView)
 
-    void handleEventAdded (juce::ValueTree& vt);
-    void handleChildrenCleared ();
     int findEventAtYPosition (int yPos) const;
-    void cullViewsOutsideRange (const juce::Range<int>& keepRange);
     void createViewsInRange (const juce::Range<int>& range);
-    void positionView (int index);
-    void recalculateCumulativeHeightsFrom (int startIndex);
-    void updateContentSize ();
-    bool isInBufferZone (int eventIndex) const;
+
+    /**
+     * @brief Called when the parent hierarchy changes, so we can find the
+     * viewport that owns us.
+     */
+    void parentHierarchyChanged () override
+    {
+        if (viewport == nullptr)
+            viewport = findParentComponentOfClass<juce::Viewport> ();
+    }
+
+    /**
+     * @brief Determine if the new event should be displayed.
+     */
+    bool shouldDisplayNewEvent () const;
+    void addEvent (juce::ValueTree& vt);
+    class EventViewPool
+    {
+    public:
+        EventViewPool (AppContext& theAppContext)
+        : appContext (theAppContext)
+        {
+        }
+        ~EventViewPool () = default;
+
+        std::unique_ptr<EventView> getEventView () { return std::make_unique<EventView> (appContext); }
+
+        void returnEventView (std::unique_ptr<EventView> view) { pool.push (std::move (view)); }
+
+    private:
+        std::stack<std::unique_ptr<EventView>> pool;
+        AppContext appContext;
+    };
 
     AppContext appContext;
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
     EventList eventList;
-    OnEventListChangedFn onEventListChanged;
-    OnBeforeEventAddedFn onBeforeEventAdded;
 
+    juce::Viewport* viewport { nullptr };
     std::unique_ptr<class EventListViewHandler> handler;
+    EventViewPool eventViewPool;
+    std::deque<std::unique_ptr<EventView>> visibleEventViews;
+    juce::Rectangle<int> visibleArea;
 
-    // Height metadata (persistent for ALL events)
-    std::vector<int> eventHeights;      // One height per event
-    std::vector<int> cumulativeHeights; // Prefix sums for O(1) position lookup
-
-    // Active views (sparse, only visible + buffer)
-    std::map<int, std::unique_ptr<EventView>> activeViews; // Index → View
-
-    // Viewport tracking
-    int bufferZoneEvents { 100 };         // Keep ±100 events outside viewport
-    juce::Range<int> currentVisibleRange; // Currently visible event indices
+    // y-position metadata (persistent for ALL events), recalculated as needed
+    std::vector<int> eventPositions;
 };
 
 class EventListViewHandler : public UmpHandler
@@ -113,18 +134,19 @@ public:
     : appContext (theAppContext)
     {
     }
-    ~EventListViewHandler () override { eventView.reset (); }
+    ~EventListViewHandler () override { eventView = nullptr; }
 
-    std::unique_ptr<EventView> getEventView () { return std::move (eventView); }
+    UmpHandler::Result handle (const UmpEvent& event, int index, EventView* view, int width)
+    {
+        eventView    = view;
+        currentIndex = index;
+        currentWidth = width;
+        return UmpHandler::handle (event);
+    }
 
 private:
-    AppContext appContext;
-    juce::String eventDescription;
-    std::unique_ptr<EventView> eventView;
-
     UmpHandler::Result preDispatch (const UmpEvent& event) override
     {
-        eventView.reset ();
         eventDescription.clear ();
         eventDescription << event.timestamp << " ";
         eventDescription << event.endpointName << " ";
@@ -135,8 +157,13 @@ private:
     UmpHandler::Result postDispatch (UmpHandler::Result pendingResult) override
     {
         if (pendingResult == UmpHandler::Result::ok)
-            eventView = std::make_unique<EventView> (appContext, eventDescription);
-        eventDescription.clear ();
+        {
+            eventView->setDescription (eventDescription);
+            eventView->sizeToWidth (currentWidth);
+            eventView    = nullptr;
+            currentIndex = -1;
+            currentWidth = 0;
+        }
         return pendingResult;
     }
 
@@ -306,4 +333,10 @@ private:
         eventDescription << juce::String::formatted ("%08X", event.getattr<uint32_t> (UmpWords::data1Id, 0));
         return UmpHandler::Result::ok;
     }
+
+    AppContext appContext;
+    juce::String eventDescription;
+    EventView* eventView;
+    int currentIndex;
+    int currentWidth;
 };
