@@ -24,9 +24,23 @@
 
 #include "eventListView.h"
 
+#include <fstream>
+
 #include "model/ump/umpEvent.h"
 #include "palette.h"
 #include "utility/logger.h"
+
+// #region agent log
+static void dbgLog (const char* loc, const char* msg, const juce::String& dataJson)
+{
+    std::ofstream f ("/Users/bgporter/personal/tetrakite/tenpin_scope/.cursor/debug-3b3d93.log",
+                    std::ios::app);
+    if (f)
+        f << "{\"sessionId\":\"3b3d93\",\"location\":\"" << loc << "\",\"message\":\"" << msg
+          << "\",\"data\":" << dataJson.toStdString () << ",\"timestamp\":"
+          << juce::Time::getCurrentTime ().toMilliseconds () << "}\n";
+}
+// #endregion
 
 EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
@@ -46,22 +60,31 @@ EventListView::EventListView (AppContext& theAppContext)
 
 void EventListView::clear ()
 {
+    // #region agent log
+    dbgLog ("eventListView.cpp:clear:entry", "clear called",
+            "{\"getHeight\":" + juce::String (getHeight ()) + ",\"eventPositionsSize\":" + juce::String (eventPositions.size ()) + ",\"hypothesisId\":\"B\"}");
+    // #endregion
     TRACE_ ("EventListView::clear");
-    for (; !visibleEventViews.empty (); visibleEventViews.pop_front ())
+    while (!visibleEventViews.empty ())
     {
-        eventViewPool.returnEventView (std::move (visibleEventViews.front ()));
+        auto& eventView = visibleEventViews.front ();
+        removeChildComponent (eventView.get ());
+        eventViewPool.returnEventView (std::move (eventView));
+        visibleEventViews.pop_front ();
     }
-    visibleEventViews.clear ();
+    visibleEventRange = juce::Range<int> ();
     eventPositions.clear ();
-    eventPositions.push_back (0);
     setSize (getWidth (), 0);
+    // #region agent log
+    dbgLog ("eventListView.cpp:clear:exit", "clear done", "{\"setSizeTo\":0,\"hypothesisId\":\"B\"}");
+    // #endregion
 }
 
-void EventListView::addEvent (juce::ValueTree& vt)
+std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, int index, int width)
 {
     UmpEvent event (vt);
     auto eventView { eventViewPool.getEventView () };
-    const auto result { handler->handle (event, eventList.getNumChildren (), eventView.get (), getWidth ()) };
+    const auto result { handler->handle (event, index, eventView.get (), width) };
     if (result != UmpHandler::Result::ok)
     {
         const auto fmt { juce::XmlElement::TextFormat ().singleLine ().withoutHeader () };
@@ -70,30 +93,53 @@ void EventListView::addEvent (juce::ValueTree& vt)
             { "event",      vt.toXmlString (fmt)},
             {"result", static_cast<int> (result)}
         });
-        return;
+        eventViewPool.returnEventView (std::move (eventView));
+        return nullptr;
     }
+    return eventView;
+}
+
+void EventListView::addEvent (juce::ValueTree vt)
+{
+    // #region agent log
+    const auto h = getHeight ();
+    // #endregion
+    int index = static_cast<int> (eventList.getNumChildren ()) - 1;
+    auto eventView { createEventView (vt, index, getWidth ()) };
+    if (eventView == nullptr)
+        return;
+
+    // #region agent log
+    const auto eh = eventView->getHeight ();
+    dbgLog ("eventListView.cpp:addEvent", "addEvent",
+            "{\"index\":" + juce::String (index) + ",\"getHeight\":" + juce::String (h)
+                + ",\"eventHeight\":" + juce::String (eh) + ",\"eventListSize\":"
+                + juce::String (eventList.getNumChildren ()) + ",\"hypothesisId\":\"A,E\"}");
+    // #endregion
 
     // we always need to know where this new view should be positioned, and we
     // always need to grow the component to hold it, whether we are about to actually
     // display it or not.
-    // calculate the y-position of the view & add it to the event positions
+    // When we add a new event, it always begins at the current height
+    // of this view.
 
-    const auto eventPosition = [this, &eventView] () -> int
-    {
-        if (eventPositions.empty ())
-            return 0;
-        return eventPositions.back () + eventView->getHeight ();
-    }();
+    const auto eventPosition = getHeight ();
+    const auto eventHeight { eventView->getHeight () };
+    // #region agent log
+    dbgLog ("eventListView.cpp:addEvent:setSize", "before setSize",
+            "{\"eventPosition\":" + juce::String (eventPosition) + ",\"eventHeight\":"
+                + juce::String (eventHeight) + ",\"newHeight\":" + juce::String (eventPosition + eventHeight) + ",\"hypothesisId\":\"A\"}");
+    // #endregion
     eventPositions.push_back (eventPosition);
-    setSize (getWidth (), eventPosition + eventView->getHeight ());
 
     if (shouldDisplayNewEvent ())
     {
-        addAndMakeVisible (eventView.get ());
-        eventView->setTopLeftPosition (0, eventPosition);
-        DBG ("Adding event " << eventPositions.size () - 1 << " view at position: " << eventPosition);
+        // addAndMakeVisible (eventView.get ());
+        // eventView->setTopLeftPosition (0, eventPosition);
+        DBG ("Adding event " << index << " view at position: " << eventPosition);
         DBG ("event bounds: " << eventView->getBounds ().toString ());
-        visibleEventViews.push_back (std::move (eventView));
+        displayEvent (std::move (eventView), index, InsertionPoint::bottom);
+        setSize (getWidth (), eventPosition + eventHeight);
         viewport->setViewPositionProportionately (0.0, 1.0);
     }
     else
@@ -101,15 +147,98 @@ void EventListView::addEvent (juce::ValueTree& vt)
         // we only needed to create the view to calculate its size, so
         // we can return it to the pool.
         eventViewPool.returnEventView (std::move (eventView));
+        setSize (getWidth (), eventPosition + eventHeight);
+    }
+}
+
+void EventListView::displayEvent (std::unique_ptr<EventView> eventView, int index, InsertionPoint insertionPoint)
+{
+    if (eventView == nullptr)
+    {
+        ERROR_ ("EventListView::displayEvent: eventView is nullptr");
+        return;
+    }
+    if (index < 0 || index >= static_cast<int> (eventPositions.size ()))
+    {
+        ERROR_ ("EventListView::displayEvent: index is out of bounds");
+        return;
+    }
+    eventView->setTopLeftPosition (0, eventPositions[index]);
+    addAndMakeVisible (eventView.get ());
+
+    switch (insertionPoint)
+    {
+        case InsertionPoint::top:
+            visibleEventViews.push_front (std::move (eventView));
+            visibleEventRange.setStart (visibleEventRange.isEmpty ()
+                                            ? index
+                                            : std::min (visibleEventRange.getStart (), index));
+            break;
+        case InsertionPoint::bottom:
+            visibleEventViews.push_back (std::move (eventView));
+            if (visibleEventRange.isEmpty ())
+                visibleEventRange.setStart (index);
+            visibleEventRange.setEnd (index + 1);
+            break;
+    }
+}
+
+void EventListView::hideEvent (InsertionPoint insertionPoint)
+{
+    switch (insertionPoint)
+    {
+        case InsertionPoint::top:
+        {
+            auto& eventView = visibleEventViews.front ();
+            removeChildComponent (eventView.get ());
+            eventViewPool.returnEventView (std::move (eventView));
+            visibleEventViews.pop_front ();
+            visibleEventRange.setStart (visibleEventRange.getStart () + 1);
+            break;
+        }
+        case InsertionPoint::bottom:
+        {
+            auto& eventView = visibleEventViews.back ();
+            removeChildComponent (eventView.get ());
+            eventViewPool.returnEventView (std::move (eventView));
+            visibleEventViews.pop_back ();
+            visibleEventRange.setEnd (visibleEventRange.getEnd () - 1);
+            break;
+        }
     }
 }
 
 void EventListView::widthChanged (int newWidth)
 {
+    if (newWidth == getWidth ())
+        return;
+    // #region agent log
+    dbgLog ("eventListView.cpp:widthChanged:entry", "widthChanged called",
+            "{\"newWidth\":" + juce::String (newWidth) + ",\"eventListSize\":"
+                + juce::String (eventList.getNumChildren ()) + ",\"hypothesisId\":\"C\"}");
+    // #endregion
     DBG ("EventListView::widthChanged: " << newWidth);
+    int newHeight { 0 };
+    clear ();
     // for now, just update the width. We'll need to recalc the positions
     // which will also update the height.
     setSize (newWidth, getHeight ());
+
+    for (int i = 0; i < eventList.getNumChildren (); ++i)
+    {
+        eventPositions.push_back (newHeight);
+        auto eventView { createEventView (eventList[i], i, newWidth) };
+        if (eventView == nullptr)
+            continue;
+        newHeight += eventView->getHeight ();
+        eventViewPool.returnEventView (std::move (eventView));
+    }
+    setSize (newWidth, newHeight);
+    // #region agent log
+    dbgLog ("eventListView.cpp:widthChanged:exit", "widthChanged done",
+            "{\"newHeight\":" + juce::String (newHeight) + ",\"eventListSize\":"
+                + juce::String (eventList.getNumChildren ()) + ",\"hypothesisId\":\"C\"}");
+    // #endregion
 }
 
 bool EventListView::shouldDisplayNewEvent () const
@@ -154,8 +283,83 @@ void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleAr
 
     visibleArea = newVisibleArea;
 
-    int firstVisible = findEventAtYPosition (newVisibleArea.getY ());
-    int lastVisible  = findEventAtYPosition (newVisibleArea.getBottom ());
+    DBG ("visibleAreaChanged: " << newVisibleArea.toString ());
+
+    int firstVisible    = findEventAtYPosition (newVisibleArea.getY ());
+    const auto newStart = std::max (firstVisible - 2, 0);
+    int lastVisible     = findEventAtYPosition (newVisibleArea.getBottom ());
+    const auto newEnd   = std::min (lastVisible + 2, static_cast<int> (eventList.getNumChildren ()));
+
+    DBG ("firstVisible: " << newStart << " lastVisible: " << newEnd);
+    juce::Range<int> newVisibleRange (newStart, newEnd);
+    if (newVisibleRange == visibleEventRange)
+        return;
+
+    const auto currentStart = visibleEventRange.getStart ();
+    const auto currentEnd   = visibleEventRange.getEnd ();
+
+    // case 1: there's no overlap between the new visible range and the current visible range
+    if (!newVisibleRange.intersects (visibleEventRange))
+    {
+        DBG ("***************** NO OVERLAP *****************");
+        // clear all visible event view
+        while (!visibleEventViews.empty ())
+        {
+            hideEvent (InsertionPoint::bottom);
+        }
+        // add the new visible event views
+        for (auto i { newStart }; i < newEnd; ++i)
+        {
+            auto eventView { createEventView (eventList[i], i, getWidth ()) };
+            if (eventView == nullptr)
+            {
+                continue;
+            }
+            displayEvent (std::move (eventView), i, InsertionPoint::bottom);
+        }
+    }
+    else
+    {
+        // case 2: changes at the beginning of the current visible range
+        if (newStart > currentStart)
+        {
+            DBG ("*****DELETE EVENTS " << currentStart << ".." << newStart << " ABOVE THE CURRENT VISIBLE RANGE*****");
+            const auto toRemove = std::min (newStart - currentStart,
+                                            static_cast<int> (visibleEventViews.size ()));
+            for (auto i = 0; i < toRemove; ++i)
+                hideEvent (InsertionPoint::top);
+        }
+        else if (newStart < currentStart)
+        {
+            DBG ("*****ADD EVENTS " << newStart << ".." << currentStart << " ABOVE THE CURRENT VISIBLE RANGE*****");
+            // add events above the current visible range (reverse order so front = newStart)
+            for (auto i = currentStart - 1; i >= newStart; --i)
+            {
+                if (auto eventView { createEventView (eventList[i], i, getWidth ()) })
+                    displayEvent (std::move (eventView), i, InsertionPoint::top);
+            }
+        }
+        // case 3: changes at the end of the current visible range
+        if (newEnd < currentEnd)
+        {
+            DBG ("*****DELETE EVENTS " << newEnd << ".." << currentEnd << " BELOW THE CURRENT VISIBLE RANGE*****");
+            const auto toRemove = std::min (currentEnd - newEnd,
+                                            static_cast<int> (visibleEventViews.size ()));
+            for (auto i = 0; i < toRemove; ++i)
+                hideEvent (InsertionPoint::bottom);
+        }
+        else if (newEnd > currentEnd)
+        {
+            DBG ("*****ADD EVENTS " << currentEnd << ".." << newEnd << " BELOW THE CURRENT VISIBLE RANGE*****");
+            // add 1..n events below the current visible range
+            for (auto i { currentEnd }; i < newEnd; ++i)
+            {
+                if (auto eventView { createEventView (eventList[i], i, getWidth ()) })
+                    displayEvent (std::move (eventView), i, InsertionPoint::bottom);
+            }
+        }
+    }
+    visibleEventRange = newVisibleRange;
 }
 
 int EventListView::findEventAtYPosition (int yPos) const

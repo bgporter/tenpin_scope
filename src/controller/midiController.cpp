@@ -24,6 +24,8 @@
 
 #include "midiController.h"
 
+#include <fstream>
+
 #include "endpointController.h"
 #include "model/ump/umpEvent.h"
 #include "utility/logger.h"
@@ -74,6 +76,13 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
                 const int c = endpointProperties[propIndex]->received.count.get ();
                 if (c > 0 && c % 300 == 0)
                 {
+                    // #region agent log
+                    {
+                        std::ofstream f ("/Users/bgporter/personal/tetrakite/tenpin_scope/.cursor/debug-3b3d93.log", std::ios::app);
+                        if (f)
+                            f << "{\"sessionId\":\"3b3d93\",\"location\":\"midiController.cpp:300-clear\",\"message\":\"300 event clear triggered\",\"data\":{\"count\":" << c << ",\"hypothesisId\":\"D\"},\"timestamp\":" << juce::Time::getCurrentTime ().toMilliseconds () << "}\n";
+                    }
+                    // #endregion
                     DBG ("&&&&& CLEARING EVENTS FrOM " << endpointProperties[propIndex]->name);
                     endpointProperties[propIndex]->received.clear ();
                     midiProperties.midiEvents.clear ();
@@ -234,6 +243,13 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     sorter.sort (currentEvents);
 
     // add the events to the midiProperties.midiEvents list
+    // #region agent log
+    {
+        std::ofstream f ("/Users/bgporter/personal/tetrakite/tenpin_scope/.cursor/debug-3b3d93.log", std::ios::app);
+        if (f)
+            f << "{\"sessionId\":\"3b3d93\",\"location\":\"midiController.cpp:rebuild:beforeClear\",\"message\":\"rebuild about to clear midiEvents\",\"data\":{\"currentEventsSize\":" << currentEvents.getNumChildren () << ",\"hypothesisId\":\"D\"},\"timestamp\":" << juce::Time::getCurrentTime ().toMilliseconds () << "}\n";
+    }
+    // #endregion
     midiProperties.midiEvents.clear ();
     int i { 0 };
     for (const auto& ev : currentEvents)
@@ -242,6 +258,13 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
         midiProperties.midiEvents.addEvent (evCopy);
         ++i;
     }
+    // #region agent log
+    {
+        std::ofstream f ("/Users/bgporter/personal/tetrakite/tenpin_scope/.cursor/debug-3b3d93.log", std::ios::app);
+        if (f)
+            f << "{\"sessionId\":\"3b3d93\",\"location\":\"midiController.cpp:rebuild:done\",\"message\":\"rebuild finished adding events\",\"data\":{\"eventsAdded\":" << i << ",\"hypothesisId\":\"D\"},\"timestamp\":" << juce::Time::getCurrentTime ().toMilliseconds () << "}\n";
+    }
+    // #endregion
     DBG ("rebuilt midiEvents from endpoints: " << i << " events");
 #else
     midiProperties.midiEvents.clear ();

@@ -83,12 +83,12 @@ using MidiChannel = MidiRange1To16<struct ChannelTag>;
 
 namespace midi_literals
 {
-inline MidiGroup operator"" _gr (unsigned long long val)
+inline MidiGroup operator""_gr (unsigned long long val)
 {
     return MidiGroup (static_cast<int> (val));
 }
 
-inline MidiChannel operator"" _ch (unsigned long long val)
+inline MidiChannel operator""_ch (unsigned long long val)
 {
     return MidiChannel (static_cast<int> (val));
 }

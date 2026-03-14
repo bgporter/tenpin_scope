@@ -93,7 +93,17 @@ private:
      * @brief Determine if the new event should be displayed.
      */
     bool shouldDisplayNewEvent () const;
-    void addEvent (juce::ValueTree& vt);
+    void addEvent (juce::ValueTree vt);
+    enum class InsertionPoint
+    {
+        top,
+        bottom
+    };
+
+    void displayEvent (std::unique_ptr<EventView> eventView, int index, InsertionPoint insertionPoint);
+    void hideEvent (InsertionPoint insertionPoint);
+
+    std::unique_ptr<EventView> createEventView (juce::ValueTree vt, int index, int width);
     class EventViewPool
     {
     public:
@@ -103,7 +113,14 @@ private:
         }
         ~EventViewPool () = default;
 
-        std::unique_ptr<EventView> getEventView () { return std::make_unique<EventView> (appContext); }
+        std::unique_ptr<EventView> getEventView ()
+        {
+            if (pool.empty ())
+                return std::make_unique<EventView> (appContext);
+            auto eventView = std::move (pool.top ());
+            pool.pop ();
+            return eventView;
+        }
 
         void returnEventView (std::unique_ptr<EventView> view) { pool.push (std::move (view)); }
 
@@ -121,9 +138,11 @@ private:
     std::unique_ptr<class EventListViewHandler> handler;
     EventViewPool eventViewPool;
     std::deque<std::unique_ptr<EventView>> visibleEventViews;
+    juce::Range<int> visibleEventRange;
     juce::Rectangle<int> visibleArea;
 
-    // y-position metadata (persistent for ALL events), recalculated as needed
+    // upper-left y-position metadata (persistent for ALL events),
+    // recalculated as needed.
     std::vector<int> eventPositions;
 };
 
@@ -148,6 +167,7 @@ private:
     UmpHandler::Result preDispatch (const UmpEvent& event) override
     {
         eventDescription.clear ();
+        eventDescription << "(" << currentIndex << "): ";
         eventDescription << event.timestamp << " ";
         eventDescription << event.endpointName << " ";
         eventDescription << (event.isReceived ? "Rx" : "Tx") << " ";
