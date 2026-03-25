@@ -24,23 +24,9 @@
 
 #include "eventListView.h"
 
-#include <fstream>
-
 #include "model/ump/umpEvent.h"
 #include "palette.h"
 #include "utility/logger.h"
-
-// #region agent log
-static void dbgLog (const char* loc, const char* msg, const juce::String& dataJson)
-{
-    std::ofstream f ("/Users/bgporter/personal/tetrakite/tenpin_scope/.cursor/debug-3b3d93.log",
-                    std::ios::app);
-    if (f)
-        f << "{\"sessionId\":\"3b3d93\",\"location\":\"" << loc << "\",\"message\":\"" << msg
-          << "\",\"data\":" << dataJson.toStdString () << ",\"timestamp\":"
-          << juce::Time::getCurrentTime ().toMilliseconds () << "}\n";
-}
-// #endregion
 
 EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
@@ -69,10 +55,6 @@ EventListView::EventListView (AppContext& theAppContext)
 
 void EventListView::clear ()
 {
-    // #region agent log
-    dbgLog ("eventListView.cpp:clear:entry", "clear called",
-            "{\"getHeight\":" + juce::String (getHeight ()) + ",\"eventPositionsSize\":" + juce::String (eventPositions.size ()) + ",\"hypothesisId\":\"B\"}");
-    // #endregion
     TRACE_ ("EventListView::clear");
     while (!visibleEventViews.empty ())
     {
@@ -84,9 +66,6 @@ void EventListView::clear ()
     visibleEventRange = juce::Range<int> ();
     eventPositions.clear ();
     setSize (getWidth (), 0);
-    // #region agent log
-    dbgLog ("eventListView.cpp:clear:exit", "clear done", "{\"setSizeTo\":0,\"hypothesisId\":\"B\"}");
-    // #endregion
 }
 
 std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, int index, int width)
@@ -110,21 +89,10 @@ std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, i
 
 void EventListView::addEvent (juce::ValueTree vt)
 {
-    // #region agent log
-    const auto h = getHeight ();
-    // #endregion
     int index = static_cast<int> (eventList.getNumChildren ()) - 1;
     auto eventView { createEventView (vt, index, getWidth ()) };
     if (eventView == nullptr)
         return;
-
-    // #region agent log
-    const auto eh = eventView->getHeight ();
-    dbgLog ("eventListView.cpp:addEvent", "addEvent",
-            "{\"index\":" + juce::String (index) + ",\"getHeight\":" + juce::String (h)
-                + ",\"eventHeight\":" + juce::String (eh) + ",\"eventListSize\":"
-                + juce::String (eventList.getNumChildren ()) + ",\"hypothesisId\":\"A,E\"}");
-    // #endregion
 
     // we always need to know where this new view should be positioned, and we
     // always need to grow the component to hold it, whether we are about to actually
@@ -134,11 +102,6 @@ void EventListView::addEvent (juce::ValueTree vt)
 
     const auto eventPosition = getHeight ();
     const auto eventHeight { eventView->getHeight () };
-    // #region agent log
-    dbgLog ("eventListView.cpp:addEvent:setSize", "before setSize",
-            "{\"eventPosition\":" + juce::String (eventPosition) + ",\"eventHeight\":"
-                + juce::String (eventHeight) + ",\"newHeight\":" + juce::String (eventPosition + eventHeight) + ",\"hypothesisId\":\"A\"}");
-    // #endregion
     eventPositions.push_back (eventPosition);
 
     if (shouldDisplayNewEvent ())
@@ -221,11 +184,6 @@ void EventListView::widthChanged (int newWidth)
 {
     if (newWidth == getWidth ())
         return;
-    // #region agent log
-    dbgLog ("eventListView.cpp:widthChanged:entry", "widthChanged called",
-            "{\"newWidth\":" + juce::String (newWidth) + ",\"eventListSize\":"
-                + juce::String (eventList.getNumChildren ()) + ",\"hypothesisId\":\"C\"}");
-    // #endregion
     DBG ("EventListView::widthChanged: " << newWidth);
     int newHeight { 0 };
     clear ();
@@ -243,11 +201,6 @@ void EventListView::widthChanged (int newWidth)
         eventViewPool.returnEventView (std::move (eventView));
     }
     setSize (newWidth, newHeight);
-    // #region agent log
-    dbgLog ("eventListView.cpp:widthChanged:exit", "widthChanged done",
-            "{\"newHeight\":" + juce::String (newHeight) + ",\"eventListSize\":"
-                + juce::String (eventList.getNumChildren ()) + ",\"hypothesisId\":\"C\"}");
-    // #endregion
 }
 
 bool EventListView::shouldDisplayNewEvent () const
