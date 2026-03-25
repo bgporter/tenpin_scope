@@ -85,7 +85,6 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
                     // #endregion
                     DBG ("&&&&& CLEARING EVENTS FrOM " << endpointProperties[propIndex]->name);
                     endpointProperties[propIndex]->received.clear ();
-                    midiProperties.midiEvents.clear ();
                     rebuildMidiEventsFromEndpoints ();
                 }
             });
@@ -212,6 +211,7 @@ void MidiController::addMidiEvent (UmpEvent& event)
 void MidiController::rebuildMidiEventsFromEndpoints ()
 {
 #if 1
+    midiProperties.midiEvents.isRebuilding = true;
     // concatenate all the events from all the endpoints into a single event list
     EventList currentEvents { "midiEvents" };
     for (const auto& ep : endpointProperties)
@@ -252,11 +252,12 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     // #endregion
     midiProperties.midiEvents.clear ();
     int i { 0 };
-    for (const auto& ev : currentEvents)
+    for (; i < currentEvents.getNumChildren (); ++i)
     {
+        juce::ValueTree ev = currentEvents[i];
+        jassert (ev.isValid ());
         UmpEvent evCopy (ev);
         midiProperties.midiEvents.addEvent (evCopy);
-        ++i;
     }
     // #region agent log
     {
@@ -266,6 +267,7 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     }
     // #endregion
     DBG ("rebuilt midiEvents from endpoints: " << i << " events");
+    midiProperties.midiEvents.isRebuilding = false;
 #else
     midiProperties.midiEvents.clear ();
 

@@ -78,4 +78,5 @@ public:
     }
 
     MAKE_VALUE_MEMBER (int, count, 0);
+    MAKE_VALUE_MEMBER (bool, isRebuilding, false);
 };

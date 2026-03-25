@@ -52,6 +52,15 @@ EventListView::EventListView (AppContext& theAppContext)
 {
     eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };
     eventList.onChildrenCleared = [this] () { clear (); };
+    eventList.isRebuilding.onPropertyChange (
+        [this] (const juce::Identifier&)
+        {
+            if (!eventList.isRebuilding.get () && viewport != nullptr)
+            {
+                visibleArea = {};
+                viewport->setViewPositionProportionately (0.0, 1.0);
+            }
+        });
 
     // Sync initial state if list already has events?
     // I'm not sure if this can happen, figure it out later.
@@ -243,7 +252,7 @@ void EventListView::widthChanged (int newWidth)
 
 bool EventListView::shouldDisplayNewEvent () const
 {
-    return true;
+    return !eventList.isRebuilding.get ();
 }
 
 void EventListView::paint (juce::Graphics& g)
