@@ -26,6 +26,16 @@
 
 #include <JuceHeader.h>
 
+struct Endpoints : public cello::Object
+{
+public:
+    static const inline juce::Identifier type { "Endpoints" };
+    Endpoints (const cello::Object& parentOrSelf)
+    : cello::Object { type.toString (), parentOrSelf }
+    {
+    }
+};
+
 class MidiProperties : public cello::Object
 {
 public:
@@ -33,6 +43,11 @@ public:
 
     MidiProperties (const cello::Object& parentOrSelf)
     : cello::Object { type.toString (), parentOrSelf }
+    , midiEvents { "midiEvents", *this }
+    , endpoints { *this }
     {
     }
+
+    EventList midiEvents;
+    Endpoints endpoints;
 };

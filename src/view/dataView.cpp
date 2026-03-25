@@ -29,23 +29,12 @@
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
-, midiProperties { runtimeContext }
-, dataViewHandler { std::make_unique<DataViewHandler> (*this, appContext) }
 , eventListView { appContext }
 {
     addAndMakeVisible (viewport);
     viewport.setViewedComponent (&eventListView, false);
 
-    // Add scroll listener for virtual scrolling
     viewport.getVerticalScrollBar ().addListener (this);
-
-    for (const auto& endpoint : midiProperties)
-    {
-        addEndpoint (endpoint, 0);
-    }
-    midiProperties.onChildAdded = [this] (juce::ValueTree& vt, int _, int index) { addEndpoint (vt, index); };
-
-    midiProperties.onChildRemoved = [this] (juce::ValueTree& vt, int index, int _) { removeEndpoint (vt, index); };
 }
 
 DataView::~DataView ()
@@ -62,53 +51,12 @@ void DataView::paint (juce::Graphics& g)
 void DataView::resized ()
 {
     viewport.setBounds (getLocalBounds ());
-    eventListView.parentSizeChanged ();
+    eventListView.widthChanged (getWidth ());
 
-    // Establish visible area for virtual scrolling
     eventListView.visibleAreaChanged (viewport.getViewArea ());
-}
-
-void DataView::addEventView (std::unique_ptr<EventView> eventView)
-{
-    // Check if we're already at the bottom before adding
-    const bool wasAtBottom =
-        viewport.getViewPositionY () + viewport.getViewHeight () >= viewport.getViewedComponent ()->getHeight () - 10;
-
-    eventListView.addEventView (std::move (eventView));
-
-    // Only auto-scroll if we were already at the bottom
-    if (wasAtBottom)
-        viewport.setViewPositionProportionately (0.0, 1.0);
-}
-
-void DataView::addEndpoint (juce::ValueTree vt, int index)
-{
-    auto endpointProperties = std::make_unique<MidiEndpointProperties> (vt);
-
-    endpointProperties->received.onChildAdded = [this] (juce::ValueTree& vt, int, int)
-    {
-        const auto entry = juce::Time::getMillisecondCounterHiRes ();
-        dataViewHandler->handle (UmpEvent (vt));
-        const auto exit           = juce::Time::getMillisecondCounterHiRes ();
-        const auto processingTime = exit - entry;
-        DBG ("******* UMP HANDLER time: " << processingTime);
-    };
-    endpoints.push_back (std::move (endpointProperties));
-    DBG ("========= endpoint added: " << endpoints.back ()->name.get ());
-}
-
-void DataView::removeEndpoint (juce::ValueTree vt, int index)
-{
-    auto endpointIdString = MidiEndpointProperties { vt }.endpointIdString.get ();
-    endpoints.erase (std::remove_if (endpoints.begin (), endpoints.end (),
-                                     [&] (const auto& endpoint)
-                                     { return endpoint->endpointIdString.get () == endpointIdString; }),
-                     endpoints.end ());
-    DBG ("========= endpoint removed: " << endpointIdString);
 }
 
 void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)
 {
-    // Notify EventListView of visible area change for virtual scrolling
     eventListView.visibleAreaChanged (viewport.getViewArea ());
 }

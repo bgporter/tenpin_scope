@@ -24,229 +24,318 @@
 
 #include "eventListView.h"
 
+#include "model/ump/umpEvent.h"
 #include "palette.h"
 #include "utility/logger.h"
 
 EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
+, runtimeContext { appContext }
+, midiProperties { runtimeContext }
+, eventList { midiProperties.midiEvents }
+, handler { std::make_unique<EventListViewHandler> (appContext) }
+, eventViewPool { appContext }
 {
+    eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };
+    eventList.onChildrenCleared = [this] () { clear (); };
+    eventList.isRebuilding.onPropertyChange (
+        [this] (const juce::Identifier&)
+        {
+            if (!eventList.isRebuilding.get () && viewport != nullptr)
+            {
+                visibleArea = {};
+                viewport->setViewPositionProportionately (0.0, 1.0);
+            }
+        });
+
+    // Sync initial state if list already has events?
+    // I'm not sure if this can happen, figure it out later.
+    // iterate through the event list,
+}
+
+void EventListView::clear ()
+{
+    TRACE_ ("EventListView::clear");
+    while (!visibleEventViews.empty ())
+    {
+        auto& eventView = visibleEventViews.front ();
+        removeChildComponent (eventView.get ());
+        eventViewPool.returnEventView (std::move (eventView));
+        visibleEventViews.pop_front ();
+    }
+    visibleEventRange = juce::Range<int> ();
+    eventPositions.clear ();
+    setSize (getWidth (), 0);
+}
+
+std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, int index, int width)
+{
+    UmpEvent event (vt);
+    auto eventView { eventViewPool.getEventView () };
+    const auto result { handler->handle (event, index, eventView.get (), width) };
+    if (result != UmpHandler::Result::ok)
+    {
+        const auto fmt { juce::XmlElement::TextFormat ().singleLine ().withoutHeader () };
+        WARN_ ({
+            {   "msg",  "Failed to handle event"},
+            { "event",      vt.toXmlString (fmt)},
+            {"result", static_cast<int> (result)}
+        });
+        eventViewPool.returnEventView (std::move (eventView));
+        return nullptr;
+    }
+    return eventView;
+}
+
+void EventListView::addEvent (juce::ValueTree vt)
+{
+    int index = static_cast<int> (eventList.getNumChildren ()) - 1;
+    auto eventView { createEventView (vt, index, getWidth ()) };
+    if (eventView == nullptr)
+        return;
+
+    // we always need to know where this new view should be positioned, and we
+    // always need to grow the component to hold it, whether we are about to actually
+    // display it or not.
+    // When we add a new event, it always begins at the current height
+    // of this view.
+
+    const auto eventPosition = getHeight ();
+    const auto eventHeight { eventView->getHeight () };
+    eventPositions.push_back (eventPosition);
+
+    if (shouldDisplayNewEvent ())
+    {
+        // addAndMakeVisible (eventView.get ());
+        // eventView->setTopLeftPosition (0, eventPosition);
+        DBG ("Adding event " << index << " view at position: " << eventPosition);
+        DBG ("event bounds: " << eventView->getBounds ().toString ());
+        displayEvent (std::move (eventView), index, InsertionPoint::bottom);
+        setSize (getWidth (), eventPosition + eventHeight);
+        viewport->setViewPositionProportionately (0.0, 1.0);
+    }
+    else
+    {
+        // we only needed to create the view to calculate its size, so
+        // we can return it to the pool.
+        eventViewPool.returnEventView (std::move (eventView));
+        setSize (getWidth (), eventPosition + eventHeight);
+    }
+}
+
+void EventListView::displayEvent (std::unique_ptr<EventView> eventView, int index, InsertionPoint insertionPoint)
+{
+    if (eventView == nullptr)
+    {
+        ERROR_ ("EventListView::displayEvent: eventView is nullptr");
+        return;
+    }
+    if (index < 0 || index >= static_cast<int> (eventPositions.size ()))
+    {
+        ERROR_ ("EventListView::displayEvent: index is out of bounds");
+        return;
+    }
+    eventView->setTopLeftPosition (0, eventPositions[index]);
+    addAndMakeVisible (eventView.get ());
+
+    switch (insertionPoint)
+    {
+        case InsertionPoint::top:
+            visibleEventViews.push_front (std::move (eventView));
+            visibleEventRange.setStart (visibleEventRange.isEmpty ()
+                                            ? index
+                                            : std::min (visibleEventRange.getStart (), index));
+            break;
+        case InsertionPoint::bottom:
+            visibleEventViews.push_back (std::move (eventView));
+            if (visibleEventRange.isEmpty ())
+                visibleEventRange.setStart (index);
+            visibleEventRange.setEnd (index + 1);
+            break;
+    }
+}
+
+void EventListView::hideEvent (InsertionPoint insertionPoint)
+{
+    switch (insertionPoint)
+    {
+        case InsertionPoint::top:
+        {
+            auto& eventView = visibleEventViews.front ();
+            removeChildComponent (eventView.get ());
+            eventViewPool.returnEventView (std::move (eventView));
+            visibleEventViews.pop_front ();
+            visibleEventRange.setStart (visibleEventRange.getStart () + 1);
+            break;
+        }
+        case InsertionPoint::bottom:
+        {
+            auto& eventView = visibleEventViews.back ();
+            removeChildComponent (eventView.get ());
+            eventViewPool.returnEventView (std::move (eventView));
+            visibleEventViews.pop_back ();
+            visibleEventRange.setEnd (visibleEventRange.getEnd () - 1);
+            break;
+        }
+    }
+}
+
+void EventListView::widthChanged (int newWidth)
+{
+    if (newWidth == getWidth ())
+        return;
+    DBG ("EventListView::widthChanged: " << newWidth);
+    int newHeight { 0 };
+    clear ();
+    // for now, just update the width. We'll need to recalc the positions
+    // which will also update the height.
+    setSize (newWidth, getHeight ());
+
+    for (int i = 0; i < eventList.getNumChildren (); ++i)
+    {
+        eventPositions.push_back (newHeight);
+        auto eventView { createEventView (eventList[i], i, newWidth) };
+        if (eventView == nullptr)
+            continue;
+        newHeight += eventView->getHeight ();
+        eventViewPool.returnEventView (std::move (eventView));
+    }
+    setSize (newWidth, newHeight);
+}
+
+bool EventListView::shouldDisplayNewEvent () const
+{
+    return !eventList.isRebuilding.get ();
 }
 
 void EventListView::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };
-    // g.fillAll (palette.windowBackground.get ());
-    g.fillAll (juce::Colours::red);
+    g.fillAll (palette.windowBackground.get ());
 
-    // Temporary: draw a black X from corner to corner
     auto bounds = getLocalBounds ();
-    g.setColour (juce::Colours::black);
-    g.drawLine (bounds.getX (), bounds.getY (), bounds.getRight (), bounds.getBottom (), 1.0f);
-    g.drawLine (bounds.getRight (), bounds.getY (), bounds.getX (), bounds.getBottom (), 1.0f);
+    g.setColour (juce::Colours::grey);
+    g.drawHorizontalLine (bounds.getBottom () - 1, bounds.getX (), bounds.getRight ());
 }
 
 void EventListView::resized ()
 {
-    // Width change requires remeasuring and repositioning active views
-    for (auto& [index, view] : activeViews)
-    {
-        int oldHeight = eventHeights[index];
-        int newHeight = view->getContentHeight (); // Remeasure with new width
+    // const int width = getWidth ();
+    // for (auto& [index, view] : activeViews)
+    // {
+    //     int oldHeight = eventHeights[index];
+    //     int newHeight = view->getContentHeight (width);
 
-        if (newHeight != oldHeight)
-        {
-            eventHeights[index] = newHeight;
-            // Recalculate cumulative heights from this point forward
-            recalculateCumulativeHeightsFrom (index);
-        }
+    //     if (newHeight != oldHeight)
+    //     {
+    //         eventHeights[index] = newHeight;
+    //         recalculateCumulativeHeightsFrom (index);
+    //     }
 
-        positionView (index);
-    }
+    //     positionView (index);
+    // }
 
-    updateContentSize ();
-}
-
-void EventListView::addEventView (std::unique_ptr<EventView> eventView)
-{
-    const int eventIndex = static_cast<int> (eventHeights.size ());
-    const int newHeight  = eventView->getContentHeight ();
-
-    // Store metadata (always)
-    eventHeights.push_back (newHeight);
-    eventData.push_back (eventView->getDescription ());
-
-    // Update cumulative heights
-    int prevCumulative = cumulativeHeights.empty () ? 0 : cumulativeHeights.back ();
-    cumulativeHeights.push_back (prevCumulative + newHeight);
-
-    // Only create view if in buffer zone
-    if (isInBufferZone (eventIndex))
-    {
-        if (newHeight > 0)
-            addAndMakeVisible (eventView.get ());
-        activeViews[eventIndex] = std::move (eventView);
-        positionView (eventIndex);
-    }
-    // Otherwise just discard the view (metadata is saved)
-
-    updateContentSize ();
-}
-
-int EventListView::getContentHeight () const
-{
-    return cumulativeHeights.empty () ? 0 : cumulativeHeights.back ();
-}
-void EventListView::parentSizeChanged ()
-{
-    const auto newWidth { getParentWidth () };
-    const auto newHeight { std::max (getContentHeight (), getParentHeight ()) };
-
-    if (newWidth != getWidth () || newHeight != getHeight ())
-        setSize (newWidth, newHeight);
-    else
-        resized ();
+    // updateContentSize ();
 }
 
 void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleArea)
 {
-    // Early exit if no events
-    if (eventHeights.empty ())
+    if (visibleArea == newVisibleArea)
         return;
 
-    // Calculate which event indices are visible
-    int firstVisible = findEventAtYPosition (newVisibleArea.getY ());
-    int lastVisible  = findEventAtYPosition (newVisibleArea.getBottom ());
+    visibleArea = newVisibleArea;
 
-    // Expand to buffer zone
-    int bufferStart = std::max (0, firstVisible - bufferZoneEvents);
-    int bufferEnd   = std::min (static_cast<int> (eventHeights.size ()) - 1, lastVisible + bufferZoneEvents);
+    DBG ("visibleAreaChanged: " << newVisibleArea.toString ());
 
-    juce::Range<int> newBufferRange (bufferStart, bufferEnd + 1);
+    int firstVisible    = findEventAtYPosition (newVisibleArea.getY ());
+    const auto newStart = std::max (firstVisible - 2, 0);
+    int lastVisible     = findEventAtYPosition (newVisibleArea.getBottom ());
+    const auto newEnd   = std::min (lastVisible + 2, static_cast<int> (eventList.getNumChildren ()));
 
-    // Skip if range hasn't changed
-    if (newBufferRange == currentVisibleRange)
+    DBG ("firstVisible: " << newStart << " lastVisible: " << newEnd);
+    juce::Range<int> newVisibleRange (newStart, newEnd);
+    if (newVisibleRange == visibleEventRange)
         return;
 
-    // Cull views outside buffer
-    cullViewsOutsideRange (newBufferRange);
+    const auto currentStart = visibleEventRange.getStart ();
+    const auto currentEnd   = visibleEventRange.getEnd ();
 
-    // Create views inside buffer that don't exist
-    createViewsInRange (newBufferRange);
-
-    currentVisibleRange = newBufferRange;
+    // case 1: there's no overlap between the new visible range and the current visible range
+    if (!newVisibleRange.intersects (visibleEventRange))
+    {
+        DBG ("***************** NO OVERLAP *****************");
+        // clear all visible event view
+        while (!visibleEventViews.empty ())
+        {
+            hideEvent (InsertionPoint::bottom);
+        }
+        // add the new visible event views
+        for (auto i { newStart }; i < newEnd; ++i)
+        {
+            auto eventView { createEventView (eventList[i], i, getWidth ()) };
+            if (eventView == nullptr)
+            {
+                continue;
+            }
+            displayEvent (std::move (eventView), i, InsertionPoint::bottom);
+        }
+    }
+    else
+    {
+        // case 2: changes at the beginning of the current visible range
+        if (newStart > currentStart)
+        {
+            DBG ("*****DELETE EVENTS " << currentStart << ".." << newStart << " ABOVE THE CURRENT VISIBLE RANGE*****");
+            const auto toRemove = std::min (newStart - currentStart,
+                                            static_cast<int> (visibleEventViews.size ()));
+            for (auto i = 0; i < toRemove; ++i)
+                hideEvent (InsertionPoint::top);
+        }
+        else if (newStart < currentStart)
+        {
+            DBG ("*****ADD EVENTS " << newStart << ".." << currentStart << " ABOVE THE CURRENT VISIBLE RANGE*****");
+            // add events above the current visible range (reverse order so front = newStart)
+            for (auto i = currentStart - 1; i >= newStart; --i)
+            {
+                if (auto eventView { createEventView (eventList[i], i, getWidth ()) })
+                    displayEvent (std::move (eventView), i, InsertionPoint::top);
+            }
+        }
+        // case 3: changes at the end of the current visible range
+        if (newEnd < currentEnd)
+        {
+            DBG ("*****DELETE EVENTS " << newEnd << ".." << currentEnd << " BELOW THE CURRENT VISIBLE RANGE*****");
+            const auto toRemove = std::min (currentEnd - newEnd,
+                                            static_cast<int> (visibleEventViews.size ()));
+            for (auto i = 0; i < toRemove; ++i)
+                hideEvent (InsertionPoint::bottom);
+        }
+        else if (newEnd > currentEnd)
+        {
+            DBG ("*****ADD EVENTS " << currentEnd << ".." << newEnd << " BELOW THE CURRENT VISIBLE RANGE*****");
+            // add 1..n events below the current visible range
+            for (auto i { currentEnd }; i < newEnd; ++i)
+            {
+                if (auto eventView { createEventView (eventList[i], i, getWidth ()) })
+                    displayEvent (std::move (eventView), i, InsertionPoint::bottom);
+            }
+        }
+    }
+    visibleEventRange = newVisibleRange;
 }
 
 int EventListView::findEventAtYPosition (int yPos) const
 {
-    if (cumulativeHeights.empty ())
+    if (eventPositions.empty ())
         return 0;
 
-    // Binary search in cumulativeHeights for O(log N) lookup
-    auto it = std::upper_bound (cumulativeHeights.begin (), cumulativeHeights.end (), yPos);
-    if (it == cumulativeHeights.end ())
-        return static_cast<int> (eventHeights.size ()) - 1;
-
-    return static_cast<int> (std::distance (cumulativeHeights.begin (), it));
-}
-
-void EventListView::cullViewsOutsideRange (const juce::Range<int>& keepRange)
-{
-    std::vector<int> toRemove;
-
-    for (const auto& [index, view] : activeViews)
+    int prevPosition = 0;
+    for (int i = 1; i < static_cast<int> (eventPositions.size ()); ++i)
     {
-        if (!keepRange.contains (index))
-            toRemove.push_back (index);
+        const int currentPosition = eventPositions[i];
+        if (yPos < currentPosition && yPos >= prevPosition)
+            return i - 1;
+        prevPosition = currentPosition;
     }
-
-    if (!toRemove.empty ())
-    {
-        TRACE_ ({
-            {              "msg",                                             "Culling views outside buffer zone"},
-            {            "count",                                             static_cast<int> (toRemove.size ())},
-            {"activeViewsBefore",                                          static_cast<int> (activeViews.size ())},
-            {        "keepRange", juce::String (keepRange.getStart ()) + "-" + juce::String (keepRange.getEnd ())}
-        });
-    }
-
-    for (int index : toRemove)
-    {
-        removeChildComponent (activeViews[index].get ());
-        activeViews.erase (index);
-    }
-}
-
-void EventListView::createViewsInRange (const juce::Range<int>& range)
-{
-    int createdCount = 0;
-
-    for (int i = range.getStart (); i < range.getEnd (); ++i)
-    {
-        if (i >= static_cast<int> (eventData.size ()) || activeViews.count (i) > 0)
-            continue;
-
-        // Recreate view from stored data
-        auto view = std::make_unique<EventView> (appContext, eventData[i]);
-        if (eventHeights[i] > 0)
-            addAndMakeVisible (view.get ());
-        activeViews[i] = std::move (view);
-        positionView (i);
-        ++createdCount;
-    }
-
-    if (createdCount > 0)
-    {
-        TRACE_ ({
-            {             "msg",                                         "Created views for buffer zone"},
-            {           "count",                                                            createdCount},
-            {"activeViewsAfter",                                  static_cast<int> (activeViews.size ())},
-            {           "range", juce::String (range.getStart ()) + "-" + juce::String (range.getEnd ())},
-            {     "totalEvents",                                    static_cast<int> (eventData.size ())}
-        });
-    }
-}
-
-void EventListView::positionView (int index)
-{
-    if (activeViews.count (index) == 0)
-        return;
-
-    int yPos   = (index == 0) ? 0 : cumulativeHeights[index - 1];
-    int height = eventHeights[index];
-
-    activeViews[index]->setBounds (0, yPos, getWidth (), height);
-}
-
-void EventListView::recalculateCumulativeHeightsFrom (int startIndex)
-{
-    if (startIndex >= static_cast<int> (eventHeights.size ()))
-        return;
-
-    int cumulative = (startIndex == 0) ? 0 : cumulativeHeights[startIndex - 1];
-
-    for (int i = startIndex; i < static_cast<int> (eventHeights.size ()); ++i)
-    {
-        cumulative += eventHeights[i];
-        cumulativeHeights[i] = cumulative;
-    }
-}
-
-void EventListView::updateContentSize ()
-{
-    const auto newWidth { getParentWidth () };
-    const auto newHeight { std::max (getContentHeight (), getParentHeight ()) };
-
-    // Only update if size actually changed to avoid infinite loop
-    if (newWidth != getWidth () || newHeight != getHeight ())
-        setSize (newWidth, newHeight);
-}
-
-bool EventListView::isInBufferZone (int eventIndex) const
-{
-    // For newly added events, we're always at the end, so check if we're in the current visible range
-    // If no visible range set yet, DON'T create views (will be created on first scroll update)
-    if (currentVisibleRange.isEmpty ())
-        return false;
-
-    return currentVisibleRange.contains (eventIndex);
+    return static_cast<int> (eventPositions.size ()) - 1;
 }

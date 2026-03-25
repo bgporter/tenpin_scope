@@ -1,12 +1,13 @@
 [submodule "modules/JUCE"]
 	path = modules/JUCE
-	url = https://github.com/juce-framework/JUCE
+	url = git@github.com:juce-framework/JUCE.git
 [submodule "modules/cello"]
 	path = modules/cello
-	url = https://github.com/bgporter/cello
+	url = git@github.com:bgporter/cello.git
+	branch = develop
 [submodule "modules/animator"]
 	path = modules/animator
-	url = https://github.com/bgporter/animator
+	url = git@github.com:bgporter/animator.git
 [submodule "modules/testSuite"]
 	path = modules/testSuite
-	url = https://github.com/bgporter/testSuite
+	url = git@github.com:bgporter/testSuite.git

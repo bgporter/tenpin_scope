@@ -80,6 +80,8 @@ set (SOURCES_HANDLER
 
 set (SOURCES_MODEL
     src/model/appContext.h
+    src/model/eventList.h
+    src/model/eventList.cpp
     src/model/midiProperties.h
     src/model/midiEndpointProperties.h
     src/model/midiTypes.h

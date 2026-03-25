@@ -27,6 +27,7 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
+#include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
@@ -36,7 +37,7 @@ class MidiController : public juce::ump::EndpointsListener,
                        public juce::Timer
 {
 public:
-    MidiController (juce::StringRef sessionName, const AppContext& appContext);
+    MidiController (juce::StringRef sessionName, AppContext& appContext);
 
     ~MidiController () override;
 
@@ -57,9 +58,33 @@ public:
 private:
     void addEndpointController (int index, juce::ump::EndpointId endpointId);
     void updateEndpointController (juce::ump::EndpointId endpointId);
+    /**
+     * @brief We've received a new MIDI event. PAss it to the filter function to
+     * see if it should be added to the event list. If it should, add it to the event list.
+     *
+     * @param event
+     */
+    void addMidiEvent (UmpEvent& event);
+
+    /**
+     * @brief Rebuild the top-level midiEvents list from all per-endpoint
+     * received/transmitted lists. Used when clearing at capacity so we retain
+     * the most recent events across all endpoints rather than discarding them.
+     */
+    void rebuildMidiEventsFromEndpoints ();
+
+    /**
+     * @brief Filter a MIDI event to see if it should be added to the event list.
+     *
+     * @param event
+     * @return true if the event should be added to the event list
+     * @return false if the event should not be added to the event list
+     */
+    bool filterMidiEvent (UmpEvent& event);
 
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
+    std::vector<std::unique_ptr<MidiEndpointProperties>> endpointProperties;
     juce::ump::Endpoints* endpoints;
     juce::ump::Session session;
     std::vector<std::unique_ptr<EndpointController>> endpointControllers;

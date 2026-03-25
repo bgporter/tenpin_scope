@@ -26,9 +26,8 @@
 
 #include "palette.h"
 
-EventView::EventView (AppContext& theAppContext, juce::String theEventDescription)
+EventView::EventView (AppContext& theAppContext)
 : appContext { theAppContext }
-, eventDescription { theEventDescription }
 {
     addAndMakeVisible (eventDescriptionLabel);
     eventDescriptionLabel.setText (eventDescription, juce::dontSendNotification);

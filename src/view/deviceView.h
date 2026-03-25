@@ -29,6 +29,7 @@
 #include "endpointView.h"
 #include "model/appContext.h"
 #include "model/midiProperties.h"
+#include "model/runtimeContext.h"
 
 class ResizeHandle : public juce::Component
 {
@@ -65,6 +66,7 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
     AppContext appContext;
+    RuntimeContext runtimeContext;
     MidiProperties midiProperties;
     ResizeHandle resizer;
     std::vector<std::unique_ptr<EndpointView>> endpointViews;

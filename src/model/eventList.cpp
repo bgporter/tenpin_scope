@@ -22,32 +22,8 @@
  SOFTWARE.
  */
 
-#pragma once
+#include "eventList.h"
 
-#include <JuceHeader.h>
-
-#include "eventListView.h"
-#include "model/appContext.h"
-#include "model/runtimeContext.h"
-
-class DataView : public juce::Component,
-                 public juce::ScrollBar::Listener
-{
-public:
-    DataView (AppContext& appContext);
-    ~DataView () override;
-
-    void paint (juce::Graphics& g) override;
-
-    void resized () override;
-
-    // ScrollBar::Listener
-    void scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart) override;
-
-private:
-    AppContext appContext;
-    RuntimeContext runtimeContext;
-    juce::Viewport viewport;
-    EventListView eventListView;
-    bool wasAtBottomBeforeAdd { false };
-};
+#if RUN_UNIT_TESTS
+#include "test/test_EventList.inl"
+#endif

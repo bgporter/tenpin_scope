@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "eventList.h"
 #include "ump/umpEvent.h"
 #include "utility/variantConverters.h"
 
@@ -43,27 +44,6 @@ juce::String makeEndpointIdString (juce::ump::EndpointId endpointId)
  * support for more complex/compound events (Sysex, CI, PE, etc) we'll also
  *
  */
-struct Events : public cello::Object
-{
-    Events (juce::StringRef type, const cello::Object& parentOrSelf)
-    : cello::Object { type, parentOrSelf }
-    {
-    }
-
-    void addEvent (UmpEvent& event)
-    {
-        count++;
-        append (&event);
-    }
-
-    void clearEvents ()
-    {
-        count = 0;
-        data.removeAllChildren (getUndoManager ());
-    }
-
-    MAKE_VALUE_MEMBER (int, count, 0);
-};
 class MidiEndpointProperties : public cello::Object
 {
 public:
@@ -103,6 +83,6 @@ public:
     /// TEMPORARY DEBUG: UUID string for debugging purposes.
     MAKE_VALUE_MEMBER (juce::String, debugUuid, juce::Uuid ().toString ());
 
-    Events received { "received", *this };
-    Events transmitted { "transmitted", *this };
+    EventList received { "received", *this };
+    EventList transmitted { "transmitted", *this };
 };
