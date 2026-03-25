@@ -4,6 +4,7 @@
 [submodule "modules/cello"]
 	path = modules/cello
 	url = git@github.com:bgporter/cello.git
+	branch = develop
 [submodule "modules/animator"]
 	path = modules/animator
 	url = git@github.com:bgporter/animator.git
