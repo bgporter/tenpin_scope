@@ -185,11 +185,11 @@ void EventListView::widthChanged (int newWidth)
     if (newWidth == getWidth ())
         return;
     DBG ("EventListView::widthChanged: " << newWidth);
+
+    isRecalculating = true;
     int newHeight { 0 };
     clear ();
-    // for now, just update the width. We'll need to recalc the positions
-    // which will also update the height.
-    setSize (newWidth, getHeight ());
+    setSize (newWidth, 0);
 
     for (int i = 0; i < eventList.getNumChildren (); ++i)
     {
@@ -200,6 +200,9 @@ void EventListView::widthChanged (int newWidth)
         newHeight += eventView->getHeight ();
         eventViewPool.returnEventView (std::move (eventView));
     }
+
+    isRecalculating = false;
+    visibleArea      = {}; // force visibleAreaChanged to re-evaluate after rebuild
     setSize (newWidth, newHeight);
 }
 
@@ -240,6 +243,9 @@ void EventListView::resized ()
 
 void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleArea)
 {
+    if (isRecalculating)
+        return;
+
     if (visibleArea == newVisibleArea)
         return;
 

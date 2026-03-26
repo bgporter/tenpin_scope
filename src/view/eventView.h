@@ -8,7 +8,7 @@
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
- furnished to so, subject to the following conditions:
+ furnished to do so, subject to the following conditions:
 
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
@@ -25,7 +25,9 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <vector>
 
+#include "labeledValue.h"
 #include "model/appContext.h"
 
 class EventView : public juce::Component
@@ -34,49 +36,54 @@ public:
     EventView (AppContext& theAppContext);
 
     void paint (juce::Graphics& g) override;
-
     void resized () override;
 
     /**
-     * @brief If we're reusing views, we want to free up anything used by an
-     * view once it becomes idle in the available pool. When we build a richer
-     * view, this will need to be improved to match.
-     *
+     * @brief Return this view to a clean state so it can be reused from the pool.
      */
-    void reset () { eventDescription.clear (); }
+    void reset ();
 
     /**
-     * @brief temp code; set the plain text description, will be improved.
-     *
-     * @param theEventDescription
+     * @brief Set the event timestamp display (no label, value only).
      */
-    void setDescription (const juce::String& theEventDescription)
-    {
-        eventDescription = theEventDescription;
-        eventDescriptionLabel.setText (eventDescription, juce::dontSendNotification);
-    }
+    void setTime (const juce::String& value);
 
-    void sizeToWidth (int width)
-    {
-        const auto height = getContentHeight (width);
-        setSize (width, height);
-    }
+    /**
+     * @brief Set the endpoint name display (no label, value only).
+     */
+    void setEndpoint (const juce::String& value);
 
-    int getContentHeight (int width) const
-    {
-        // Variable height based on width for testing virtual scrolling
-        if (width < 200)
-            return 32;
-        if (width < 600)
-            return 24;
-        return 16;
-    }
+    /**
+     * @brief Append a (label, value) pair to the event data area.
+     */
+    void addValue (const juce::String& label, const juce::String& value);
 
-    juce::String getDescription () const { return eventDescription; }
+    void sizeToWidth (int width) { setSize (width, getContentHeight (width)); }
+
+    /**
+     * @brief Calculate the height this view needs at the given width.
+     *
+     * When width >= kMinWrapWidth, data values wrap onto additional rows as
+     * needed, growing the height. Below kMinWrapWidth a single row is used
+     * and values that overflow clip off-screen.
+     */
+    int getContentHeight (int width) const;
 
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventView)
+    // ---------- column layout constants (hardcoded; future: from context) ----------
+    static constexpr int kTimeColumnEnd     = 90;   ///< right edge of the time column
+    static constexpr int kDivider1X         = 93;   ///< x position of first divider line
+    static constexpr int kEndpointColumnEnd = 233;  ///< right edge of the endpoint column
+    static constexpr int kDivider2X         = 236;  ///< x position of second divider line
+    static constexpr int kValuesOriginX     = 240;  ///< x start of the data values area
+    static constexpr int kRowHeight         = 20;   ///< height of a single row in pixels
+    static constexpr int kMinWrapWidth      = 500;  ///< below this width values stop wrapping
+    static constexpr int kValueGap          = 6;    ///< horizontal gap between value components
+
     AppContext appContext;
-    juce::String eventDescription;
-    juce::Label eventDescriptionLabel;
+    std::unique_ptr<LabeledValue> timeValue;
+    std::unique_ptr<LabeledValue> endpointValue;
+    std::vector<std::unique_ptr<LabeledValue>> dataValues;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventView)
 };

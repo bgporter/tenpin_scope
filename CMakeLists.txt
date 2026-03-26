@@ -116,8 +116,10 @@ set(SOURCES_VIEW
     src/view/eventView.cpp
     src/view/eventListView.h
     src/view/eventListView.cpp
+    src/view/labeledValue.h
+    src/view/labeledValue.cpp
     src/view/palette.h
-    src/view/palette.cpp    
+    src/view/palette.cpp
     src/view/lookAndFeel.h
     src/view/lookAndFeel.cpp
 )
