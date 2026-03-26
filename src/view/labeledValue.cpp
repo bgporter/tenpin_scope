@@ -27,7 +27,7 @@
 namespace
 {
 // Hardcoded defaults — will be replaced with AppContext/PersistentContext lookups.
-constexpr float kFontSize       = 12.0f;
+constexpr float kFontSize       = 13.0f;
 constexpr float kVeryLargeWidth = 10000.0f;
 
 const juce::Colour kLabelColour { 0xFF555555 };   // dark grey, legible on light background
@@ -44,7 +44,10 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
         aString.append (juce::String (label) + ": ", juce::Font (kFontSize).boldened (), kLabelColour);
     }
 
-    aString.append (juce::String (value), juce::Font (kFontSize), kValueColour);
+    if (value.isNotEmpty ())
+    {
+        aString.append (juce::String (value), juce::Font (kFontSize), kValueColour);
+    }
 
     text.createLayout (aString, kVeryLargeWidth);
 }
