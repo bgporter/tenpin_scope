@@ -24,6 +24,8 @@
 
 #include "eventListView.h"
 
+#include <algorithm>
+
 #include "model/ump/umpEvent.h"
 #include "palette.h"
 #include "utility/logger.h"
@@ -106,13 +108,21 @@ void EventListView::addEvent (juce::ValueTree vt)
 
     if (shouldDisplayNewEvent ())
     {
-        // addAndMakeVisible (eventView.get ());
-        // eventView->setTopLeftPosition (0, eventPosition);
         DBG ("Adding event " << index << " view at position: " << eventPosition);
         DBG ("event bounds: " << eventView->getBounds ().toString ());
+
+        // Determine whether the viewport was already scrolled to the bottom
+        // before this event arrived, so we can decide whether to follow it.
+        // eventPosition == getHeight() at this point (before setSize), so it
+        // is the old total height.
+        const auto viewBottom  = viewport->getViewPositionY () + viewport->getMaximumVisibleHeight ();
+        const bool wasAtBottom = (viewBottom >= eventPosition);
+
         displayEvent (std::move (eventView), index, InsertionPoint::bottom);
         setSize (getWidth (), eventPosition + eventHeight);
-        viewport->setViewPositionProportionately (0.0, 1.0);
+
+        if (wasAtBottom)
+            viewport->setViewPositionProportionately (0.0, 1.0);
     }
     else
     {
@@ -270,19 +280,19 @@ void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleAr
     if (!newVisibleRange.intersects (visibleEventRange))
     {
         DBG ("***************** NO OVERLAP *****************");
-        // clear all visible event view
+        // clear all visible event views
         while (!visibleEventViews.empty ())
-        {
             hideEvent (InsertionPoint::bottom);
-        }
+        // ensure clean state -- hideEvent decrements the range end but may leave
+        // a non-empty start behind (e.g. [5,5)), reset to truly empty so that
+        // the first displayEvent call below correctly reinitialises it.
+        visibleEventRange = {};
         // add the new visible event views
         for (auto i { newStart }; i < newEnd; ++i)
         {
             auto eventView { createEventView (eventList[i], i, getWidth ()) };
             if (eventView == nullptr)
-            {
                 continue;
-            }
             displayEvent (std::move (eventView), i, InsertionPoint::bottom);
         }
     }
@@ -327,7 +337,10 @@ void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleAr
             }
         }
     }
-    visibleEventRange = newVisibleRange;
+    // visibleEventRange is maintained incrementally by displayEvent/hideEvent;
+    // do NOT override it here with newVisibleRange, which could claim a range
+    // larger than what was actually populated (e.g. if any createEventView calls
+    // returned nullptr, the deque would be shorter than the range implies).
 }
 
 int EventListView::findEventAtYPosition (int yPos) const
@@ -335,13 +348,10 @@ int EventListView::findEventAtYPosition (int yPos) const
     if (eventPositions.empty ())
         return 0;
 
-    int prevPosition = 0;
-    for (int i = 1; i < static_cast<int> (eventPositions.size ()); ++i)
-    {
-        const int currentPosition = eventPositions[i];
-        if (yPos < currentPosition && yPos >= prevPosition)
-            return i - 1;
-        prevPosition = currentPosition;
-    }
-    return static_cast<int> (eventPositions.size ()) - 1;
+    // eventPositions[i] is the top-y of event i, in ascending order.
+    // Find the last event whose top is <= yPos (i.e. the event that owns yPos).
+    auto it = std::upper_bound (eventPositions.begin (), eventPositions.end (), yPos);
+    if (it == eventPositions.begin ())
+        return 0;
+    return static_cast<int> (std::distance (eventPositions.begin (), std::prev (it)));
 }

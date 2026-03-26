@@ -51,7 +51,10 @@ void DataView::paint (juce::Graphics& g)
 void DataView::resized ()
 {
     viewport.setBounds (getLocalBounds ());
-    eventListView.widthChanged (getWidth ());
+    // Use the viewport's visible content width rather than the full DataView
+    // width: when the vertical scrollbar is visible it occupies some pixels
+    // on the right, so the content area is narrower than getWidth().
+    eventListView.widthChanged (viewport.getMaximumVisibleWidth ());
 
     eventListView.visibleAreaChanged (viewport.getViewArea ());
 }
