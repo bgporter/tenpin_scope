@@ -115,8 +115,16 @@ void EventListView::addEvent (juce::ValueTree vt)
         // before this event arrived, so we can decide whether to follow it.
         // eventPosition == getHeight() at this point (before setSize), so it
         // is the old total height.
-        const auto viewBottom  = viewport->getViewPositionY () + viewport->getMaximumVisibleHeight ();
-        const bool wasAtBottom = (viewBottom >= eventPosition);
+        //
+        // We consider "at bottom" to be true when:
+        //   a) viewport not yet laid out (getMaximumVisibleHeight() == 0), or
+        //   b) content fits entirely in the viewport (no scrolling possible), or
+        //   c) the viewport's bottom edge is at (or past) the content's bottom.
+        // This avoids a false negative when getMaximumVisibleHeight() is 0
+        // because the component hasn't been sized yet.
+        const auto viewportHeight = viewport->getMaximumVisibleHeight ();
+        const bool wasAtBottom    = (viewportHeight == 0)
+                                    || (viewport->getViewPositionY () + viewportHeight >= eventPosition);
 
         displayEvent (std::move (eventView), index, InsertionPoint::bottom);
         setSize (getWidth (), eventPosition + eventHeight);
