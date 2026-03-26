@@ -123,8 +123,17 @@ void EventListView::addEvent (juce::ValueTree vt)
         // This avoids a false negative when getMaximumVisibleHeight() is 0
         // because the component hasn't been sized yet.
         const auto viewportHeight = viewport->getMaximumVisibleHeight ();
-        const bool wasAtBottom    = (viewportHeight == 0)
-                                    || (viewport->getViewPositionY () + viewportHeight >= eventPosition);
+        const auto viewPosY       = viewport->getViewPositionY ();
+
+        // "At bottom" means the viewport was showing the previous last event.
+        // We check against the top of the previous last event rather than the
+        // exact content-bottom pixel, because setViewPositionProportionately
+        // does not always land exactly at the mathematical maximum scroll
+        // position (small rounding/scrollbar discrepancies), which would
+        // permanently break the >= eventPosition check on subsequent events.
+        const bool wasAtBottom = (viewportHeight == 0)
+                                 || (index == 0)
+                                 || (viewPosY + viewportHeight > eventPositions[index - 1]);
 
         displayEvent (std::move (eventView), index, InsertionPoint::bottom);
         setSize (getWidth (), eventPosition + eventHeight);
