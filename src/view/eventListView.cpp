@@ -106,48 +106,42 @@ void EventListView::addEvent (juce::ValueTree vt)
     const auto eventHeight { eventView->getHeight () };
     eventPositions.push_back (eventPosition);
 
-    if (shouldDisplayNewEvent ())
+    // Always grow the content to include this event, even if we won't display it.
+    setSize (getWidth (), eventPosition + eventHeight);
+
+    if (!shouldDisplayNewEvent ())
     {
-        DBG ("Adding event " << index << " view at position: " << eventPosition);
-        DBG ("event bounds: " << eventView->getBounds ().toString ());
-
-        // Determine whether the viewport was already scrolled to the bottom
-        // before this event arrived, so we can decide whether to follow it.
-        // eventPosition == getHeight() at this point (before setSize), so it
-        // is the old total height.
-        //
-        // We consider "at bottom" to be true when:
-        //   a) viewport not yet laid out (getMaximumVisibleHeight() == 0), or
-        //   b) content fits entirely in the viewport (no scrolling possible), or
-        //   c) the viewport's bottom edge is at (or past) the content's bottom.
-        // This avoids a false negative when getMaximumVisibleHeight() is 0
-        // because the component hasn't been sized yet.
-        const auto viewportHeight = viewport->getMaximumVisibleHeight ();
-        const auto viewPosY       = viewport->getViewPositionY ();
-
-        // "At bottom" means the viewport was showing the previous last event.
-        // We check against the top of the previous last event rather than the
-        // exact content-bottom pixel, because setViewPositionProportionately
-        // does not always land exactly at the mathematical maximum scroll
-        // position (small rounding/scrollbar discrepancies), which would
-        // permanently break the >= eventPosition check on subsequent events.
-        const bool wasAtBottom = (viewportHeight == 0)
-                                 || (index == 0)
-                                 || (viewPosY + viewportHeight > eventPositions[index - 1]);
-
-        displayEvent (std::move (eventView), index, InsertionPoint::bottom);
-        setSize (getWidth (), eventPosition + eventHeight);
-
-        if (wasAtBottom)
-            viewport->setViewPositionProportionately (0.0, 1.0);
-    }
-    else
-    {
-        // we only needed to create the view to calculate its size, so
-        // we can return it to the pool.
         eventViewPool.returnEventView (std::move (eventView));
-        setSize (getWidth (), eventPosition + eventHeight);
+        return;
     }
+
+    // Decide whether the viewport was following the bottom before this event.
+    // "At bottom" means the previous last event was visible; we check against
+    // its top pixel rather than the exact content-bottom to avoid a permanent
+    // failure from the small rounding/scrollbar discrepancy in
+    // setViewPositionProportionately (observed ~8 px in practice).
+    const auto viewportHeight = viewport->getMaximumVisibleHeight ();
+    const auto viewPosY       = viewport->getViewPositionY ();
+    const bool wasAtBottom    = (viewportHeight == 0)
+                                || (index == 0)
+                                || (viewPosY + viewportHeight > eventPositions[index - 1]);
+
+    if (!wasAtBottom)
+    {
+        // New event is below the visible area; don't add it to the deque.
+        // visibleAreaChanged will populate it when the user scrolls there.
+        eventViewPool.returnEventView (std::move (eventView));
+        return;
+    }
+
+    // We are following the bottom: display the new event, scroll to it, then
+    // immediately trim any views that have scrolled off the top.  We call
+    // visibleAreaChanged directly here rather than waiting for the async
+    // scrollBarMoved notification -- without this, many events accumulate in
+    // the deque between message-loop cycles before a single batch trim fires.
+    displayEvent (std::move (eventView), index, InsertionPoint::bottom);
+    viewport->setViewPositionProportionately (0.0, 1.0);
+    visibleAreaChanged (viewport->getViewArea ());
 }
 
 void EventListView::displayEvent (std::unique_ptr<EventView> eventView, int index, InsertionPoint insertionPoint)

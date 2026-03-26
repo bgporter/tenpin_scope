@@ -116,7 +116,11 @@ private:
         std::unique_ptr<EventView> getEventView ()
         {
             if (pool.empty ())
+            {
+                DBG ("EventViewPool: allocating (pool empty)");
                 return std::make_unique<EventView> (appContext);
+            }
+            DBG ("EventViewPool: reusing from pool (size=" << pool.size () << ")");
             auto eventView = std::move (pool.top ());
             pool.pop ();
             return eventView;
@@ -125,6 +129,7 @@ private:
         void returnEventView (std::unique_ptr<EventView> view)
         {
             view->reset ();
+            DBG ("EventViewPool: returning to pool (size now=" << (pool.size () + 1) << ")");
             pool.push (std::move (view));
         }
 
