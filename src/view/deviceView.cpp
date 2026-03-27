@@ -27,8 +27,9 @@
 #include "model/midiEndpointProperties.h"
 #include "palette.h"
 
-ResizeHandle::ResizeHandle (AppContext& context)
+ResizeHandle::ResizeHandle (AppContext& context, juce::Identifier id)
 : appContext { context }
+, valueId { id }
 {
 }
 
@@ -41,8 +42,8 @@ void ResizeHandle::mouseDown (const juce::MouseEvent&)
 {
     RuntimeContext rc { appContext };
     PersistentContext pc { appContext };
-    rc.sidebarWidth = pc.sidebarWidth.get ();
-    pc.dragging     = true;
+    rc.setattr<int> (valueId, pc.getattr<int> (valueId, 0));
+    pc.dragging = true;
 }
 
 void ResizeHandle::mouseUp (const juce::MouseEvent&)
@@ -57,7 +58,7 @@ void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
     PersistentContext pc { appContext };
 
     const auto dragDelta { e.getDistanceFromDragStartX () };
-    pc.sidebarWidth = rc.sidebarWidth.get () + dragDelta;
+    pc.setattr<int> (valueId, rc.getattr<int> (valueId, 0) + dragDelta);
 }
 
 ///===========================================================================
@@ -66,7 +67,7 @@ DeviceView::DeviceView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
 , midiProperties { runtimeContext }
-, resizer { theAppContext }
+, resizer { theAppContext, juce::Identifier { "sidebarWidth" } }
 {
     addAndMakeVisible (resizer);
     rebuild ();

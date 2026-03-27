@@ -29,8 +29,10 @@
 DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
+, header { appContext }
 , eventListView { appContext }
 {
+    addAndMakeVisible (header);
     addAndMakeVisible (viewport);
     viewport.setViewedComponent (&eventListView, false);
 
@@ -50,7 +52,9 @@ void DataView::paint (juce::Graphics& g)
 
 void DataView::resized ()
 {
-    viewport.setBounds (getLocalBounds ());
+    auto bounds = getLocalBounds ();
+    header.setBounds (bounds.removeFromTop (DataViewHeader::kHeaderHeight));
+    viewport.setBounds (bounds);
     // Use the viewport's visible content width rather than the full DataView
     // width: when the vertical scrollbar is visible it occupies some pixels
     // on the right, so the content area is narrower than getWidth().

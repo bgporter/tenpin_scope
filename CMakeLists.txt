@@ -108,6 +108,8 @@ set(SOURCES_UTILITY
 set(SOURCES_VIEW
     src/view/dataView.h
     src/view/dataView.cpp
+    src/view/dataViewHeader.h
+    src/view/dataViewHeader.cpp
     src/view/deviceView.h
     src/view/deviceView.cpp
     src/view/endpointView.h

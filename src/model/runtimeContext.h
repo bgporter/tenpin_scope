@@ -50,6 +50,9 @@ public:
 
     /// a 'temp' var where we can store the *last* sidebar width value during dragging.
     MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
+    /// @brief Cached event list column widths for use during drag operations.
+    MAKE_VALUE_MEMBER (int, col1Width, 90);
+    MAKE_VALUE_MEMBER (int, col2Width, 140);
     EventList eventList;
     MidiProperties midiProperties { *this };
 };

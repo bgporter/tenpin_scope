@@ -33,6 +33,7 @@
 EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
+, persistentContext { appContext }
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
 , handler { std::make_unique<EventListViewHandler> (appContext) }
@@ -49,6 +50,9 @@ EventListView::EventListView (AppContext& theAppContext)
                 viewport->setViewPositionProportionately (0.0, 1.0);
             }
         });
+
+    persistentContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { forceRebuild (); });
+    persistentContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { forceRebuild (); });
 
     // Sync initial state if list already has events?
     // I'm not sure if this can happen, figure it out later.
@@ -206,6 +210,14 @@ void EventListView::widthChanged (int newWidth)
     if (newWidth == getWidth ())
         return;
     DBG ("EventListView::widthChanged: " << newWidth);
+    setSize (newWidth, getHeight ()); // update width so forceRebuild() sees the new value
+    forceRebuild ();
+}
+
+void EventListView::forceRebuild ()
+{
+    const int newWidth = getWidth ();
+    DBG ("EventListView::forceRebuild at width: " << newWidth);
 
     isRecalculating = true;
     int newHeight { 0 };

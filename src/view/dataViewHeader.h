@@ -8,7 +8,7 @@
  in the Software without restriction, including without limitation the rights
  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  copies of the Software, and to permit persons to whom the Software is
- furnished to so, subject to the following conditions:
+ furnished to do so, subject to the following conditions:
 
  The above copyright notice and this permission notice shall be included in all
  copies or substantial portions of the Software.
@@ -26,49 +26,29 @@
 
 #include <JuceHeader.h>
 
-#include "endpointView.h"
+#include "deviceView.h"
 #include "model/appContext.h"
-#include "model/midiProperties.h"
-#include "model/runtimeContext.h"
+#include "model/persistentContext.h"
 
-class ResizeHandle : public juce::Component
+class DataViewHeader : public juce::Component
 {
 public:
-    ResizeHandle (AppContext& context, juce::Identifier valueId);
-    ~ResizeHandle () override = default;
+    DataViewHeader (AppContext& context);
 
-    void paint (juce::Graphics& g) override;
-
-    void mouseDown (const juce::MouseEvent& e) override;
-    void mouseUp (const juce::MouseEvent& e) override;
-    void mouseDrag (const juce::MouseEvent& e) override;
-
-private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
-    AppContext appContext;
-    juce::Identifier valueId;
-};
-
-class DeviceView : public juce::Component
-{
-public:
-    DeviceView (AppContext& theAppContext);
     void paint (juce::Graphics& g) override;
     void resized () override;
 
-    /**
-     * @brief Create a child component for each endpoint that we've
-     * known about, whether it's active now or not.
-     */
-    void rebuild ();
+    static constexpr int kHeaderHeight { 32 };
 
 private:
-    static const inline int resizeHandleWidth { 5 };
+    static constexpr int kDividerWidth { 5 };
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DataViewHeader)
     AppContext appContext;
-    RuntimeContext runtimeContext;
-    MidiProperties midiProperties;
-    ResizeHandle resizer;
-    std::vector<std::unique_ptr<EndpointView>> endpointViews;
+    PersistentContext persistentContext;
+    juce::Label timeLabel;
+    juce::Label endpointLabel;
+    juce::Label dataLabel;
+    ResizeHandle col1Resizer;
+    ResizeHandle col2Resizer;
 };

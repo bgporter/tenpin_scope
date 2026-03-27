@@ -57,6 +57,9 @@ public:
     {
         // restrict sidebar width to a reasonable range
         sidebarWidth.onSet = [] (int newValue) { return std::clamp (newValue, 150, 400); };
+        // restrict event list column widths to reasonable ranges
+        col1Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
+        col2Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
     }
 
     PersistentContext (const juce::File& file)
@@ -91,4 +94,8 @@ public:
     MAKE_VALUE_MEMBER (LogWriter::Level, logLevel, LogWriter::Level::info);
     /// @brief True when we're in the middle of a drag operation, to prevent saving prefs mid-drag.
     MAKE_VALUE_MEMBER (bool, dragging, false);
+    /// @brief Width of the Time column in the event list view.
+    MAKE_VALUE_MEMBER (int, col1Width, 90);
+    /// @brief Width of the Endpoint column in the event list view.
+    MAKE_VALUE_MEMBER (int, col2Width, 140);
 };
