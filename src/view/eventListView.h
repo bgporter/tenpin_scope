@@ -28,6 +28,7 @@
 #include <functional>
 #include <map>
 
+#include "eventNameUtils.h"
 #include "eventView.h"
 #include "handler/umpHandler.h"
 #include "model/appContext.h"
@@ -204,7 +205,7 @@ private:
         eventView->addValue ("MIDI 2 Note Off", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
+        eventView->addValue ("note", getNoteName ((int) e.note));
         eventView->addValue ("vel", juce::String ((int) e.velocity));
         return UmpHandler::Result::ok;
     }
@@ -215,7 +216,7 @@ private:
         eventView->addValue ("MIDI 2 Note On", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
+        eventView->addValue ("note", getNoteName ((int) e.note));
         eventView->addValue ("vel", juce::String ((int) e.velocity));
         return UmpHandler::Result::ok;
     }
@@ -226,7 +227,7 @@ private:
         eventView->addValue ("MIDI 2 Note", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
+        eventView->addValue ("note", getNoteName ((int) e.note));
         eventView->addValue ("vel", juce::String ((int) e.velocity));
         return UmpHandler::Result::ok;
     }
@@ -237,8 +238,8 @@ private:
         eventView->addValue ("MIDI 2 Registered Per Note Controller", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
-        eventView->addValue ("ctrl", juce::String ((int) e.controller));
+        eventView->addValue ("note", getNoteName ((int) e.note));
+        eventView->addValue ("ctrl", getControllerName ((int) e.controller));
         eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
         return UmpHandler::Result::ok;
     }
@@ -249,8 +250,8 @@ private:
         eventView->addValue ("MIDI 2 Assignable Per Note Controller", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
-        eventView->addValue ("ctrl", juce::String ((int) e.controller));
+        eventView->addValue ("note", getNoteName ((int) e.note));
+        eventView->addValue ("ctrl", getControllerName ((int) e.controller));
         eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
         return UmpHandler::Result::ok;
     }
@@ -261,8 +262,8 @@ private:
         eventView->addValue ("MIDI 2 Per Note", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
-        eventView->addValue ("ctrl", juce::String ((int) e.controller));
+        eventView->addValue ("note", getNoteName ((int) e.note));
+        eventView->addValue ("ctrl", getControllerName ((int) e.controller));
         eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
         return UmpHandler::Result::ok;
     }
@@ -273,7 +274,7 @@ private:
         eventView->addValue ("MIDI 2 Per Note Pitch Bend", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
+        eventView->addValue ("note", getNoteName ((int) e.note));
         eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
         return UmpHandler::Result::ok;
     }
@@ -284,7 +285,7 @@ private:
         eventView->addValue ("MIDI 2 Control Change", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("ctrl", juce::String ((int) e.controller));
+        eventView->addValue ("ctrl", getControllerName ((int) e.controller));
         eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
         return UmpHandler::Result::ok;
     }
@@ -307,7 +308,7 @@ private:
         eventView->addValue ("MIDI 2 Per Note Management", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
+        eventView->addValue ("note", getNoteName ((int) e.note));
         eventView->addValue ("detach", (bool) e.detach ? "Y" : "N");
         eventView->addValue ("reset", (bool) e.reset ? "Y" : "N");
         return UmpHandler::Result::ok;
@@ -319,7 +320,7 @@ private:
         eventView->addValue ("MIDI 2 Poly Pressure", "");
         eventView->addValue ("grp", juce::String ((int) e.userGroup));
         eventView->addValue ("ch", juce::String ((int) e.userChannel));
-        eventView->addValue ("note", juce::String ((int) e.note));
+        eventView->addValue ("note", getNoteName ((int) e.note));
         eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
         return UmpHandler::Result::ok;
     }

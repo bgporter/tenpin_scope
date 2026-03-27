@@ -112,6 +112,8 @@ set(SOURCES_VIEW
     src/view/deviceView.cpp
     src/view/endpointView.h
     src/view/endpointView.cpp
+    src/view/eventNameUtils.h
+    src/view/eventNameUtils.cpp
     src/view/eventView.h
     src/view/eventView.cpp
     src/view/eventListView.h

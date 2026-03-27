@@ -55,8 +55,7 @@ void EventView::resized ()
         timeValue->setBounds (0, 0, kTimeColumnEnd, kRowHeight);
 
     if (endpointValue)
-        endpointValue->setBounds (kDivider1X + 2, 0,
-                                  kEndpointColumnEnd - kDivider1X - 2, kRowHeight);
+        endpointValue->setBounds (kDivider1X + 2, 0, kEndpointColumnEnd - kDivider1X - 2, kRowHeight);
 
     if (dataValues.empty ())
         return;
