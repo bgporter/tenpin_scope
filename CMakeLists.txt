@@ -108,6 +108,8 @@ set(SOURCES_UTILITY
 set(SOURCES_VIEW
     src/view/dataView.h
     src/view/dataView.cpp
+    src/view/dataViewHeader.h
+    src/view/dataViewHeader.cpp
     src/view/deviceView.h
     src/view/deviceView.cpp
     src/view/endpointView.h
@@ -122,6 +124,8 @@ set(SOURCES_VIEW
     src/view/labeledValue.cpp
     src/view/palette.h
     src/view/palette.cpp
+    src/view/resizeHandle.h
+    src/view/resizeHandle.cpp
     src/view/lookAndFeel.h
     src/view/lookAndFeel.cpp
 )

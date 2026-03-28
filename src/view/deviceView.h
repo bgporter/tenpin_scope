@@ -29,24 +29,9 @@
 #include "endpointView.h"
 #include "model/appContext.h"
 #include "model/midiProperties.h"
+#include "model/persistentContext.h"
 #include "model/runtimeContext.h"
-
-class ResizeHandle : public juce::Component
-{
-public:
-    ResizeHandle (AppContext& context);
-    ~ResizeHandle () override = default;
-
-    void paint (juce::Graphics& g) override;
-
-    void mouseDown (const juce::MouseEvent& e) override;
-    void mouseUp (const juce::MouseEvent& e) override;
-    void mouseDrag (const juce::MouseEvent& e) override;
-
-private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
-    AppContext appContext;
-};
+#include "resizeHandle.h"
 
 class DeviceView : public juce::Component
 {
@@ -67,6 +52,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
     AppContext appContext;
     RuntimeContext runtimeContext;
+    PersistentContext persistentContext;
     MidiProperties midiProperties;
     ResizeHandle resizer;
     std::vector<std::unique_ptr<EndpointView>> endpointViews;

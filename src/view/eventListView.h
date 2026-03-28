@@ -34,6 +34,7 @@
 #include "model/appContext.h"
 #include "model/eventList.h"
 #include "model/midiProperties.h"
+#include "model/persistentContext.h"
 #include "model/runtimeContext.h"
 #include "model/ump/channelVoice2.h"
 
@@ -73,6 +74,19 @@ public:
      * @brief Called when the width of the list changes, so we can recalculate the positions of the events.
      */
     void widthChanged (int newWidth);
+
+    /**
+     * @brief Force a full rebuild at the current width. Called when column widths change
+     * so that event heights (which depend on wrap points) are recalculated.
+     */
+    void forceRebuild ();
+
+    /**
+     * @brief Reflow only the currently-visible EventViews. Called during column
+     * drag for a fast O(visible) preview. eventPositions is not updated; the
+     * full forceRebuild() corrects everything on mouseUp.
+     */
+    void refreshVisibleViews ();
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventListView)
@@ -141,6 +155,7 @@ private:
 
     AppContext appContext;
     RuntimeContext runtimeContext;
+    PersistentContext persistentContext;
     MidiProperties midiProperties;
     EventList eventList;
 

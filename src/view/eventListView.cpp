@@ -33,6 +33,7 @@
 EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
+, persistentContext { appContext }
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
 , handler { std::make_unique<EventListViewHandler> (appContext) }
@@ -48,6 +49,20 @@ EventListView::EventListView (AppContext& theAppContext)
                 visibleArea = {};
                 viewport->setViewPositionProportionately (0.0, 1.0);
             }
+        });
+
+    // Seed runtime context with persisted values so initial layout is correct.
+    runtimeContext.setattr<int> ("col1Width", persistentContext.col1Width.get ());
+    runtimeContext.setattr<int> ("col2Width", persistentContext.col2Width.get ());
+
+    runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
+    runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
+
+    persistentContext.dragging.onPropertyChange (
+        [this] (const juce::Identifier&)
+        {
+            if (!persistentContext.dragging.get ())
+                forceRebuild ();
         });
 
     // Sync initial state if list already has events?
@@ -206,6 +221,22 @@ void EventListView::widthChanged (int newWidth)
     if (newWidth == getWidth ())
         return;
     DBG ("EventListView::widthChanged: " << newWidth);
+    setSize (newWidth, getHeight ()); // update width so forceRebuild() sees the new value
+    if (persistentContext.dragging.get ())
+    {
+        for (auto& eventView : visibleEventViews)
+            eventView->sizeToWidth (newWidth);
+    }
+    else
+    {
+        forceRebuild ();
+    }
+}
+
+void EventListView::forceRebuild ()
+{
+    const int newWidth = getWidth ();
+    DBG ("EventListView::forceRebuild at width: " << newWidth);
 
     isRecalculating = true;
     int newHeight { 0 };
@@ -225,6 +256,12 @@ void EventListView::widthChanged (int newWidth)
     isRecalculating = false;
     visibleArea      = {}; // force visibleAreaChanged to re-evaluate after rebuild
     setSize (newWidth, newHeight);
+}
+
+void EventListView::refreshVisibleViews ()
+{
+    for (auto& eventView : visibleEventViews)
+        eventView->refreshLayout ();
 }
 
 bool EventListView::shouldDisplayNewEvent () const

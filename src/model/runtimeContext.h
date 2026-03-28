@@ -46,10 +46,17 @@ public:
     {
         // properties in the runtime context are not undoable.
         setUndoManager (nullptr);
+        // mirror the same constraints as PersistentContext so drag values stay valid
+        sidebarWidth.onSet = [] (int v) { return std::clamp (v, 150, 400); };
+        col1Width.onSet    = [] (int v) { return std::clamp (v, 20, 200); };
+        col2Width.onSet    = [] (int v) { return std::clamp (v, 20, 200); };
     }
 
     /// a 'temp' var where we can store the *last* sidebar width value during dragging.
     MAKE_VALUE_MEMBER (int, sidebarWidth, 200);
+    /// @brief Cached event list column widths for use during drag operations.
+    MAKE_VALUE_MEMBER (int, col1Width, 90);
+    MAKE_VALUE_MEMBER (int, col2Width, 140);
     EventList eventList;
     MidiProperties midiProperties { *this };
 };

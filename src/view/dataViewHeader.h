@@ -26,36 +26,31 @@
 
 #include <JuceHeader.h>
 
-/**
- * @brief Gets the name of a controller based on its number.
- *
- * @param controllerNumber (must be in the range 0-127)
- * @return juce::String
- */
-juce::String getControllerName (int controllerNumber);
+#include "model/appContext.h"
+#include "resizeHandle.h"
+#include "model/persistentContext.h"
+#include "model/runtimeContext.h"
 
-/**
- * In the early days of MIDI, there was no standard for which octave number
- * corresponded to middle C, so different manufacturers adopted different
- * conventions. This function allows you to specify which convention to
- * use when getting note names.
- *
- * (There's an even rarer third convention where middle C is C5, but
- * we're not supporting that.)
- *
- */
-enum class OctaveType
+class DataViewHeader : public juce::Component
 {
-    Yamaha, // middle C = C3
-    Roland  // middle C = C4
-};
+public:
+    DataViewHeader (AppContext& context);
 
-/**
- * @brief Gets the name of a note based on its MIDI note number, using
- * the specified octave convention.
- *
- * @param noteNumber
- * @param octaveType
- * @return juce::String
- */
-juce::String getNoteName (int noteNumber, OctaveType octaveType = OctaveType::Yamaha);
+    void paint (juce::Graphics& g) override;
+    void resized () override;
+
+    static constexpr int kHeaderHeight { 32 };
+
+private:
+    static constexpr int kDividerWidth { 5 };
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DataViewHeader)
+    AppContext appContext;
+    PersistentContext persistentContext;
+    RuntimeContext runtimeContext;
+    juce::Label timeLabel;
+    juce::Label endpointLabel;
+    juce::Label dataLabel;
+    ResizeHandle col1Resizer;
+    ResizeHandle col2Resizer;
+};

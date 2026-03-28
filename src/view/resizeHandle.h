@@ -26,36 +26,24 @@
 
 #include <JuceHeader.h>
 
-/**
- * @brief Gets the name of a controller based on its number.
- *
- * @param controllerNumber (must be in the range 0-127)
- * @return juce::String
- */
-juce::String getControllerName (int controllerNumber);
-
-/**
- * In the early days of MIDI, there was no standard for which octave number
- * corresponded to middle C, so different manufacturers adopted different
- * conventions. This function allows you to specify which convention to
- * use when getting note names.
- *
- * (There's an even rarer third convention where middle C is C5, but
- * we're not supporting that.)
- *
- */
-enum class OctaveType
+class ResizeHandle : public juce::Component
 {
-    Yamaha, // middle C = C3
-    Roland  // middle C = C4
-};
+public:
+    ResizeHandle (cello::Value<int>& rcValue,
+                  cello::Value<int>& pcValue,
+                  cello::Value<bool>& dragging);
+    ~ResizeHandle () override = default;
 
-/**
- * @brief Gets the name of a note based on its MIDI note number, using
- * the specified octave convention.
- *
- * @param noteNumber
- * @param octaveType
- * @return juce::String
- */
-juce::String getNoteName (int noteNumber, OctaveType octaveType = OctaveType::Yamaha);
+    void paint (juce::Graphics& g) override;
+
+    void mouseDown (const juce::MouseEvent& e) override;
+    void mouseUp (const juce::MouseEvent& e) override;
+    void mouseDrag (const juce::MouseEvent& e) override;
+
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
+    cello::Value<int>& rcValue;
+    cello::Value<int>& pcValue;
+    cello::Value<bool>& dragging;
+    int dragStartValue { 0 };
+};

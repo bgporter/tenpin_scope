@@ -27,46 +27,14 @@
 #include "model/midiEndpointProperties.h"
 #include "palette.h"
 
-ResizeHandle::ResizeHandle (AppContext& context)
-: appContext { context }
-{
-}
-
-void ResizeHandle::paint (juce::Graphics& g)
-{
-    g.fillAll (juce::Colours::black);
-}
-
-void ResizeHandle::mouseDown (const juce::MouseEvent&)
-{
-    RuntimeContext rc { appContext };
-    PersistentContext pc { appContext };
-    rc.sidebarWidth = pc.sidebarWidth.get ();
-    pc.dragging     = true;
-}
-
-void ResizeHandle::mouseUp (const juce::MouseEvent&)
-{
-    PersistentContext pc { appContext };
-    pc.dragging = false;
-}
-
-void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
-{
-    RuntimeContext rc { appContext };
-    PersistentContext pc { appContext };
-
-    const auto dragDelta { e.getDistanceFromDragStartX () };
-    pc.sidebarWidth = rc.sidebarWidth.get () + dragDelta;
-}
-
 ///===========================================================================
 
 DeviceView::DeviceView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
+, persistentContext { appContext }
 , midiProperties { runtimeContext }
-, resizer { theAppContext }
+, resizer { runtimeContext.sidebarWidth, persistentContext.sidebarWidth, persistentContext.dragging }
 {
     addAndMakeVisible (resizer);
     rebuild ();

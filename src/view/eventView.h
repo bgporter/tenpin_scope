@@ -61,6 +61,13 @@ public:
     void sizeToWidth (int width) { setSize (width, getContentHeight (width)); }
 
     /**
+     * @brief Re-run layout and repaint without changing bounds. Called during
+     * column drag to reposition child components against updated column widths
+     * while leaving the event's Y position and height stable.
+     */
+    void refreshLayout () { resized (); repaint (); }
+
+    /**
      * @brief Calculate the height this view needs at the given width.
      *
      * When width >= kMinWrapWidth, data values wrap onto additional rows as
@@ -70,15 +77,12 @@ public:
     int getContentHeight (int width) const;
 
 private:
-    // ---------- column layout constants (hardcoded; future: from context) ----------
-    static constexpr int kTimeColumnEnd     = 90;   ///< right edge of the time column
-    static constexpr int kDivider1X         = 93;   ///< x position of first divider line
-    static constexpr int kEndpointColumnEnd = 233;  ///< right edge of the endpoint column
-    static constexpr int kDivider2X         = 236;  ///< x position of second divider line
-    static constexpr int kValuesOriginX     = 240;  ///< x start of the data values area
-    static constexpr int kRowHeight         = 20;   ///< height of a single row in pixels
-    static constexpr int kMinWrapWidth      = 500;  ///< below this width values stop wrapping
-    static constexpr int kValueGap          = 6;    ///< horizontal gap between value components
+    // ---------- column layout constants ----------
+    /// Width of each inter-column ResizeHandle, matching DataViewHeader::kDividerWidth.
+    static constexpr int kDividerWidth  = 5;
+    static constexpr int kRowHeight     = 20;   ///< height of a single row in pixels
+    static constexpr int kMinWrapWidth  = 500;  ///< below this width values stop wrapping
+    static constexpr int kValueGap      = 6;    ///< horizontal gap between value components
 
     AppContext appContext;
     std::unique_ptr<LabeledValue> timeValue;

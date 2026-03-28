@@ -25,6 +25,7 @@
 #include "eventView.h"
 
 #include "model/persistentContext.h"
+#include "model/runtimeContext.h"
 #include "palette.h"
 
 EventView::EventView (AppContext& theAppContext)
@@ -37,12 +38,15 @@ void EventView::paint (juce::Graphics& g)
     Palette palette { PersistentContext { appContext } };
     g.fillAll (palette.windowBackground.get ());
 
-    const float h = static_cast<float> (getHeight ());
+    RuntimeContext rc { appContext };
+    const float h       = static_cast<float> (getHeight ());
+    const int divider1X = rc.col1Width.get ();
+    const int divider2X = divider1X + kDividerWidth + rc.col2Width.get ();
 
     // column divider lines
     g.setColour (juce::Colours::darkgrey);
-    g.drawVerticalLine (kDivider1X, 0.0f, h);
-    g.drawVerticalLine (kDivider2X, 0.0f, h);
+    g.drawVerticalLine (divider1X, 0.0f, h);
+    g.drawVerticalLine (divider2X, 0.0f, h);
 
     // bottom border between events
     g.setColour (juce::Colours::grey);
@@ -51,28 +55,34 @@ void EventView::paint (juce::Graphics& g)
 
 void EventView::resized ()
 {
+    RuntimeContext rc { appContext };
+    const int col1Width     = rc.col1Width.get ();
+    const int col2Width     = rc.col2Width.get ();
+    const int col2StartX    = col1Width + kDividerWidth;
+    const int valuesOriginX = col2StartX + col2Width + kDividerWidth;
+
     if (timeValue)
-        timeValue->setBounds (0, 0, kTimeColumnEnd, kRowHeight);
+        timeValue->setBounds (0, 0, col1Width, kRowHeight);
 
     if (endpointValue)
-        endpointValue->setBounds (kDivider1X + 2, 0, kEndpointColumnEnd - kDivider1X - 2, kRowHeight);
+        endpointValue->setBounds (col2StartX, 0, col2Width, kRowHeight);
 
     if (dataValues.empty ())
         return;
 
-    const int availableWidth = getWidth () - kValuesOriginX;
+    const int availableWidth = getWidth () - valuesOriginX;
     const bool shouldWrap    = getWidth () >= kMinWrapWidth;
 
-    int currentX = kValuesOriginX;
+    int currentX = valuesOriginX;
     int currentY = 0;
 
     for (auto& val : dataValues)
     {
         const int valWidth = static_cast<int> (val->getWidth ()) + kValueGap;
 
-        if (shouldWrap && currentX > kValuesOriginX && (currentX - kValuesOriginX + valWidth) > availableWidth)
+        if (shouldWrap && currentX > valuesOriginX && (currentX - valuesOriginX + valWidth) > availableWidth)
         {
-            currentX = kValuesOriginX;
+            currentX = valuesOriginX;
             currentY += kRowHeight;
         }
 
@@ -135,7 +145,9 @@ int EventView::getContentHeight (int width) const
     if (width < kMinWrapWidth)
         return kRowHeight;
 
-    const int availableWidth = width - kValuesOriginX;
+    RuntimeContext rc { appContext };
+    const int valuesOriginX  = rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth;
+    const int availableWidth = width - valuesOriginX;
     int currentX             = 0;
     int numRows              = 1;
 

@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "dataViewHeader.h"
 #include "eventListView.h"
 #include "model/appContext.h"
 #include "model/runtimeContext.h"
@@ -47,6 +48,7 @@ public:
 private:
     AppContext appContext;
     RuntimeContext runtimeContext;
+    DataViewHeader header;
     juce::Viewport viewport;
     EventListView eventListView;
     bool wasAtBottomBeforeAdd { false };
