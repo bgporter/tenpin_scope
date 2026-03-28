@@ -67,6 +67,9 @@ public:
 
         initializeAppContext ();
         PersistentContext pc { *appContext };
+        // Capture before MainWindow construction overwrites pc.windowState via
+        // MainWindow::resized() / moved() callbacks.
+        const juce::String savedWindowState = pc.windowState;
 
 #if JUCE_DEBUG
         // in debug builds, we want to log everything.
@@ -82,7 +85,7 @@ public:
         midiController = std::make_unique<MidiController> (getApplicationName (), *appContext);
 
         mainWindow = std::make_unique<MainWindow> (getApplicationName (), *appContext);
-        mainWindow->restoreWindowStateFromString (pc.windowState);
+        mainWindow->restoreWindowStateFromString (savedWindowState);
         // Each timer callback we'll see if the prefs file needs to be flushed to disk
         startTimer (1000);
     }
@@ -119,9 +122,9 @@ public:
         LogWriter::init (getLogPath ());
         INFO_ ("==============================================");
         INFO_ ({
-            {    "msg",                                                       "STARTING"},
-            {   "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z")},
-            {"version",                                         getApplicationVersion ()}
+            {     "msg",                                                       "STARTING" },
+            {    "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z") },
+            { "version",                                         getApplicationVersion () }
         });
     }
 
@@ -144,8 +147,8 @@ public:
     {
         // Add your application's shutdown code here..
         INFO_ ({
-            { "msg",                                                       "SHUTDOWN"},
-            {"time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z")}
+            {  "msg",                                                       "SHUTDOWN" },
+            { "time", juce::Time::getCurrentTime ().formatted ("%d %b %Y %H:%M:%S %Z") }
         });
         LogWriter::shutdown ();
         // stop the timer that keeps the prefs file updated...

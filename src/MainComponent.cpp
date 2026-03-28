@@ -9,13 +9,14 @@ MainComponent::MainComponent (AppContext& theAppContext)
 , dataView { theAppContext }
 , deviceView { theAppContext }
 {
+    // Seed runtime context and register listener before setSize so the first
+    // resized() call uses the persisted sidebar width, not the default.
+    runtimeContext.sidebarWidth = persistentContext.sidebarWidth.get ();
+    runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+
     addAndMakeVisible (dataView);
     addAndMakeVisible (deviceView);
     setSize (600, 400);
-
-    // Seed runtime context with persisted value so initial layout is correct.
-    runtimeContext.setattr<int> ("sidebarWidth", persistentContext.sidebarWidth.get ());
-    runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 }
 
 void MainComponent::paint (juce::Graphics&) {}
