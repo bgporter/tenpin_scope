@@ -26,31 +26,67 @@
 
 ResizeHandle::ResizeHandle (cello::Value<int>& rcValue_,
                              cello::Value<int>& pcValue_,
-                             cello::Value<bool>& dragging_)
+                             cello::Value<bool>& dragging_,
+                             LinePosition linePosition_)
 : rcValue { rcValue_ }
 , pcValue { pcValue_ }
 , dragging { dragging_ }
+, linePosition { linePosition_ }
 {
 }
 
 void ResizeHandle::paint (juce::Graphics& g)
 {
-    g.fillAll (juce::Colours::black);
+    if (isHovered || isBeingDragged)
+    {
+        g.fillAll (juce::Colours::black);
+    }
+    else
+    {
+        int lineX { 0 };
+        switch (linePosition)
+        {
+            case LinePosition::left:   lineX = 0;              break;
+            case LinePosition::centre: lineX = getWidth () / 2; break;
+            case LinePosition::right:  lineX = getWidth () - 1; break;
+        }
+        g.setColour (juce::Colours::black);
+        g.drawVerticalLine (lineX, 0.0f, static_cast<float> (getHeight ()));
+    }
 }
 
 void ResizeHandle::mouseDown (const juce::MouseEvent&)
 {
     dragStartValue = pcValue.get ();
     dragging       = true;
+    isBeingDragged = true;
 }
 
 void ResizeHandle::mouseUp (const juce::MouseEvent&)
 {
-    pcValue  = rcValue.get ();
-    dragging = false;
+    pcValue        = rcValue.get ();
+    dragging       = false;
+    isBeingDragged = false;
+    setMouseCursor (juce::MouseCursor::NormalCursor);
+    repaint ();
 }
 
 void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
 {
     rcValue = dragStartValue + e.getDistanceFromDragStartX ();
+}
+
+void ResizeHandle::mouseEnter (const juce::MouseEvent&)
+{
+    isHovered = true;
+    setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
+    repaint ();
+}
+
+void ResizeHandle::mouseExit (const juce::MouseEvent&)
+{
+    isHovered = false;
+    if (!isBeingDragged)
+        setMouseCursor (juce::MouseCursor::NormalCursor);
+    repaint ();
 }

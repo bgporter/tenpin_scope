@@ -57,6 +57,9 @@ void DataViewHeader::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };
     g.fillAll (palette.windowBackground.get ());
+
+    g.setColour (palette.defaultText.get ());
+    g.drawHorizontalLine (getHeight () - 1, 0.0f, static_cast<float> (getWidth ()));
 }
 
 void DataViewHeader::resized ()

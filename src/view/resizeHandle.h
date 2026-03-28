@@ -29,9 +29,17 @@
 class ResizeHandle : public juce::Component
 {
 public:
+    enum class LinePosition
+    {
+        left,
+        centre,
+        right
+    };
+
     ResizeHandle (cello::Value<int>& rcValue,
                   cello::Value<int>& pcValue,
-                  cello::Value<bool>& dragging);
+                  cello::Value<bool>& dragging,
+                  LinePosition linePosition = LinePosition::centre);
     ~ResizeHandle () override = default;
 
     void paint (juce::Graphics& g) override;
@@ -39,11 +47,16 @@ public:
     void mouseDown (const juce::MouseEvent& e) override;
     void mouseUp (const juce::MouseEvent& e) override;
     void mouseDrag (const juce::MouseEvent& e) override;
+    void mouseEnter (const juce::MouseEvent& e) override;
+    void mouseExit (const juce::MouseEvent& e) override;
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
     cello::Value<int>& rcValue;
     cello::Value<int>& pcValue;
     cello::Value<bool>& dragging;
+    LinePosition linePosition;
     int dragStartValue { 0 };
+    bool isHovered { false };
+    bool isBeingDragged { false };
 };

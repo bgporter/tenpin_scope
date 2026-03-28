@@ -34,8 +34,10 @@ DeviceView::DeviceView (AppContext& theAppContext)
 , runtimeContext { appContext }
 , persistentContext { appContext }
 , midiProperties { runtimeContext }
-, resizer { runtimeContext.sidebarWidth, persistentContext.sidebarWidth, persistentContext.dragging }
+, resizer { runtimeContext.sidebarWidth, persistentContext.sidebarWidth, persistentContext.dragging,
+            ResizeHandle::LinePosition::right }
 {
+    resizer.setAlwaysOnTop (true);
     addAndMakeVisible (resizer);
     rebuild ();
 
@@ -54,7 +56,8 @@ void DeviceView::paint (juce::Graphics& g)
 void DeviceView::resized ()
 {
     auto bounds = getLocalBounds ();
-    resizer.setBounds (bounds.removeFromRight (resizeHandleWidth));
+    // resizer.setBounds (bounds.removeFromRight (resizeHandleWidth));
+    resizer.setBounds (bounds.withLeft (bounds.getRight () - resizeHandleWidth));
 
     constexpr int endpointRowHeight = 50;
     for (auto& endpointView : endpointViews)
