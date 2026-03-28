@@ -81,6 +81,13 @@ public:
      */
     void forceRebuild ();
 
+    /**
+     * @brief Reflow only the currently-visible EventViews. Called during column
+     * drag for a fast O(visible) preview. eventPositions is not updated; the
+     * full forceRebuild() corrects everything on mouseUp.
+     */
+    void refreshVisibleViews ();
+
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventListView)
 

@@ -29,6 +29,7 @@
 DataViewHeader::DataViewHeader (AppContext& context)
 : appContext { context }
 , persistentContext { appContext }
+, runtimeContext { appContext }
 , col1Resizer { appContext, juce::Identifier { "col1Width" } }
 , col2Resizer { appContext, juce::Identifier { "col2Width" } }
 {
@@ -44,8 +45,12 @@ DataViewHeader::DataViewHeader (AppContext& context)
     addAndMakeVisible (col1Resizer);
     addAndMakeVisible (col2Resizer);
 
-    persistentContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
-    persistentContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    // Seed runtime context with persisted values so initial layout is correct.
+    runtimeContext.setattr<int> ("col1Width", persistentContext.col1Width);
+    runtimeContext.setattr<int> ("col2Width", persistentContext.col2Width);
+
+    runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 }
 
 void DataViewHeader::paint (juce::Graphics& g)
@@ -56,14 +61,15 @@ void DataViewHeader::paint (juce::Graphics& g)
 
 void DataViewHeader::resized ()
 {
-    const int col1Width  = persistentContext.col1Width.get ();
-    const int col2Width  = persistentContext.col2Width.get ();
-    const int col2StartX = col1Width + kDividerWidth;
-    const int col3StartX = col2StartX + col2Width + kDividerWidth;
+    const int col1Width    = runtimeContext.col1Width;
+    const int col2Width    = runtimeContext.col2Width;
+    const int half         = kDividerWidth / 2;
+    const int handle1Start = col1Width - half;
+    const int handle2Start = col1Width + kDividerWidth + col2Width - half;
 
-    timeLabel.setBounds (0, 0, col1Width, getHeight ());
-    col1Resizer.setBounds (col1Width, 0, kDividerWidth, getHeight ());
-    endpointLabel.setBounds (col2StartX, 0, col2Width, getHeight ());
-    col2Resizer.setBounds (col2StartX + col2Width, 0, kDividerWidth, getHeight ());
-    dataLabel.setBounds (col3StartX, 0, getWidth () - col3StartX, getHeight ());
+    timeLabel.setBounds (0, 0, handle1Start, getHeight ());
+    col1Resizer.setBounds (handle1Start, 0, kDividerWidth, getHeight ());
+    endpointLabel.setBounds (handle1Start + kDividerWidth, 0, col2Width, getHeight ());
+    col2Resizer.setBounds (handle2Start, 0, kDividerWidth, getHeight ());
+    dataLabel.setBounds (handle2Start + kDividerWidth, 0, getWidth () - handle2Start - kDividerWidth, getHeight ());
 }

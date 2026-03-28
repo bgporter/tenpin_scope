@@ -25,6 +25,7 @@
 #include "eventView.h"
 
 #include "model/persistentContext.h"
+#include "model/runtimeContext.h"
 #include "palette.h"
 
 EventView::EventView (AppContext& theAppContext)
@@ -34,13 +35,13 @@ EventView::EventView (AppContext& theAppContext)
 
 void EventView::paint (juce::Graphics& g)
 {
-    PersistentContext pc { appContext };
-    Palette palette { pc };
+    Palette palette { PersistentContext { appContext } };
     g.fillAll (palette.windowBackground.get ());
 
+    RuntimeContext rc { appContext };
     const float h       = static_cast<float> (getHeight ());
-    const int divider1X = pc.col1Width.get ();
-    const int divider2X = divider1X + kDividerWidth + pc.col2Width.get ();
+    const int divider1X = rc.col1Width.get ();
+    const int divider2X = divider1X + kDividerWidth + rc.col2Width.get ();
 
     // column divider lines
     g.setColour (juce::Colours::darkgrey);
@@ -54,9 +55,9 @@ void EventView::paint (juce::Graphics& g)
 
 void EventView::resized ()
 {
-    PersistentContext pc { appContext };
-    const int col1Width     = pc.col1Width.get ();
-    const int col2Width     = pc.col2Width.get ();
+    RuntimeContext rc { appContext };
+    const int col1Width     = rc.col1Width.get ();
+    const int col2Width     = rc.col2Width.get ();
     const int col2StartX    = col1Width + kDividerWidth;
     const int valuesOriginX = col2StartX + col2Width + kDividerWidth;
 
@@ -144,8 +145,8 @@ int EventView::getContentHeight (int width) const
     if (width < kMinWrapWidth)
         return kRowHeight;
 
-    PersistentContext pc { appContext };
-    const int valuesOriginX  = pc.col1Width.get () + kDividerWidth + pc.col2Width.get () + kDividerWidth;
+    RuntimeContext rc { appContext };
+    const int valuesOriginX  = rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth;
     const int availableWidth = width - valuesOriginX;
     int currentX             = 0;
     int numRows              = 1;

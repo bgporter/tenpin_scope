@@ -124,6 +124,8 @@ set(SOURCES_VIEW
     src/view/labeledValue.cpp
     src/view/palette.h
     src/view/palette.cpp
+    src/view/resizeHandle.h
+    src/view/resizeHandle.cpp
     src/view/lookAndFeel.h
     src/view/lookAndFeel.cpp
 )

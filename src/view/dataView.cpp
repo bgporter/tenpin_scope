@@ -37,6 +37,9 @@ DataView::DataView (AppContext& theAppContext)
     viewport.setViewedComponent (&eventListView, false);
 
     viewport.getVerticalScrollBar ().addListener (this);
+
+    runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+    runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
 }
 
 DataView::~DataView ()
@@ -48,6 +51,18 @@ void DataView::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };
     g.fillAll (palette.windowBackground.get ());
+
+    constexpr int kDividerWidth = 5;
+    const int col1Width         = runtimeContext.col1Width.get ();
+    const int col2Width         = runtimeContext.col2Width.get ();
+    const int line1X            = col1Width;
+    const int line2X            = col1Width + kDividerWidth + col2Width;
+    const float top             = static_cast<float> (DataViewHeader::kHeaderHeight);
+    const float bottom          = static_cast<float> (getHeight ());
+
+    g.setColour (palette.outline.get ());
+    g.drawVerticalLine (line1X, top, bottom);
+    g.drawVerticalLine (line2X, top, bottom);
 }
 
 void DataView::resized ()

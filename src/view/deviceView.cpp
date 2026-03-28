@@ -27,40 +27,6 @@
 #include "model/midiEndpointProperties.h"
 #include "palette.h"
 
-ResizeHandle::ResizeHandle (AppContext& context, juce::Identifier id)
-: appContext { context }
-, valueId { id }
-{
-}
-
-void ResizeHandle::paint (juce::Graphics& g)
-{
-    g.fillAll (juce::Colours::black);
-}
-
-void ResizeHandle::mouseDown (const juce::MouseEvent&)
-{
-    RuntimeContext rc { appContext };
-    PersistentContext pc { appContext };
-    rc.setattr<int> (valueId, pc.getattr<int> (valueId, 0));
-    pc.dragging = true;
-}
-
-void ResizeHandle::mouseUp (const juce::MouseEvent&)
-{
-    PersistentContext pc { appContext };
-    pc.dragging = false;
-}
-
-void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
-{
-    RuntimeContext rc { appContext };
-    PersistentContext pc { appContext };
-
-    const auto dragDelta { e.getDistanceFromDragStartX () };
-    pc.setattr<int> (valueId, rc.getattr<int> (valueId, 0) + dragDelta);
-}
-
 ///===========================================================================
 
 DeviceView::DeviceView (AppContext& theAppContext)

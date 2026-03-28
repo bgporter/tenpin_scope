@@ -26,9 +26,10 @@
 
 #include <JuceHeader.h>
 
-#include "deviceView.h"
 #include "model/appContext.h"
+#include "resizeHandle.h"
 #include "model/persistentContext.h"
+#include "model/runtimeContext.h"
 
 class DataViewHeader : public juce::Component
 {
@@ -46,6 +47,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DataViewHeader)
     AppContext appContext;
     PersistentContext persistentContext;
+    RuntimeContext runtimeContext;
     juce::Label timeLabel;
     juce::Label endpointLabel;
     juce::Label dataLabel;

@@ -51,8 +51,19 @@ EventListView::EventListView (AppContext& theAppContext)
             }
         });
 
-    persistentContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { forceRebuild (); });
-    persistentContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { forceRebuild (); });
+    // Seed runtime context with persisted values so initial layout is correct.
+    runtimeContext.setattr<int> ("col1Width", persistentContext.col1Width.get ());
+    runtimeContext.setattr<int> ("col2Width", persistentContext.col2Width.get ());
+
+    runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
+    runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
+
+    persistentContext.dragging.onPropertyChange (
+        [this] (const juce::Identifier&)
+        {
+            if (!persistentContext.dragging.get ())
+                forceRebuild ();
+        });
 
     // Sync initial state if list already has events?
     // I'm not sure if this can happen, figure it out later.
@@ -211,7 +222,15 @@ void EventListView::widthChanged (int newWidth)
         return;
     DBG ("EventListView::widthChanged: " << newWidth);
     setSize (newWidth, getHeight ()); // update width so forceRebuild() sees the new value
-    forceRebuild ();
+    if (persistentContext.dragging.get ())
+    {
+        for (auto& eventView : visibleEventViews)
+            eventView->sizeToWidth (newWidth);
+    }
+    else
+    {
+        forceRebuild ();
+    }
 }
 
 void EventListView::forceRebuild ()
@@ -237,6 +256,12 @@ void EventListView::forceRebuild ()
     isRecalculating = false;
     visibleArea      = {}; // force visibleAreaChanged to re-evaluate after rebuild
     setSize (newWidth, newHeight);
+}
+
+void EventListView::refreshVisibleViews ()
+{
+    for (auto& eventView : visibleEventViews)
+        eventView->refreshLayout ();
 }
 
 bool EventListView::shouldDisplayNewEvent () const

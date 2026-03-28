@@ -61,6 +61,13 @@ public:
     void sizeToWidth (int width) { setSize (width, getContentHeight (width)); }
 
     /**
+     * @brief Re-run layout and repaint without changing bounds. Called during
+     * column drag to reposition child components against updated column widths
+     * while leaving the event's Y position and height stable.
+     */
+    void refreshLayout () { resized (); repaint (); }
+
+    /**
      * @brief Calculate the height this view needs at the given width.
      *
      * When width >= kMinWrapWidth, data values wrap onto additional rows as
