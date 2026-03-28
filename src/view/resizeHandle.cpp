@@ -24,12 +24,12 @@
 
 #include "resizeHandle.h"
 
-#include "model/persistentContext.h"
-#include "model/runtimeContext.h"
-
-ResizeHandle::ResizeHandle (AppContext& context, juce::Identifier id)
-: appContext { context }
-, valueId { id }
+ResizeHandle::ResizeHandle (cello::Value<int>& rcValue_,
+                             cello::Value<int>& pcValue_,
+                             cello::Value<bool>& dragging_)
+: rcValue { rcValue_ }
+, pcValue { pcValue_ }
+, dragging { dragging_ }
 {
 }
 
@@ -40,22 +40,17 @@ void ResizeHandle::paint (juce::Graphics& g)
 
 void ResizeHandle::mouseDown (const juce::MouseEvent&)
 {
-    PersistentContext pc { appContext };
-    dragStartValue = pc.getattr<int> (valueId, 0);
-    pc.dragging    = true;
+    dragStartValue = pcValue.get ();
+    dragging       = true;
 }
 
 void ResizeHandle::mouseUp (const juce::MouseEvent&)
 {
-    RuntimeContext rc { appContext };
-    PersistentContext pc { appContext };
-    pc.setattr<int> (valueId, rc.getattr<int> (valueId, dragStartValue));
-    pc.dragging = false;
+    pcValue  = rcValue.get ();
+    dragging = false;
 }
 
 void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
 {
-    RuntimeContext rc { appContext };
-    const auto dragDelta { e.getDistanceFromDragStartX () };
-    rc.setattr<int> (valueId, dragStartValue + dragDelta);
+    rcValue = dragStartValue + e.getDistanceFromDragStartX ();
 }

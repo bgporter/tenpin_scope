@@ -29,6 +29,7 @@
 #include "endpointView.h"
 #include "model/appContext.h"
 #include "model/midiProperties.h"
+#include "model/persistentContext.h"
 #include "model/runtimeContext.h"
 #include "resizeHandle.h"
 
@@ -51,6 +52,7 @@ private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
     AppContext appContext;
     RuntimeContext runtimeContext;
+    PersistentContext persistentContext;
     MidiProperties midiProperties;
     ResizeHandle resizer;
     std::vector<std::unique_ptr<EndpointView>> endpointViews;

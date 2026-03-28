@@ -32,8 +32,9 @@
 DeviceView::DeviceView (AppContext& theAppContext)
 : appContext { theAppContext }
 , runtimeContext { appContext }
+, persistentContext { appContext }
 , midiProperties { runtimeContext }
-, resizer { theAppContext, juce::Identifier { "sidebarWidth" } }
+, resizer { runtimeContext.sidebarWidth, persistentContext.sidebarWidth, persistentContext.dragging }
 {
     addAndMakeVisible (resizer);
     rebuild ();

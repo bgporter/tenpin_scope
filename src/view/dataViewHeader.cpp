@@ -30,8 +30,8 @@ DataViewHeader::DataViewHeader (AppContext& context)
 : appContext { context }
 , persistentContext { appContext }
 , runtimeContext { appContext }
-, col1Resizer { appContext, juce::Identifier { "col1Width" } }
-, col2Resizer { appContext, juce::Identifier { "col2Width" } }
+, col1Resizer { runtimeContext.col1Width, persistentContext.col1Width, persistentContext.dragging }
+, col2Resizer { runtimeContext.col2Width, persistentContext.col2Width, persistentContext.dragging }
 {
     for (auto* label : { &timeLabel, &endpointLabel, &dataLabel })
     {

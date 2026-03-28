@@ -26,12 +26,12 @@
 
 #include <JuceHeader.h>
 
-#include "model/appContext.h"
-
 class ResizeHandle : public juce::Component
 {
 public:
-    ResizeHandle (AppContext& context, juce::Identifier valueId);
+    ResizeHandle (cello::Value<int>& rcValue,
+                  cello::Value<int>& pcValue,
+                  cello::Value<bool>& dragging);
     ~ResizeHandle () override = default;
 
     void paint (juce::Graphics& g) override;
@@ -42,7 +42,8 @@ public:
 
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
-    AppContext appContext;
-    juce::Identifier valueId;
+    cello::Value<int>& rcValue;
+    cello::Value<int>& pcValue;
+    cello::Value<bool>& dragging;
     int dragStartValue { 0 };
 };
