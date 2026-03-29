@@ -50,8 +50,6 @@ public:
         PersistentContext pc { *appContext };
         if (pc.canUndo () && !pc.dragging)
         {
-            juce::XmlElement::TextFormat textFormat;
-            textFormat.lineWrapLength = 0; // don't wrap the XML, to make it easier to read in the prefs file.
             pc.save (getConfigPath ());
             DBG ("Saved prefs file: " << getConfigPath ().getFullPathName ());
             INFO_ ("Prefs file updated");
