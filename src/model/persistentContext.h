@@ -69,7 +69,10 @@ public:
 
     juce::Result save (const juce::File& file)
     {
-        auto ok = cello::Object::save (file);
+        juce::XmlElement::TextFormat textFormat;
+        textFormat.lineWrapLength = 0; // don't wrap the XML, to make it easier to read in the prefs file.
+
+        auto ok = cello::Object::save (file, PersistentContext::FileFormat::xml, textFormat);
         if (ok)
         {
             // we use the undo manager to track changes to the prefs file -- if there's nothing

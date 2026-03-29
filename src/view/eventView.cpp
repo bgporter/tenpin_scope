@@ -126,7 +126,7 @@ void EventView::setEndpoint (const juce::String& value)
 {
     if (endpointValue)
         removeChildComponent (endpointValue.get ());
-    endpointValue = std::make_unique<LabeledValue> (appContext, "", value);
+    endpointValue = std::make_unique<LabeledValue> (appContext, value, "");
     addAndMakeVisible (*endpointValue);
 }
 
