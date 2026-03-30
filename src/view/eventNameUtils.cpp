@@ -33,35 +33,35 @@ const std::vector<std::string> controllerNames = {
     "Bank Select",       // 0
     "Modulation Wheel",  // 1
     "Breath Controller", // 2
-    "3",                 // 3 (Undefined)
+    "",                  // 3 (Undefined)
     "Foot Controller",   // 4
     "Portamento Time",   // 5
     "Data Entry MSB",    // 6
     "Main Volume",       // 7
     "Balance",           // 8
-    "9",                 // 9 (Undefined)
+    "",                  // 9 (Undefined)
     "Pan",               // 10
     "Expression",        // 11
     "Effect Control 1",  // 12
     "Effect Control 2",  // 13
-    "14",
-    "15",                // 14-15 (Undefined)
+    "",                  // 14
+    "",                  // 15 (Undefined)
     "General Purpose 1", // 16
     "General Purpose 2", // 17
     "General Purpose 3", // 18
     "General Purpose 4", // 19
-    "20",
-    "21",
-    "22",
-    "23", // 20-23 (Undefined)
-    "24",
-    "25",
-    "26",
-    "27", // 24-27 (Undefined)
-    "28",
-    "29",
-    "30",
-    "31",                    // 28-31 (Undefined)
+    "",                      // 20
+    "",                      // 21
+    "",                      // 22
+    "",                      // 23 (Undefined)
+    "",                      // 24
+    "",                      // 25
+    "",                      // 26
+    "",                      // 27 (Undefined)
+    "",                      // 28
+    "",                      // 29
+    "",                      // 30
+    "",                      // 31 (Undefined)
     "Bank Select LSB",       // 32
     "Modulation Wheel LSB",  // 33
     "Breath Controller LSB", // 34
@@ -115,12 +115,12 @@ const std::vector<std::string> controllerNames = {
     "General Purpose 7",     // 82
     "General Purpose 8",     // 83
     "Portamento Control",    // 84
-    "85",
-    "86",
-    "87",
-    "88",
-    "89",
-    "90",              // 85-90 (Undefined)
+    "",                // 85
+    "",                // 86
+    "",                // 87
+    "",                // 88
+    "",                // 89
+    "",                // 90 (Undefined)
     "Effects 1 Depth", // 91 (Reverb)
     "Effects 2 Depth", // 92 (Tremolo)
     "Effects 3 Depth", // 93 (Chorus)
@@ -132,24 +132,24 @@ const std::vector<std::string> controllerNames = {
     "NRPN MSB",        // 99
     "RPN LSB",         // 100
     "RPN MSB",         // 101
-    "102",
-    "103",
-    "104",
-    "105",
-    "106",
-    "107",
-    "108",
-    "109",
-    "110",
-    "111",
-    "112",
-    "113",
-    "114",
-    "115",
-    "116",
-    "117",
-    "118",
-    "119",
+    "",                      // 102
+    "",                      // 103
+    "",                      // 104
+    "",                      // 105
+    "",                      // 106
+    "",                      // 107
+    "",                      // 108
+    "",                      // 109
+    "",                      // 110
+    "",                      // 111
+    "",                      // 112
+    "",                      // 113
+    "",                      // 114
+    "",                      // 115
+    "",                      // 116
+    "",                      // 117
+    "",                      // 118
+    "",                      // 119 (Undefined)
     "All Sound Off",         // 120
     "Reset All Controllers", // 121
     "Local Control",         // 122
@@ -171,7 +171,11 @@ juce::String getControllerName (int controllerNumber)
     if (controllerNumber < 0 || controllerNumber > 127)
         return "Invalid Controller Number";
 
-    return controllerNames[controllerNumber];
+    const auto& name = controllerNames[controllerNumber];
+    if (name.empty())
+        return juce::String (controllerNumber);
+
+    return juce::String (controllerNumber) + " (" + name + ")";
 }
 
 juce::String getNoteName (int noteNumber, OctaveType octaveType)
