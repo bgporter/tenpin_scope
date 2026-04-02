@@ -93,22 +93,9 @@ void EventView::resized ()
 
 void EventView::reset ()
 {
-    if (timeValue)
-    {
-        removeChildComponent (timeValue.get ());
-        timeValue.reset ();
-    }
-
-    if (endpointValue)
-    {
-        removeChildComponent (endpointValue.get ());
-        endpointValue.reset ();
-    }
-
-    for (auto& val : dataValues)
-        removeChildComponent (val.get ());
+    timeValue.reset ();
+    endpointValue.reset ();
     dataValues.clear ();
-
     // Reset size to zero so that the next sizeToWidth() call always triggers
     // resized(), which positions the newly-created child components.
     setSize (0, 0);
