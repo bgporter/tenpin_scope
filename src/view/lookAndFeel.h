@@ -37,11 +37,20 @@ public:
 
     /**
      * @brief Update the look and feel from the palette.
-     *
      */
     void updateFromPalette ();
+
+    void updateFonts ();
+
+    juce::Typeface::Ptr getTypefaceForFont (const juce::Font& f) override;
+
+    juce::Font getTenpinLabelFont () const;
+    juce::Font getTenpinValueFont () const;
 
 private:
     PersistentContext persistentContext;
     Palette palette;
+
+    juce::Typeface::Ptr labelTypeface;
+    juce::Typeface::Ptr valueTypeface;
 };

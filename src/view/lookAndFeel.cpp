@@ -30,8 +30,10 @@ TenpinLookAndFeel::TenpinLookAndFeel (const AppContext& appContext)
 {
     // initialize the built-in colors from the palette
     updateFromPalette ();
-
     palette.onPropertyChange ([this] (const juce::Identifier& /*id*/) { updateFromPalette (); });
+
+    // for now, fonts are hardcoded.
+    updateFonts ();
 }
 
 void TenpinLookAndFeel::updateFromPalette ()
@@ -39,4 +41,33 @@ void TenpinLookAndFeel::updateFromPalette ()
     setColourScheme ({ palette.windowBackground.get (), palette.widgetBackground.get (), palette.menuBackground.get (),
                        palette.outline.get (), palette.defaultText.get (), palette.defaultFill.get (),
                        palette.highlightedText.get (), palette.highlightedFill.get (), palette.menuText.get () });
+}
+
+void TenpinLookAndFeel::updateFonts ()
+{
+    labelTypeface = juce::Typeface::createSystemTypefaceFor (FontData::IBMPlexSansRegular_ttf,
+                                                             FontData::IBMPlexSansRegular_ttfSize);
+    valueTypeface =
+        juce::Typeface::createSystemTypefaceFor (FontData::FiraCodeRegular_ttf, FontData::FiraCodeRegular_ttfSize);
+}
+
+juce::Typeface::Ptr TenpinLookAndFeel::getTypefaceForFont (const juce::Font& f)
+{
+    if (f.getTypefaceName ().containsIgnoreCase ("Monospace"))
+        return valueTypeface;
+    return labelTypeface;
+}
+
+juce::Font TenpinLookAndFeel::getTenpinLabelFont () const
+{
+    juce::FontOptions options (labelTypeface);
+    // return juce::Font (options.withHeight (13.f).withStyle ("bold"));
+    return juce::Font (options.withHeight (13.f));
+}
+
+juce::Font TenpinLookAndFeel::getTenpinValueFont () const
+{
+    juce::FontOptions options (valueTypeface);
+    // return juce::Font (options.withHeight (13.f).withStyle ("plain"));
+    return juce::Font (options.withHeight (13.f));
 }

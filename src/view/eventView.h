@@ -79,10 +79,13 @@ public:
 private:
     // ---------- column layout constants ----------
     /// Width of each inter-column ResizeHandle, matching DataViewHeader::kDividerWidth.
-    static constexpr int kDividerWidth  = 5;
-    static constexpr int kRowHeight     = 20;   ///< height of a single row in pixels
-    static constexpr int kMinWrapWidth  = 500;  ///< below this width values stop wrapping
-    static constexpr int kValueGap      = 6;    ///< horizontal gap between value components
+    static constexpr int   kDividerWidth    = 5;
+    static constexpr int   kMinWrapWidth    = 500;   ///< below this width values stop wrapping
+    /// Fraction of the natural text height added as padding on each side (top, bottom, left, right).
+    static constexpr float kPaddingFraction = 0.25f;
+
+    /** @brief Compute the pixel height of one row from the timestamp label's natural height. */
+    int getRowHeight () const;
 
     AppContext appContext;
     std::unique_ptr<LabeledValue> timeValue;

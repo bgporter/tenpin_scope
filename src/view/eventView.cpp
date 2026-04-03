@@ -55,17 +55,24 @@ void EventView::paint (juce::Graphics& g)
 
 void EventView::resized ()
 {
+    if (!timeValue)
+        return;
+
     RuntimeContext rc { appContext };
     const int col1Width     = rc.col1Width.get ();
     const int col2Width     = rc.col2Width.get ();
     const int col2StartX    = col1Width + kDividerWidth;
     const int valuesOriginX = col2StartX + col2Width + kDividerWidth;
 
-    if (timeValue)
-        timeValue->setBounds (0, 0, col1Width, kRowHeight);
+    const float naturalH = timeValue->getHeight ();
+    const int padding    = static_cast<int> (naturalH * kPaddingFraction);
+    const int contentH   = static_cast<int> (std::ceil (naturalH));
+    const int rowH       = getRowHeight ();
+
+    timeValue->setBounds (0, padding, col1Width, contentH);
 
     if (endpointValue)
-        endpointValue->setBounds (col2StartX, 0, col2Width, kRowHeight);
+        endpointValue->setBounds (col2StartX, padding, col2Width, contentH);
 
     if (dataValues.empty ())
         return;
@@ -73,20 +80,20 @@ void EventView::resized ()
     const int availableWidth = getWidth () - valuesOriginX;
     const bool shouldWrap    = getWidth () >= kMinWrapWidth;
 
-    int currentX = valuesOriginX;
-    int currentY = 0;
+    int currentRow = 0;
+    int currentX   = valuesOriginX;
 
     for (auto& val : dataValues)
     {
-        const int valWidth = static_cast<int> (val->getWidth ()) + kValueGap;
+        const int valWidth = static_cast<int> (val->getWidth ()) + padding;
 
         if (shouldWrap && currentX > valuesOriginX && (currentX - valuesOriginX + valWidth) > availableWidth)
         {
+            ++currentRow;
             currentX = valuesOriginX;
-            currentY += kRowHeight;
         }
 
-        val->setBounds (currentX, currentY, static_cast<int> (val->getWidth ()), kRowHeight);
+        val->setBounds (currentX, currentRow * rowH + padding, static_cast<int> (val->getWidth ()), contentH);
         currentX += valWidth;
     }
 }
@@ -124,23 +131,36 @@ void EventView::addValue (const juce::String& label, const juce::String& value)
     dataValues.push_back (std::move (lv));
 }
 
+int EventView::getRowHeight () const
+{
+    if (timeValue)
+    {
+        const float naturalH = timeValue->getHeight ();
+        return static_cast<int> (std::ceil (naturalH * (1.0f + 2.0f * kPaddingFraction)));
+    }
+    return 20;
+}
+
 int EventView::getContentHeight (int width) const
 {
+    const int rowH = getRowHeight ();
+
     if (dataValues.empty ())
-        return kRowHeight;
+        return rowH;
 
     if (width < kMinWrapWidth)
-        return kRowHeight;
+        return rowH;
 
     RuntimeContext rc { appContext };
     const int valuesOriginX  = rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth;
     const int availableWidth = width - valuesOriginX;
+    const int padding        = timeValue ? static_cast<int> (timeValue->getHeight () * kPaddingFraction) : rowH / 4;
     int currentX             = 0;
     int numRows              = 1;
 
     for (const auto& val : dataValues)
     {
-        const int valWidth = static_cast<int> (val->getWidth ()) + kValueGap;
+        const int valWidth = static_cast<int> (val->getWidth ()) + padding;
         if (currentX > 0 && currentX + valWidth > availableWidth)
         {
             ++numRows;
@@ -149,5 +169,5 @@ int EventView::getContentHeight (int width) const
         currentX += valWidth;
     }
 
-    return numRows * kRowHeight;
+    return numRows * rowH;
 }

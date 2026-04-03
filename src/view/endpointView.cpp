@@ -29,12 +29,16 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
 , endpointProperties { tree }
 {
     jassert (endpointProperties.wasWrapped ());
+
+    auto valueFont { juce::Font (juce::FontOptions ().withName ("Monospace")) };
+
     nameLabel.setJustificationType (juce::Justification::centredLeft);
     rxTitleLabel.setJustificationType (juce::Justification::centredLeft);
     rxValueLabel.setJustificationType (juce::Justification::centredLeft);
+    rxValueLabel.setFont (valueFont);
     txTitleLabel.setJustificationType (juce::Justification::centredLeft);
     txValueLabel.setJustificationType (juce::Justification::centredLeft);
-
+    txValueLabel.setFont (valueFont);
     addAndMakeVisible (nameLabel);
     addAndMakeVisible (rxTitleLabel);
     addAndMakeVisible (rxValueLabel);

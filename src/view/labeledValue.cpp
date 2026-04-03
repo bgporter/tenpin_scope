@@ -24,6 +24,8 @@
 
 #include "labeledValue.h"
 
+#include "lookAndFeel.h"
+
 namespace
 {
 // Hardcoded defaults — will be replaced with AppContext/PersistentContext lookups.
@@ -38,15 +40,18 @@ const juce::Colour kOutlineColour { 0xFFCCCCCC }; // light grey, for debugging l
 LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::StringRef value)
 {
     juce::AttributedString aString;
+    auto& lnf = dynamic_cast<TenpinLookAndFeel&> (getLookAndFeel ());
 
     if (label.isNotEmpty ())
     {
-        aString.append (juce::String (label) + ": ", juce::Font (kFontSize).boldened (), kLabelColour);
+        auto labelFont = lnf.getTenpinLabelFont ();
+        aString.append (juce::String (label) + ": ", labelFont, kLabelColour);
     }
 
     if (value.isNotEmpty ())
     {
-        aString.append (juce::String (value), juce::Font (kFontSize), kValueColour);
+        auto valueFont = lnf.getTenpinValueFont ();
+        aString.append (juce::String (value), valueFont, kValueColour);
     }
 
     text.createLayout (aString, kVeryLargeWidth);
@@ -55,6 +60,6 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
 void LabeledValue::paint (juce::Graphics& g)
 {
     text.draw (g, getLocalBounds ().toFloat ());
-    g.setColour (kOutlineColour);
-    g.drawRect (getLocalBounds (), 1);
+    // g.setColour (kOutlineColour);
+    // g.drawRect (getLocalBounds (), 1);
 }

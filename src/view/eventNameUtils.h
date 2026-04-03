@@ -59,3 +59,24 @@ enum class OctaveType
  * @return juce::String
  */
 juce::String getNoteName (int noteNumber, OctaveType octaveType = OctaveType::Yamaha);
+
+juce::String getOctaveTypeName (OctaveType octaveType);
+
+// a JUCE::VariantConverter for OctaveType, so we can store it in the PersistentContext.
+namespace juce
+{
+template <> struct VariantConverter<OctaveType>
+{
+    static OctaveType fromVar (const var& v)
+    {
+        const int intValue = static_cast<int> (v);
+        if (intValue < 0 || intValue > 1)
+            return OctaveType::Yamaha; // default value
+        return static_cast<OctaveType> (intValue);
+    }
+    static var toVar (const OctaveType& octaveType)
+    {
+        // return the value as a string for better readability in the prefs file.
+        const juce::String name = getOctaveTypeName (octaveType);
+        return var (name);
+    }

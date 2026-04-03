@@ -170,7 +170,11 @@ target_compile_definitions(${TargetName}
 # static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
 # Conversion to binary-data will happen when your target is built.
 
-# juce_add_binary_data(${TargetName}Data SOURCES ...)
+juce_add_binary_data(FontData NAMESPACE FontData 
+    SOURCES 
+        assets/fonts/Fira_Code/static/FiraCode-Regular.ttf
+        assets/fonts/IBM_Plex_Sans/static/IBMPlexSans-Regular.ttf
+    )
 
 target_include_directories(${TargetName} PUBLIC 
     ${CMAKE_CURRENT_SOURCE_DIR}/modules/
@@ -184,13 +188,13 @@ target_include_directories(${TargetName} PUBLIC
 
 target_link_libraries(${TargetName}
     PRIVATE
-        # GuiAppData            # If we'd created a binary data target, we'd link to it here
+        FontData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra
         juce::juce_audio_basics
         juce::juce_audio_devices
         cello::cello
         friz::friz
-        testSuite::testSuite
+        testSuite::testSuite 
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
