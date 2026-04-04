@@ -45,10 +45,10 @@ void TenpinLookAndFeel::updateFromPalette ()
 
 void TenpinLookAndFeel::updateFonts ()
 {
-    labelTypeface = juce::Typeface::createSystemTypefaceFor (FontData::IBMPlexSansRegular_ttf,
-                                                             FontData::IBMPlexSansRegular_ttfSize);
+    labelTypeface = juce::Typeface::createSystemTypefaceFor (FontData::IBMPlexSans_CondensedBold_ttf,
+                                                             FontData::IBMPlexSans_CondensedBold_ttfSize);
     valueTypeface =
-        juce::Typeface::createSystemTypefaceFor (FontData::FiraCodeRegular_ttf, FontData::FiraCodeRegular_ttfSize);
+        juce::Typeface::createSystemTypefaceFor (FontData::FiraCodeBold_ttf, FontData::FiraCodeBold_ttfSize);
 }
 
 juce::Typeface::Ptr TenpinLookAndFeel::getTypefaceForFont (const juce::Font& f)
@@ -62,12 +62,12 @@ juce::Font TenpinLookAndFeel::getTenpinLabelFont () const
 {
     juce::FontOptions options (labelTypeface);
     // return juce::Font (options.withHeight (13.f).withStyle ("bold"));
-    return juce::Font (options.withHeight (13.f));
+    return juce::Font (options.withHeight (14.f));
 }
 
 juce::Font TenpinLookAndFeel::getTenpinValueFont () const
 {
     juce::FontOptions options (valueTypeface);
     // return juce::Font (options.withHeight (13.f).withStyle ("plain"));
-    return juce::Font (options.withHeight (13.f));
+    return juce::Font (options.withHeight (14.f));
 }

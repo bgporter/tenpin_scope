@@ -69,10 +69,10 @@ template <> struct VariantConverter<OctaveType>
 {
     static OctaveType fromVar (const var& v)
     {
-        const int intValue = static_cast<int> (v);
-        if (intValue < 0 || intValue > 1)
-            return OctaveType::Yamaha; // default value
-        return static_cast<OctaveType> (intValue);
+        const juce::String name = v.toString ();
+        if (name == getOctaveTypeName (OctaveType::Roland))
+            return OctaveType::Roland;
+        return OctaveType::Yamaha; // default value
     }
     static var toVar (const OctaveType& octaveType)
     {
@@ -80,3 +80,5 @@ template <> struct VariantConverter<OctaveType>
         const juce::String name = getOctaveTypeName (octaveType);
         return var (name);
     }
+};
+}

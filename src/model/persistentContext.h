@@ -27,6 +27,7 @@
 #include <JuceHeader.h>
 
 #include "utility/logger.h"
+#include "view/eventNameUtils.h"
 
 /**
  * @class PersistentContext
@@ -101,4 +102,5 @@ public:
     MAKE_VALUE_MEMBER (int, col1Width, 90);
     /// @brief Width of the Endpoint column in the event list view.
     MAKE_VALUE_MEMBER (int, col2Width, 140);
+    MAKE_VALUE_MEMBER (OctaveType, octaveType, OctaveType::Yamaha);
 };

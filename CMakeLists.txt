@@ -172,8 +172,8 @@ target_compile_definitions(${TargetName}
 
 juce_add_binary_data(FontData NAMESPACE FontData 
     SOURCES 
-        assets/fonts/Fira_Code/static/FiraCode-Regular.ttf
-        assets/fonts/IBM_Plex_Sans/static/IBMPlexSans-Regular.ttf
+        assets/fonts/Fira_Code/static/FiraCode-Bold.ttf
+        assets/fonts/IBM_Plex_Sans/static/IBMPlexSans_Condensed-Bold.ttf
     )
 
 target_include_directories(${TargetName} PUBLIC 
@@ -186,7 +186,7 @@ target_include_directories(${TargetName} PUBLIC
 # linked automatically. If we'd generated a binary data target above, we would need to link to it
 # here too. This is a standard CMake command.
 
-target_link_libraries(${TargetName}
+target_link_libraries(${TargetName}  
     PRIVATE
         FontData            # If we'd created a binary data target, we'd link to it here
         juce::juce_gui_extra

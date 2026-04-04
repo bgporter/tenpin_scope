@@ -65,6 +65,7 @@ private:
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
 
     AppContext appContext;
+    PersistentContext pc;
     EventView* eventView { nullptr };
     int currentIndex { -1 };
     int currentWidth { 0 };

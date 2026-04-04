@@ -45,7 +45,10 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
     if (label.isNotEmpty ())
     {
         auto labelFont = lnf.getTenpinLabelFont ();
-        aString.append (juce::String (label) + ": ", labelFont, kLabelColour);
+        aString.append (juce::String (label), labelFont, kLabelColour);
+        // if we only have a label, do NOT append the colon.
+        if (value.isNotEmpty ())
+            aString.append (": ", labelFont, kLabelColour);
     }
 
     if (value.isNotEmpty ())
