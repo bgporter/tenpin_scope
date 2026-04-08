@@ -205,3 +205,51 @@ juce::String getOctaveTypeName (OctaveType octaveType)
             return "Unknown Octave Type";
     }
 }
+
+juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType,
+                          float formattedMin, float formattedMax, int precision)
+{
+    jassert (bitWidth >= 1 && bitWidth <= 32);
+    const uint32_t maxVal = (bitWidth == 32) ? 0xFFFFFFFFu : (1u << bitWidth) - 1u;
+
+    switch (formatType)
+    {
+        case ValueFormatType::Integer:
+            return juce::String (value);
+
+        case ValueFormatType::Hex:
+        {
+            const int hexWidth = (bitWidth + 3) / 4;
+            return juce::String ("0x") + juce::String::toHexString (static_cast<int> (value)).paddedLeft ('0', hexWidth);
+        }
+
+        case ValueFormatType::Float:
+        {
+            const float normalised = static_cast<float> (value) / static_cast<float> (maxVal);
+            return juce::String (formattedMin + (formattedMax - formattedMin) * normalised, precision);
+        }
+
+        case ValueFormatType::Midi:
+        {
+            const int fracBits     = juce::jmax (0, bitWidth - 7);
+            const int intPart      = static_cast<int> (value >> fracBits) + static_cast<int> (formattedMin);
+
+            if (fracBits == 0)
+                return juce::String (intPart);
+
+            const uint32_t fracMask = (1u << fracBits) - 1u;
+            const float fraction    = static_cast<float> (value & fracMask) / static_cast<float> (1u << fracBits);
+
+            int fracScale = 1;
+            for (int i = 0; i < precision; ++i)
+                fracScale *= 10;
+
+            const int fracDisplay = static_cast<int> (fraction * static_cast<float> (fracScale));
+            return juce::String (intPart) + "." + juce::String (fracDisplay).paddedLeft ('0', precision);
+        }
+
+        default:
+            jassertfalse;
+            return "Unknown Format Type";
+    }
+}

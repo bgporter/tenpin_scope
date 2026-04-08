@@ -50,6 +50,35 @@ enum class OctaveType
     Roland  // middle C = C4
 };
 
+enum class ValueFormatType
+{
+    Integer, // format as a decimalinteger (e.g. "64")
+    Hex,     // format as a hexadecimal integer (e.g. "0x40")
+    Float,   // format as a float between 0..1 or -1..1 (e.g. "0.5" or "-0.5")
+    Midi     // format as a (high-res) MIDI value 0..127 with fractional part if present.
+};
+
+inline juce::String getValueFormatTypeName (ValueFormatType formatType)
+{
+    switch (formatType)
+    {
+        case ValueFormatType::Integer:
+            return "Integer";
+        case ValueFormatType::Hex:
+            return "Hex";
+        case ValueFormatType::Float:
+            return "Float";
+        case ValueFormatType::Midi:
+            return "Midi";
+        default:
+            jassertfalse;
+            return "Unknown";
+    }
+}
+
+juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType,
+                          float formattedMin = 0.f, float formattedMax = 1.f, int precision = 2);
+
 /**
  * @brief Gets the name of a note based on its MIDI note number, using
  * the specified octave convention.
@@ -81,4 +110,25 @@ template <> struct VariantConverter<OctaveType>
         return var (name);
     }
 };
-}
+
+template <> struct VariantConverter<ValueFormatType>
+{
+    static ValueFormatType fromVar (const var& v)
+    {
+        const juce::String name = v.toString ();
+        if (name == getValueFormatTypeName (ValueFormatType::Hex))
+            return ValueFormatType::Hex;
+        if (name == getValueFormatTypeName (ValueFormatType::Float))
+            return ValueFormatType::Float;
+        if (name == getValueFormatTypeName (ValueFormatType::Midi))
+            return ValueFormatType::Midi;
+        return ValueFormatType::Integer; // default value
+    }
+    static var toVar (const ValueFormatType& formatType)
+    {
+        // return the value as a string for better readability in the prefs file.
+        const juce::String name = getValueFormatTypeName (formatType);
+        return var (name);
+    }
+};
+} // namespace juce
