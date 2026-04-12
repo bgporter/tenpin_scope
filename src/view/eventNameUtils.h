@@ -55,7 +55,8 @@ enum class ValueFormatType
     Integer, // format as a decimalinteger (e.g. "64")
     Hex,     // format as a hexadecimal integer (e.g. "0x40")
     Float,   // format as a float between 0..1 or -1..1 (e.g. "0.5" or "-0.5")
-    Midi     // format as a (high-res) MIDI value 0..127 with fractional part if present.
+    Midi,    // format as a (high-res) MIDI value 0..127 with fractional part if present.
+    Percent  // format as a percentage 0..100 (e.g. "50.00%")
 };
 
 inline juce::String getValueFormatTypeName (ValueFormatType formatType)
@@ -70,6 +71,8 @@ inline juce::String getValueFormatTypeName (ValueFormatType formatType)
             return "Float";
         case ValueFormatType::Midi:
             return "Midi";
+        case ValueFormatType::Percent:
+            return "Percent";
         default:
             jassertfalse;
             return "Unknown";
@@ -77,7 +80,7 @@ inline juce::String getValueFormatTypeName (ValueFormatType formatType)
 }
 
 juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType,
-                          float formattedMin = 0.f, float formattedMax = 1.f, int precision = 2);
+                          int precision = 2, float formattedMin = 0.f, float formattedMax = 1.f);
 
 /**
  * @brief Gets the name of a note based on its MIDI note number, using
@@ -122,6 +125,8 @@ template <> struct VariantConverter<ValueFormatType>
             return ValueFormatType::Float;
         if (name == getValueFormatTypeName (ValueFormatType::Midi))
             return ValueFormatType::Midi;
+        if (name == getValueFormatTypeName (ValueFormatType::Percent))
+            return ValueFormatType::Percent;
         return ValueFormatType::Integer; // default value
     }
     static var toVar (const ValueFormatType& formatType)

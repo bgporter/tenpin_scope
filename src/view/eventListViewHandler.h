@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "eventNameUtils.h"
 #include "eventView.h"
 #include "handler/umpHandler.h"
 #include "model/appContext.h"

@@ -103,4 +103,6 @@ public:
     /// @brief Width of the Endpoint column in the event list view.
     MAKE_VALUE_MEMBER (int, col2Width, 140);
     MAKE_VALUE_MEMBER (OctaveType, octaveType, OctaveType::Yamaha);
+    MAKE_VALUE_MEMBER (ValueFormatType, valueFormatType, ValueFormatType::Hex);
+    MAKE_VALUE_MEMBER (int, precision, 2);
 };

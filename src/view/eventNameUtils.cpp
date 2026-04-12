@@ -207,7 +207,7 @@ juce::String getOctaveTypeName (OctaveType octaveType)
 }
 
 juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType,
-                          float formattedMin, float formattedMax, int precision)
+                          int precision, float formattedMin, float formattedMax)
 {
     jassert (bitWidth >= 1 && bitWidth <= 32);
     const uint32_t maxVal = (bitWidth == 32) ? 0xFFFFFFFFu : (1u << bitWidth) - 1u;
@@ -220,19 +220,34 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
         case ValueFormatType::Hex:
         {
             const int hexWidth = (bitWidth + 3) / 4;
-            return juce::String ("0x") + juce::String::toHexString (static_cast<int> (value)).paddedLeft ('0', hexWidth);
+            return juce::String ("0x") +
+                   juce::String::toHexString (static_cast<int> (value)).paddedLeft ('0', hexWidth);
         }
 
         case ValueFormatType::Float:
         {
+            // some special cases based on the "High Resolution Value User Representations"
+            // proposal:
+            if (value == maxVal)
+                return "MAX";
+            else if (value == (1 << bitWidth - 1))
+                return "MID";
+            else if (value == 0)
+                return "MIN";
             const float normalised = static_cast<float> (value) / static_cast<float> (maxVal);
             return juce::String (formattedMin + (formattedMax - formattedMin) * normalised, precision);
         }
 
+        case ValueFormatType::Percent:
+        {
+            const float normalised = static_cast<float> (value) / static_cast<float> (maxVal);
+            return juce::String ((formattedMin + (formattedMax - formattedMin) * normalised) * 100.f, precision) + "%";
+        }
+
         case ValueFormatType::Midi:
         {
-            const int fracBits     = juce::jmax (0, bitWidth - 7);
-            const int intPart      = static_cast<int> (value >> fracBits) + static_cast<int> (formattedMin);
+            const int fracBits = juce::jmax (0, bitWidth - 7);
+            const int intPart  = static_cast<int> (value >> fracBits) + static_cast<int> (formattedMin);
 
             if (fracBits == 0)
                 return juce::String (intPart);
@@ -253,3 +268,7 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
             return "Unknown Format Type";
     }
 }
+
+#if RUN_UNIT_TESTS
+#include "test/test_EventNameUtils.inl"
+#endif
