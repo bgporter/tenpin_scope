@@ -46,7 +46,8 @@ public:
      * @param label     Short label string; if non-empty, rendered as "label: ".
      * @param value     Value string rendered after the label.
      */
-    LabeledValue (AppContext& ctx, juce::StringRef label, juce::StringRef value);
+    LabeledValue (AppContext& ctx, juce::StringRef label, juce::Colour labelColor, juce::StringRef value,
+                  juce::Colour valueColor);
 
     /** @return The natural rendered height of this component's text layout. */
     float getHeight () const { return text.getHeight (); }

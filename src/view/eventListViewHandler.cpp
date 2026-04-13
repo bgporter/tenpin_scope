@@ -25,6 +25,7 @@
 #include "eventListViewHandler.h"
 
 #include "model/ump/channelVoice2.h"
+#include "palette.h"
 
 EventListViewHandler::EventListViewHandler (AppContext& theAppContext)
 : appContext (theAppContext)
@@ -39,7 +40,11 @@ EventListViewHandler::~EventListViewHandler ()
 
 UmpHandler::Result EventListViewHandler::handle (const UmpEvent& event, int index, EventView* view, int width)
 {
-    eventView    = view;
+    eventView = view;
+    Palette pal { pc };
+
+    eventView->setColors (pal.umpBackground.get (), pal.midi2Label.get (), pal.midi2Value.get (), pal.outline.get ());
+
     currentIndex = index;
     currentWidth = width;
     return UmpHandler::handle (event);

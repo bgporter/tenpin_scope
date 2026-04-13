@@ -36,7 +36,7 @@ EventView::EventView (AppContext& theAppContext)
 void EventView::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };
-    g.fillAll (palette.windowBackground.get ());
+    g.fillAll (palette.umpBackground.get ());
 
     RuntimeContext rc { appContext };
     const float h       = static_cast<float> (getHeight ());
@@ -44,12 +44,12 @@ void EventView::paint (juce::Graphics& g)
     const int divider2X = divider1X + kDividerWidth + rc.col2Width.get ();
 
     // column divider lines
-    g.setColour (juce::Colours::darkgrey);
+    g.setColour (palette.outline.get ());
     g.drawVerticalLine (divider1X, 0.0f, h);
     g.drawVerticalLine (divider2X, 0.0f, h);
 
     // bottom border between events
-    g.setColour (juce::Colours::grey);
+    g.setColour (palette.outline.get ());
     g.drawHorizontalLine (getHeight () - 1, 0.0f, static_cast<float> (getWidth ()));
 }
 
@@ -105,6 +105,12 @@ void EventView::reset ()
     dataValues.clear ();
     // Reset size to zero so that the next sizeToWidth() call always triggers
     // resized(), which positions the newly-created child components.
+
+    // temp for debugging: set all the colors to juce::Colours::transparentWhite
+    bgColor       = juce::Colours::transparentWhite;
+    labelColour   = juce::Colours::transparentWhite;
+    valueColour   = juce::Colours::transparentWhite;
+    outlineColour = juce::Colours::transparentWhite;
     setSize (0, 0);
 }
 
@@ -112,7 +118,7 @@ void EventView::setTime (const juce::String& value)
 {
     if (timeValue)
         removeChildComponent (timeValue.get ());
-    timeValue = std::make_unique<LabeledValue> (appContext, "", value);
+    timeValue = std::make_unique<LabeledValue> (appContext, "", labelColour, value, valueColour);
     addAndMakeVisible (*timeValue);
 }
 
@@ -120,13 +126,13 @@ void EventView::setEndpoint (const juce::String& value)
 {
     if (endpointValue)
         removeChildComponent (endpointValue.get ());
-    endpointValue = std::make_unique<LabeledValue> (appContext, value, "");
+    endpointValue = std::make_unique<LabeledValue> (appContext, value, labelColour, "", valueColour);
     addAndMakeVisible (*endpointValue);
 }
 
 void EventView::addValue (const juce::String& label, const juce::String& value)
 {
-    auto lv = std::make_unique<LabeledValue> (appContext, label, value);
+    auto lv = std::make_unique<LabeledValue> (appContext, label, labelColour, value, valueColour);
     addAndMakeVisible (*lv);
     dataValues.push_back (std::move (lv));
 }

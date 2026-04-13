@@ -100,6 +100,9 @@ public:
     COLOR_M (highlightedText, "#fff");
     COLOR_M (highlightedFill, "#42a2c8");
     COLOR_M (menuText, "#000");
+    COLOR_M (umpBackground, "#eee");
+    COLOR_M (midi2Label, "#555");
+    COLOR_M (midi2Value, "Green");
 
 private:
 };

@@ -43,6 +43,14 @@ public:
      */
     void reset ();
 
+    void setColors (juce::Colour bg, juce::Colour label, juce::Colour value, juce::Colour outline)
+    {
+        bgColor       = bg;
+        labelColour   = label;
+        valueColour   = value;
+        outlineColour = outline;
+    }
+
     /**
      * @brief Set the event timestamp display (no label, value only).
      */
@@ -65,7 +73,11 @@ public:
      * column drag to reposition child components against updated column widths
      * while leaving the event's Y position and height stable.
      */
-    void refreshLayout () { resized (); repaint (); }
+    void refreshLayout ()
+    {
+        resized ();
+        repaint ();
+    }
 
     /**
      * @brief Calculate the height this view needs at the given width.
@@ -79,8 +91,8 @@ public:
 private:
     // ---------- column layout constants ----------
     /// Width of each inter-column ResizeHandle, matching DataViewHeader::kDividerWidth.
-    static constexpr int   kDividerWidth    = 5;
-    static constexpr int   kMinWrapWidth    = 500;   ///< below this width values stop wrapping
+    static constexpr int kDividerWidth = 5;
+    static constexpr int kMinWrapWidth = 500; ///< below this width values stop wrapping
     /// Fraction of the natural text height added as padding on each side (top, bottom, left, right).
     static constexpr float kPaddingFraction = 0.25f;
 
@@ -91,6 +103,12 @@ private:
     std::unique_ptr<LabeledValue> timeValue;
     std::unique_ptr<LabeledValue> endpointValue;
     std::vector<std::unique_ptr<LabeledValue>> dataValues;
+
+    // colors
+    juce::Colour bgColor;
+    juce::Colour labelColour;
+    juce::Colour valueColour;
+    juce::Colour outlineColour;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventView)
 };

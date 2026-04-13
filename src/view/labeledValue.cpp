@@ -37,7 +37,8 @@ const juce::Colour kValueColour { 0xFFEE1111 };   // near-black
 const juce::Colour kOutlineColour { 0xFFCCCCCC }; // light grey, for debugging layout
 } // namespace
 
-LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::StringRef value)
+LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::Colour labelColor,
+                            juce::StringRef value, juce::Colour valueColor)
 {
     juce::AttributedString aString;
     auto& lnf = dynamic_cast<TenpinLookAndFeel&> (getLookAndFeel ());
@@ -45,7 +46,7 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
     if (label.isNotEmpty ())
     {
         auto labelFont = lnf.getTenpinLabelFont ();
-        aString.append (juce::String (label), labelFont, kLabelColour);
+        aString.append (juce::String (label), labelFont, labelColor);
         // if we only have a label, do NOT append the colon.
         if (value.isNotEmpty ())
             aString.append (": ", labelFont, kLabelColour);
@@ -54,7 +55,7 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
     if (value.isNotEmpty ())
     {
         auto valueFont = lnf.getTenpinValueFont ();
-        aString.append (juce::String (value), valueFont, kValueColour);
+        aString.append (juce::String (value), valueFont, valueColor);
     }
 
     text.createLayout (aString, kVeryLargeWidth);
