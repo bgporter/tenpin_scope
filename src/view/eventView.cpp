@@ -85,16 +85,22 @@ void EventView::resized ()
 
     for (auto& val : dataValues)
     {
-        const int valWidth = static_cast<int> (val->getWidth ()) + padding;
+        const auto width { static_cast<int> (val->getWidth ()) };
+        const auto isNewLine { width == 0 };
+        const int valWidth { width + padding };
 
-        if (shouldWrap && currentX > valuesOriginX && (currentX - valuesOriginX + valWidth) > availableWidth)
+        if (isNewLine ||
+            (shouldWrap && currentX > valuesOriginX && (currentX - valuesOriginX + valWidth) > availableWidth))
         {
             ++currentRow;
             currentX = valuesOriginX;
         }
 
-        val->setBounds (currentX, currentRow * rowH + padding, static_cast<int> (val->getWidth ()), contentH);
-        currentX += valWidth;
+        if (!isNewLine)
+        {
+            val->setBounds (currentX, currentRow * rowH + padding, width, contentH);
+            currentX += valWidth;
+        }
     }
 }
 
@@ -166,8 +172,9 @@ int EventView::getContentHeight (int width) const
 
     for (const auto& val : dataValues)
     {
-        const int valWidth = static_cast<int> (val->getWidth ()) + padding;
-        if (currentX > 0 && currentX + valWidth > availableWidth)
+        const auto isNewLine = val->getWidth () == 0;
+        const int valWidth   = static_cast<int> (val->getWidth ()) + padding;
+        if (isNewLine || (currentX > 0 && (currentX + valWidth) > availableWidth))
         {
             ++numRows;
             currentX = 0;

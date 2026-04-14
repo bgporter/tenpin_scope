@@ -66,6 +66,13 @@ public:
      */
     void addValue (const juce::String& label, const juce::String& value);
 
+    /**
+     * @brief add an empty LabeledValue, which we'll interpret in our layout
+     * algorithm as being a newline indicator.
+     *
+     */
+    void addLine () { addValue ("", ""); }
+
     void sizeToWidth (int width) { setSize (width, getContentHeight (width)); }
 
     /**
