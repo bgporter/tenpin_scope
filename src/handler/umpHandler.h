@@ -67,6 +67,11 @@ private:
     virtual Result postDispatch (Result pendingResult) { return pendingResult; }
 
     virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
+
+    /**
+     * @name MIDI 2.0 Channel Voice Message Handlers
+     */
+    ///@{
     virtual Result onMidi2ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMidi2NoteOffEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMidi2NoteOnEvent (const UmpEvent&) { return defaultResult; }
@@ -87,4 +92,5 @@ private:
     virtual Result onMidi2RelativeControllerEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMidi2RelativeRegisteredControllerEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMidi2RelativeAssignableControllerEvent (const UmpEvent&) { return defaultResult; }
+    ///@}
 };

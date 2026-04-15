@@ -52,8 +52,8 @@ EventListView::EventListView (AppContext& theAppContext)
         });
 
     // Seed runtime context with persisted values so initial layout is correct.
-    runtimeContext.col1Width = persistentContext.col1Width.get ();
-    runtimeContext.col2Width = persistentContext.col2Width.get ();
+    runtimeContext.col1Width = persistentContext.eventViewContext.col1Width.get ();
+    runtimeContext.col2Width = persistentContext.eventViewContext.col2Width.get ();
 
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
@@ -64,6 +64,10 @@ EventListView::EventListView (AppContext& theAppContext)
             if (!persistentContext.dragging.get ())
                 forceRebuild ();
         });
+
+    // if *any* of the event view settings change, rebuild the
+    // entire event list.
+    persistentContext.eventViewContext.onPropertyChange ([this] (const juce::Identifier&) { forceRebuild (); });
 
     // Sync initial state if list already has events?
     // I'm not sure if this can happen, figure it out later.
@@ -94,9 +98,9 @@ std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, i
     {
         const auto fmt { juce::XmlElement::TextFormat ().singleLine ().withoutHeader () };
         WARN_ ({
-            {   "msg",  "Failed to handle event"},
-            { "event",      vt.toXmlString (fmt)},
-            {"result", static_cast<int> (result)}
+            {    "msg",  "Failed to handle event" },
+            {  "event",      vt.toXmlString (fmt) },
+            { "result", static_cast<int> (result) }
         });
         eventViewPool.returnEventView (std::move (eventView));
         return nullptr;
@@ -137,9 +141,8 @@ void EventListView::addEvent (juce::ValueTree vt)
     // setViewPositionProportionately (observed ~8 px in practice).
     const auto viewportHeight = viewport->getMaximumVisibleHeight ();
     const auto viewPosY       = viewport->getViewPositionY ();
-    const bool wasAtBottom    = (viewportHeight == 0)
-                                || (index == 0)
-                                || (viewPosY + viewportHeight > eventPositions[index - 1]);
+    const bool wasAtBottom =
+        (viewportHeight == 0) || (index == 0) || (viewPosY + viewportHeight > eventPositions[index - 1]);
 
     if (!wasAtBottom)
     {
@@ -178,9 +181,8 @@ void EventListView::displayEvent (std::unique_ptr<EventView> eventView, int inde
     {
         case InsertionPoint::top:
             visibleEventViews.push_front (std::move (eventView));
-            visibleEventRange.setStart (visibleEventRange.isEmpty ()
-                                            ? index
-                                            : std::min (visibleEventRange.getStart (), index));
+            visibleEventRange.setStart (visibleEventRange.isEmpty () ? index
+                                                                     : std::min (visibleEventRange.getStart (), index));
             break;
         case InsertionPoint::bottom:
             visibleEventViews.push_back (std::move (eventView));
@@ -254,7 +256,7 @@ void EventListView::forceRebuild ()
     }
 
     isRecalculating = false;
-    visibleArea      = {}; // force visibleAreaChanged to re-evaluate after rebuild
+    visibleArea     = {}; // force visibleAreaChanged to re-evaluate after rebuild
     setSize (newWidth, newHeight);
 }
 
@@ -350,8 +352,7 @@ void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleAr
         if (newStart > currentStart)
         {
             DBG ("*****DELETE EVENTS " << currentStart << ".." << newStart << " ABOVE THE CURRENT VISIBLE RANGE*****");
-            const auto toRemove = std::min (newStart - currentStart,
-                                            static_cast<int> (visibleEventViews.size ()));
+            const auto toRemove = std::min (newStart - currentStart, static_cast<int> (visibleEventViews.size ()));
             for (auto i = 0; i < toRemove; ++i)
                 hideEvent (InsertionPoint::top);
         }
@@ -369,8 +370,7 @@ void EventListView::visibleAreaChanged (const juce::Rectangle<int>& newVisibleAr
         if (newEnd < currentEnd)
         {
             DBG ("*****DELETE EVENTS " << newEnd << ".." << currentEnd << " BELOW THE CURRENT VISIBLE RANGE*****");
-            const auto toRemove = std::min (currentEnd - newEnd,
-                                            static_cast<int> (visibleEventViews.size ()));
+            const auto toRemove = std::min (currentEnd - newEnd, static_cast<int> (visibleEventViews.size ()));
             for (auto i = 0; i < toRemove; ++i)
                 hideEvent (InsertionPoint::bottom);
         }

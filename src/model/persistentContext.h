@@ -29,6 +29,29 @@
 #include "utility/logger.h"
 #include "view/eventNameUtils.h"
 
+struct EventViewContext : public cello::Object
+{
+    static const inline juce::Identifier type { "EventViewContext" };
+
+    EventViewContext (const cello::Object& parentOrSelf)
+    : cello::Object { type.toString (), parentOrSelf }
+    {
+        col1Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
+        col2Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
+    }
+
+    MAKE_VALUE_MEMBER (float, textHeight, 14.f);
+
+    /// @brief Width of the Time column in the event list view.
+    MAKE_VALUE_MEMBER (int, col1Width, 90);
+    /// @brief Width of the Endpoint column in the event list view.
+    MAKE_VALUE_MEMBER (int, col2Width, 140);
+    MAKE_VALUE_MEMBER (OctaveType, octaveType, OctaveType::Yamaha);
+    MAKE_VALUE_MEMBER (ValueFormatType, valueFormatType, ValueFormatType::Hex);
+    MAKE_VALUE_MEMBER (int, precision, 2);
+    MAKE_VALUE_MEMBER (bool, umpShowRawData, true);
+};
+
 /**
  * @class PersistentContext
  * @brief This class is used to store the persistent context of the application.
@@ -58,9 +81,6 @@ public:
     {
         // restrict sidebar width to a reasonable range
         sidebarWidth.onSet = [] (int newValue) { return std::clamp (newValue, 150, 400); };
-        // restrict event list column widths to reasonable ranges
-        col1Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
-        col2Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
     }
 
     PersistentContext (const juce::File& file)
@@ -98,11 +118,6 @@ public:
     MAKE_VALUE_MEMBER (LogWriter::Level, logLevel, LogWriter::Level::info);
     /// @brief True when we're in the middle of a drag operation, to prevent saving prefs mid-drag.
     MAKE_VALUE_MEMBER (bool, dragging, false);
-    /// @brief Width of the Time column in the event list view.
-    MAKE_VALUE_MEMBER (int, col1Width, 90);
-    /// @brief Width of the Endpoint column in the event list view.
-    MAKE_VALUE_MEMBER (int, col2Width, 140);
-    MAKE_VALUE_MEMBER (OctaveType, octaveType, OctaveType::Yamaha);
-    MAKE_VALUE_MEMBER (ValueFormatType, valueFormatType, ValueFormatType::Hex);
-    MAKE_VALUE_MEMBER (int, precision, 2);
+
+    EventViewContext eventViewContext { *this };
 };

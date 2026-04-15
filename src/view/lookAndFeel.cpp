@@ -62,12 +62,12 @@ juce::Font TenpinLookAndFeel::getTenpinLabelFont () const
 {
     juce::FontOptions options (labelTypeface);
     // return juce::Font (options.withHeight (13.f).withStyle ("bold"));
-    return juce::Font (options.withHeight (14.f));
+    return juce::Font (options.withHeight (persistentContext.eventViewContext.textHeight));
 }
 
 juce::Font TenpinLookAndFeel::getTenpinValueFont () const
 {
     juce::FontOptions options (valueTypeface);
     // return juce::Font (options.withHeight (13.f).withStyle ("plain"));
-    return juce::Font (options.withHeight (14.f));
+    return juce::Font (options.withHeight (persistentContext.eventViewContext.textHeight));
 }

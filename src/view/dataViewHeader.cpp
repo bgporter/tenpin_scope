@@ -30,8 +30,8 @@ DataViewHeader::DataViewHeader (AppContext& context)
 : appContext { context }
 , persistentContext { appContext }
 , runtimeContext { appContext }
-, col1Resizer { runtimeContext.col1Width, persistentContext.col1Width, persistentContext.dragging }
-, col2Resizer { runtimeContext.col2Width, persistentContext.col2Width, persistentContext.dragging }
+, col1Resizer { runtimeContext.col1Width, persistentContext.eventViewContext.col1Width, persistentContext.dragging }
+, col2Resizer { runtimeContext.col2Width, persistentContext.eventViewContext.col2Width, persistentContext.dragging }
 {
     for (auto* label : { &timeLabel, &endpointLabel, &dataLabel })
     {
@@ -46,8 +46,8 @@ DataViewHeader::DataViewHeader (AppContext& context)
     addAndMakeVisible (col2Resizer);
 
     // Seed runtime context with persisted values so initial layout is correct.
-    runtimeContext.col1Width = persistentContext.col1Width.get ();
-    runtimeContext.col2Width = persistentContext.col2Width.get ();
+    runtimeContext.col1Width = persistentContext.eventViewContext.col1Width.get ();
+    runtimeContext.col2Width = persistentContext.eventViewContext.col2Width.get ();
 
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
