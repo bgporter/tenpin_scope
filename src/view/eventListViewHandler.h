@@ -41,7 +41,7 @@ public:
 
 private:
     UmpHandler::Result preDispatch (const UmpEvent& event) override;
-    UmpHandler::Result postDispatch (UmpHandler::Result pendingResult) override;
+    UmpHandler::Result postDispatch (const UmpEvent& event, UmpHandler::Result pendingResult) override;
 
     UmpHandler::Result onMidi2NoteOffEvent (const UmpEvent& event) override;
     UmpHandler::Result onMidi2NoteOnEvent (const UmpEvent& event) override;

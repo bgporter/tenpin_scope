@@ -45,7 +45,7 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
                 break;
         }
     }
-    return postDispatch (result);
+    return postDispatch (event, result);
 }
 
 UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& event)

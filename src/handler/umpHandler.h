@@ -64,7 +64,7 @@ private:
      * @param pendingResult Result of having handled the event.
      * @return Result
      */
-    virtual Result postDispatch (Result pendingResult) { return pendingResult; }
+    virtual Result postDispatch (const UmpEvent& event, Result pendingResult) { return pendingResult; }
 
     virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
 

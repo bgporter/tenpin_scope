@@ -61,10 +61,18 @@ UmpHandler::Result EventListViewHandler::preDispatch (const UmpEvent& event)
     return Result::ok;
 }
 
-UmpHandler::Result EventListViewHandler::postDispatch (UmpHandler::Result pendingResult)
+UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, UmpHandler::Result pendingResult)
 {
     if (pendingResult == UmpHandler::Result::ok)
+    {
+        if (pc.eventViewContext.umpShowRawData)
+        {
+            eventView->addLine ();
+            // !!! actually get and format the correct hex data.
+            eventView->addValue ("raw", "0x00000000");
+        }
         eventView->sizeToWidth (currentWidth);
+    }
 
     eventView    = nullptr;
     currentIndex = -1;
@@ -79,7 +87,8 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteOffEvent (const UmpEvent& ev
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 16, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 16, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -90,7 +99,8 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteOnEvent (const UmpEvent& eve
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 16, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 16, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -101,7 +111,8 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteEvent (const UmpEvent& event
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 16, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 16, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -113,7 +124,8 @@ UmpHandler::Result EventListViewHandler::onMidi2RegisteredPerNoteControllerEvent
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
     eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -125,7 +137,8 @@ UmpHandler::Result EventListViewHandler::onMidi2AssignablePerNoteControllerEvent
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
     eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -137,7 +150,8 @@ UmpHandler::Result EventListViewHandler::onMidi2PerNoteEvent (const UmpEvent& ev
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
     eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -149,7 +163,8 @@ UmpHandler::Result EventListViewHandler::onMidi2PerNotePitchBendEvent (const Ump
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
     eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision, -1.f, 1.f));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision, -1.f, 1.f));
     return UmpHandler::Result::ok;
 }
 
@@ -160,7 +175,8 @@ UmpHandler::Result EventListViewHandler::onMidi2ControlChangeEvent (const UmpEve
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -195,7 +211,8 @@ UmpHandler::Result EventListViewHandler::onMidi2PolyPressureEvent (const UmpEven
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -205,7 +222,8 @@ UmpHandler::Result EventListViewHandler::onMidi2ChannelPressureEvent (const UmpE
     eventView->setEvent ("MIDI 2 Channel Pressure");
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -216,7 +234,8 @@ UmpHandler::Result EventListViewHandler::onMidi2PitchBendEvent (const UmpEvent& 
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision, -1.f, 1.f));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision, -1.f, 1.f));
     return UmpHandler::Result::ok;
 }
 
@@ -228,7 +247,8 @@ UmpHandler::Result EventListViewHandler::onMidi2RegisteredControllerEvent (const
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
     eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -240,7 +260,8 @@ UmpHandler::Result EventListViewHandler::onMidi2AssignableControllerEvent (const
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
     eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -252,7 +273,8 @@ UmpHandler::Result EventListViewHandler::onMidi2ControllerEvent (const UmpEvent&
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
     eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -264,7 +286,8 @@ UmpHandler::Result EventListViewHandler::onMidi2RelativeRegisteredControllerEven
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
     eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -276,7 +299,8 @@ UmpHandler::Result EventListViewHandler::onMidi2RelativeAssignableControllerEven
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
     eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
@@ -288,7 +312,8 @@ UmpHandler::Result EventListViewHandler::onMidi2RelativeControllerEvent (const U
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
     eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
     return UmpHandler::Result::ok;
 }
 
