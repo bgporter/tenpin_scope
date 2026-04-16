@@ -50,6 +50,7 @@ public:
         sidebarWidth.onSet = [] (int v) { return std::clamp (v, 150, 400); };
         col1Width.onSet    = [] (int v) { return std::clamp (v, 20, 200); };
         col2Width.onSet    = [] (int v) { return std::clamp (v, 20, 200); };
+        col3Width.onSet    = [] (int v) { return std::clamp (v, 20, 400); };
     }
 
     /// a 'temp' var where we can store the *last* sidebar width value during dragging.
@@ -57,6 +58,7 @@ public:
     /// @brief Cached event list column widths for use during drag operations.
     MAKE_VALUE_MEMBER (int, col1Width, 90);
     MAKE_VALUE_MEMBER (int, col2Width, 140);
+    MAKE_VALUE_MEMBER (int, col3Width, 160);
     EventList eventList;
     MidiProperties midiProperties { *this };
 };

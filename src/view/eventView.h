@@ -62,6 +62,11 @@ public:
     void setEndpoint (const juce::String& value);
 
     /**
+     * @brief Set the event type name display.
+     */
+    void setEvent (const juce::String& value);
+
+    /**
      * @brief Append a (label, value) pair to the event data area.
      */
     void addValue (const juce::String& label, const juce::String& value);
@@ -109,6 +114,7 @@ private:
     AppContext appContext;
     std::unique_ptr<LabeledValue> timeValue;
     std::unique_ptr<LabeledValue> endpointValue;
+    std::unique_ptr<LabeledValue> eventValue;
     std::vector<std::unique_ptr<LabeledValue>> dataValues;
 
     // colors

@@ -40,6 +40,7 @@ DataView::DataView (AppContext& theAppContext)
 
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+    runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
 }
 
 DataView::~DataView ()
@@ -55,14 +56,17 @@ void DataView::paint (juce::Graphics& g)
     constexpr int kDividerWidth = 5;
     const int col1Width         = runtimeContext.col1Width.get ();
     const int col2Width         = runtimeContext.col2Width.get ();
+    const int col3Width         = runtimeContext.col3Width.get ();
     const int line1X            = col1Width;
     const int line2X            = col1Width + kDividerWidth + col2Width;
+    const int line3X            = line2X + kDividerWidth + col3Width;
     const float top             = static_cast<float> (DataViewHeader::kHeaderHeight);
     const float bottom          = static_cast<float> (getHeight ());
 
     g.setColour (palette.outline.get ());
     g.drawVerticalLine (line1X, top, bottom);
     g.drawVerticalLine (line2X, top, bottom);
+    g.drawVerticalLine (line3X, top, bottom);
 }
 
 void DataView::resized ()

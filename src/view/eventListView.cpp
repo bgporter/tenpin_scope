@@ -54,9 +54,11 @@ EventListView::EventListView (AppContext& theAppContext)
     // Seed runtime context with persisted values so initial layout is correct.
     runtimeContext.col1Width = persistentContext.eventViewContext.col1Width.get ();
     runtimeContext.col2Width = persistentContext.eventViewContext.col2Width.get ();
+    runtimeContext.col3Width = persistentContext.eventViewContext.col3Width.get ();
 
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
+    runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { refreshVisibleViews (); });
 
     persistentContext.dragging.onPropertyChange (
         [this] (const juce::Identifier&)

@@ -38,6 +38,7 @@ struct EventViewContext : public cello::Object
     {
         col1Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
         col2Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
+        col3Width.onSet = [] (int v) { return std::clamp (v, 20, 400); };
     }
 
     MAKE_VALUE_MEMBER (float, textHeight, 14.f);
@@ -46,6 +47,8 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (int, col1Width, 90);
     /// @brief Width of the Endpoint column in the event list view.
     MAKE_VALUE_MEMBER (int, col2Width, 140);
+    /// @brief Width of the Event column in the event list view.
+    MAKE_VALUE_MEMBER (int, col3Width, 160);
     MAKE_VALUE_MEMBER (OctaveType, octaveType, OctaveType::Yamaha);
     MAKE_VALUE_MEMBER (ValueFormatType, valueFormatType, ValueFormatType::Hex);
     MAKE_VALUE_MEMBER (int, precision, 2);

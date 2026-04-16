@@ -32,25 +32,30 @@ DataViewHeader::DataViewHeader (AppContext& context)
 , runtimeContext { appContext }
 , col1Resizer { runtimeContext.col1Width, persistentContext.eventViewContext.col1Width, persistentContext.dragging }
 , col2Resizer { runtimeContext.col2Width, persistentContext.eventViewContext.col2Width, persistentContext.dragging }
+, col3Resizer { runtimeContext.col3Width, persistentContext.eventViewContext.col3Width, persistentContext.dragging }
 {
-    for (auto* label : { &timeLabel, &endpointLabel, &dataLabel })
+    for (auto* label : { &timeLabel, &endpointLabel, &eventLabel, &dataLabel })
     {
         label->setJustificationType (juce::Justification::centredLeft);
         addAndMakeVisible (label);
     }
     timeLabel.setText ("Time", juce::dontSendNotification);
     endpointLabel.setText ("Endpoint", juce::dontSendNotification);
+    eventLabel.setText ("Event", juce::dontSendNotification);
     dataLabel.setText ("Data", juce::dontSendNotification);
 
     addAndMakeVisible (col1Resizer);
     addAndMakeVisible (col2Resizer);
+    addAndMakeVisible (col3Resizer);
 
     // Seed runtime context with persisted values so initial layout is correct.
     runtimeContext.col1Width = persistentContext.eventViewContext.col1Width.get ();
     runtimeContext.col2Width = persistentContext.eventViewContext.col2Width.get ();
+    runtimeContext.col3Width = persistentContext.eventViewContext.col3Width.get ();
 
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 }
 
 void DataViewHeader::paint (juce::Graphics& g)
@@ -66,13 +71,17 @@ void DataViewHeader::resized ()
 {
     const int col1Width    = runtimeContext.col1Width;
     const int col2Width    = runtimeContext.col2Width;
+    const int col3Width    = runtimeContext.col3Width;
     const int half         = kDividerWidth / 2;
     const int handle1Start = col1Width - half;
     const int handle2Start = col1Width + kDividerWidth + col2Width - half;
+    const int handle3Start = col1Width + kDividerWidth + col2Width + kDividerWidth + col3Width - half;
 
     timeLabel.setBounds (0, 0, handle1Start, getHeight ());
     col1Resizer.setBounds (handle1Start, 0, kDividerWidth, getHeight ());
     endpointLabel.setBounds (handle1Start + kDividerWidth, 0, col2Width, getHeight ());
     col2Resizer.setBounds (handle2Start, 0, kDividerWidth, getHeight ());
-    dataLabel.setBounds (handle2Start + kDividerWidth, 0, getWidth () - handle2Start - kDividerWidth, getHeight ());
+    eventLabel.setBounds (handle2Start + kDividerWidth, 0, col3Width, getHeight ());
+    col3Resizer.setBounds (handle3Start, 0, kDividerWidth, getHeight ());
+    dataLabel.setBounds (handle3Start + kDividerWidth, 0, getWidth () - handle3Start - kDividerWidth, getHeight ());
 }

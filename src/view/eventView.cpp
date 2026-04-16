@@ -42,11 +42,13 @@ void EventView::paint (juce::Graphics& g)
     const float h       = static_cast<float> (getHeight ());
     const int divider1X = rc.col1Width.get ();
     const int divider2X = divider1X + kDividerWidth + rc.col2Width.get ();
+    const int divider3X = divider2X + kDividerWidth + rc.col3Width.get ();
 
     // column divider lines
     g.setColour (palette.outline.get ());
     g.drawVerticalLine (divider1X, 0.0f, h);
     g.drawVerticalLine (divider2X, 0.0f, h);
+    g.drawVerticalLine (divider3X, 0.0f, h);
 
     // bottom border between events
     g.setColour (palette.outline.get ());
@@ -61,8 +63,10 @@ void EventView::resized ()
     RuntimeContext rc { appContext };
     const int col1Width     = rc.col1Width.get ();
     const int col2Width     = rc.col2Width.get ();
+    const int col3Width     = rc.col3Width.get ();
     const int col2StartX    = col1Width + kDividerWidth;
-    const int valuesOriginX = col2StartX + col2Width + kDividerWidth;
+    const int col3StartX    = col2StartX + col2Width + kDividerWidth;
+    const int valuesOriginX = col3StartX + col3Width + kDividerWidth;
 
     const float naturalH = timeValue->getHeight ();
     const int padding    = static_cast<int> (naturalH * kPaddingFraction);
@@ -73,6 +77,9 @@ void EventView::resized ()
 
     if (endpointValue)
         endpointValue->setBounds (col2StartX, padding, col2Width, contentH);
+
+    if (eventValue)
+        eventValue->setBounds (col3StartX, padding, col3Width, contentH);
 
     if (dataValues.empty ())
         return;
@@ -108,6 +115,7 @@ void EventView::reset ()
 {
     timeValue.reset ();
     endpointValue.reset ();
+    eventValue.reset ();
     dataValues.clear ();
     // Reset size to zero so that the next sizeToWidth() call always triggers
     // resized(), which positions the newly-created child components.
@@ -134,6 +142,14 @@ void EventView::setEndpoint (const juce::String& value)
         removeChildComponent (endpointValue.get ());
     endpointValue = std::make_unique<LabeledValue> (appContext, value, labelColour, "", valueColour);
     addAndMakeVisible (*endpointValue);
+}
+
+void EventView::setEvent (const juce::String& value)
+{
+    if (eventValue)
+        removeChildComponent (eventValue.get ());
+    eventValue = std::make_unique<LabeledValue> (appContext, value, labelColour, "", valueColour);
+    addAndMakeVisible (*eventValue);
 }
 
 void EventView::addValue (const juce::String& label, const juce::String& value)
@@ -164,7 +180,7 @@ int EventView::getContentHeight (int width) const
         return rowH;
 
     RuntimeContext rc { appContext };
-    const int valuesOriginX  = rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth;
+    const int valuesOriginX  = rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth + rc.col3Width.get () + kDividerWidth;
     const int availableWidth = width - valuesOriginX;
     const int padding        = timeValue ? static_cast<int> (timeValue->getHeight () * kPaddingFraction) : rowH / 4;
     int currentX             = 0;
