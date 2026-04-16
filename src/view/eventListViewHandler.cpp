@@ -69,7 +69,23 @@ UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Um
         {
             eventView->addLine ();
             // !!! actually get and format the correct hex data.
-            eventView->addValue ("raw", "0x00000000");
+            eventView->addValue (
+                "raw", formatValue (event.getattr<uint32_t> (UmpWords::data0Id, 0), 32, ValueFormatType::Hex));
+            if (event.hasattr (UmpWords::data1Id))
+            {
+                eventView->addValue (
+                    "", formatValue (event.getattr<uint32_t> (UmpWords::data1Id, 0), 32, ValueFormatType::Hex));
+                if (event.hasattr (UmpWords::data2Id))
+                {
+                    eventView->addValue (
+                        "", formatValue (event.getattr<uint32_t> (UmpWords::data2Id, 0), 32, ValueFormatType::Hex));
+                    if (event.hasattr (UmpWords::data3Id))
+                    {
+                        eventView->addValue (
+                            "", formatValue (event.getattr<uint32_t> (UmpWords::data3Id, 0), 32, ValueFormatType::Hex));
+                    }
+                }
+            }
         }
         eventView->sizeToWidth (currentWidth);
     }
