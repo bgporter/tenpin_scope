@@ -73,7 +73,7 @@ void EventView::resized ()
     const int contentH   = static_cast<int> (std::ceil (naturalH));
     const int rowH       = getRowHeight ();
 
-    timeValue->setBounds (0, padding, col1Width, contentH);
+    timeValue->setBounds (kDividerWidth, padding, col1Width, contentH);
 
     if (endpointValue)
         endpointValue->setBounds (col2StartX, padding, col2Width, contentH);
@@ -180,7 +180,8 @@ int EventView::getContentHeight (int width) const
         return rowH;
 
     RuntimeContext rc { appContext };
-    const int valuesOriginX  = rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth + rc.col3Width.get () + kDividerWidth;
+    const int valuesOriginX =
+        rc.col1Width.get () + kDividerWidth + rc.col2Width.get () + kDividerWidth + rc.col3Width.get () + kDividerWidth;
     const int availableWidth = width - valuesOriginX;
     const int padding        = timeValue ? static_cast<int> (timeValue->getHeight () * kPaddingFraction) : rowH / 4;
     int currentX             = 0;

@@ -52,10 +52,10 @@ UmpHandler::Result EventListViewHandler::handle (const UmpEvent& event, int inde
 
 UmpHandler::Result EventListViewHandler::preDispatch (const UmpEvent& event)
 {
-    const juce::String timeStr = juce::String (currentIndex) + ": " + juce::String ((double) event.timestamp, 3);
+    const auto timeStr = juce::String ((double) event.timestamp, 3);
     eventView->setTime (timeStr);
 
-    const juce::String endpointStr = juce::String (event.endpointName) + " " + (event.isReceived ? "Rx" : "Tx");
+    const auto endpointStr = juce::String (event.endpointName) + " " + (event.isReceived ? "Rx" : "Tx");
     eventView->setEndpoint (endpointStr);
 
     return Result::ok;
@@ -178,7 +178,6 @@ UmpHandler::Result EventListViewHandler::onMidi2PerNotePitchBendEvent (const Ump
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
     eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
                                              pc.eventViewContext.precision, -1.f, 1.f));
     return UmpHandler::Result::ok;
@@ -249,7 +248,6 @@ UmpHandler::Result EventListViewHandler::onMidi2PitchBendEvent (const UmpEvent& 
     eventView->setEvent ("MIDI 2 Pitch Bend");
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("val", juce::String ((float) e.valueFloat, 3));
     eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
                                              pc.eventViewContext.precision, -1.f, 1.f));
     return UmpHandler::Result::ok;

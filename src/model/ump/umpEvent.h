@@ -128,9 +128,9 @@ struct UmpEvent : public cello::Object
     UmpEvent (juce::ValueTree valueTree)
     : cello::Object { type.toString (), valueTree }
     {
-        if (valueTree.getType() != type)
+        if (valueTree.getType () != type)
         {
-            DBG("Expected " << type.toString() << " got " << valueTree.getType().toString());
+            DBG ("Expected " << type.toString () << " got " << valueTree.getType ().toString ());
             jassertfalse;
         }
     }
@@ -139,6 +139,7 @@ struct UmpEvent : public cello::Object
     MAKE_VALUE_MEMBER (int, endpointIndex, 0);
     MAKE_VALUE_MEMBER (juce::String, endpointName, "");
     MAKE_VALUE_MEMBER (bool, isReceived, false);
+    MAKE_VALUE_MEMBER (juce::String, eventName, "UMP Event");
 
     MAKE_BITFIELD (int, messageType, 0, 4, 28);
 
