@@ -99,7 +99,7 @@ UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Um
 UmpHandler::Result EventListViewHandler::onMidi2NoteOffEvent (const UmpEvent& event)
 {
     Midi2NoteOffEvent e (event);
-    eventView->setEvent ("MIDI 2 Note Off");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -111,7 +111,7 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteOffEvent (const UmpEvent& ev
 UmpHandler::Result EventListViewHandler::onMidi2NoteOnEvent (const UmpEvent& event)
 {
     Midi2NoteOnEvent e (event);
-    eventView->setEvent ("MIDI 2 Note On");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -123,7 +123,7 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteOnEvent (const UmpEvent& eve
 UmpHandler::Result EventListViewHandler::onMidi2NoteEvent (const UmpEvent& event)
 {
     Midi2NoteEvent e (event);
-    eventView->setEvent ("MIDI 2 Note");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -135,7 +135,7 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteEvent (const UmpEvent& event
 UmpHandler::Result EventListViewHandler::onMidi2RegisteredPerNoteControllerEvent (const UmpEvent& event)
 {
     Midi2RegisteredPerNoteControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Registered Per Note Controller");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -148,7 +148,7 @@ UmpHandler::Result EventListViewHandler::onMidi2RegisteredPerNoteControllerEvent
 UmpHandler::Result EventListViewHandler::onMidi2AssignablePerNoteControllerEvent (const UmpEvent& event)
 {
     Midi2AssignablePerNoteControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Assignable Per Note Controller");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -161,7 +161,7 @@ UmpHandler::Result EventListViewHandler::onMidi2AssignablePerNoteControllerEvent
 UmpHandler::Result EventListViewHandler::onMidi2PerNoteEvent (const UmpEvent& event)
 {
     Midi2PerNoteEvent e (event);
-    eventView->setEvent ("MIDI 2 Per Note");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -174,7 +174,7 @@ UmpHandler::Result EventListViewHandler::onMidi2PerNoteEvent (const UmpEvent& ev
 UmpHandler::Result EventListViewHandler::onMidi2PerNotePitchBendEvent (const UmpEvent& event)
 {
     Midi2PerNotePitchBendEvent e (event);
-    eventView->setEvent ("MIDI 2 Per Note Pitch Bend");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -186,7 +186,7 @@ UmpHandler::Result EventListViewHandler::onMidi2PerNotePitchBendEvent (const Ump
 UmpHandler::Result EventListViewHandler::onMidi2ControlChangeEvent (const UmpEvent& event)
 {
     Midi2ControlChangeEvent e (event);
-    eventView->setEvent ("MIDI 2 Control Change");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("ctrl", getControllerName ((int) e.controller));
@@ -198,7 +198,7 @@ UmpHandler::Result EventListViewHandler::onMidi2ControlChangeEvent (const UmpEve
 UmpHandler::Result EventListViewHandler::onMidi2ProgramChangeEvent (const UmpEvent& event)
 {
     Midi2ProgramChangeEvent e (event);
-    eventView->setEvent ("MIDI 2 Program Change");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("prog", juce::String ((int) e.program));
@@ -210,7 +210,7 @@ UmpHandler::Result EventListViewHandler::onMidi2ProgramChangeEvent (const UmpEve
 UmpHandler::Result EventListViewHandler::onMidi2PerNoteManagementEvent (const UmpEvent& event)
 {
     Midi2PerNoteManagementEvent e (event);
-    eventView->setEvent ("MIDI 2 Per Note Management");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -222,7 +222,7 @@ UmpHandler::Result EventListViewHandler::onMidi2PerNoteManagementEvent (const Um
 UmpHandler::Result EventListViewHandler::onMidi2PolyPressureEvent (const UmpEvent& event)
 {
     Midi2PolyPressureEvent e (event);
-    eventView->setEvent ("MIDI 2 Poly Pressure");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
@@ -234,7 +234,7 @@ UmpHandler::Result EventListViewHandler::onMidi2PolyPressureEvent (const UmpEven
 UmpHandler::Result EventListViewHandler::onMidi2ChannelPressureEvent (const UmpEvent& event)
 {
     Midi2ChannelPressureEvent e (event);
-    eventView->setEvent ("MIDI 2 Channel Pressure");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
@@ -245,7 +245,7 @@ UmpHandler::Result EventListViewHandler::onMidi2ChannelPressureEvent (const UmpE
 UmpHandler::Result EventListViewHandler::onMidi2PitchBendEvent (const UmpEvent& event)
 {
     Midi2PitchBendEvent e (event);
-    eventView->setEvent ("MIDI 2 Pitch Bend");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
@@ -256,7 +256,7 @@ UmpHandler::Result EventListViewHandler::onMidi2PitchBendEvent (const UmpEvent& 
 UmpHandler::Result EventListViewHandler::onMidi2RegisteredControllerEvent (const UmpEvent& event)
 {
     Midi2RegisteredControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Registered Controller");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
@@ -269,7 +269,7 @@ UmpHandler::Result EventListViewHandler::onMidi2RegisteredControllerEvent (const
 UmpHandler::Result EventListViewHandler::onMidi2AssignableControllerEvent (const UmpEvent& event)
 {
     Midi2AssignableControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Assignable Controller");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
@@ -282,7 +282,7 @@ UmpHandler::Result EventListViewHandler::onMidi2AssignableControllerEvent (const
 UmpHandler::Result EventListViewHandler::onMidi2ControllerEvent (const UmpEvent& event)
 {
     Midi2ControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Control Change");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
@@ -295,7 +295,7 @@ UmpHandler::Result EventListViewHandler::onMidi2ControllerEvent (const UmpEvent&
 UmpHandler::Result EventListViewHandler::onMidi2RelativeRegisteredControllerEvent (const UmpEvent& event)
 {
     Midi2RelativeRegisteredControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Relative Registered Controller");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
@@ -308,7 +308,7 @@ UmpHandler::Result EventListViewHandler::onMidi2RelativeRegisteredControllerEven
 UmpHandler::Result EventListViewHandler::onMidi2RelativeAssignableControllerEvent (const UmpEvent& event)
 {
     Midi2RelativeAssignableControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Relative Assignable Controller");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
@@ -321,7 +321,7 @@ UmpHandler::Result EventListViewHandler::onMidi2RelativeAssignableControllerEven
 UmpHandler::Result EventListViewHandler::onMidi2RelativeControllerEvent (const UmpEvent& event)
 {
     Midi2RelativeControllerEvent e (event);
-    eventView->setEvent ("MIDI 2 Relative Control Change");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     eventView->addValue ("bank", juce::String ((int) e.bank));
@@ -334,7 +334,7 @@ UmpHandler::Result EventListViewHandler::onMidi2RelativeControllerEvent (const U
 UmpHandler::Result EventListViewHandler::onMidi2ChannelVoiceEvent (const UmpEvent& event)
 {
     Midi2ChannelVoiceEvent e (event);
-    eventView->setEvent ("MIDI 2 Channel Voice");
+    eventView->setEvent (e.eventName);
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     return UmpHandler::Result::ok;
@@ -342,7 +342,7 @@ UmpHandler::Result EventListViewHandler::onMidi2ChannelVoiceEvent (const UmpEven
 
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)
 {
-    eventView->setEvent ("MIDI 2 UMP");
+    eventView->setEvent (event.eventName);
     eventView->addValue ("d0", juce::String::formatted ("%08X", event.getattr<uint32_t> (UmpWords::data0Id, 0)));
     eventView->addValue ("d1", juce::String::formatted ("%08X", event.getattr<uint32_t> (UmpWords::data1Id, 0)));
     return UmpHandler::Result::ok;
