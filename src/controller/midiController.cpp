@@ -213,8 +213,8 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
         int i { 0 };
         for (; i < ep->received.getNumChildren (); ++i)
         {
-            auto ev = ep->received[i].createCopy ();
-            DBG (ev.toXmlString ());
+            // auto ev = ep->received[i].createCopy ();
+            // DBG (ev.toXmlString ());
             UmpEvent evCopy (ep->received[i].createCopy ());
             if (filterMidiEvent (evCopy))
                 currentEvents.addEvent (evCopy);
