@@ -34,6 +34,10 @@ EventFilter::EventFilter (AppContext& appContext)
 
 bool EventFilter::filterMidiEvent (const UmpEvent& event)
 {
+    // early exit cases:
+    // 1. Are we showing events from this endpoint?
+    // 2. Are we filtering on group or channel?
+
     // !!! implement this based on the filter settings in the context.
     switch (event.messageType.get ())
     {
@@ -84,6 +88,10 @@ bool EventFilter::filterCommonRealtime (const UmpEvent& event)
 
 bool EventFilter::filterChannelVoice (const UmpEvent& event)
 {
+    // exit early if we're not showing any channel voice events at all.
+    if (!context.showChannelVoice)
+        return false;
+
     const Midi2ChannelVoiceEvent cvEvent { event };
     switch (cvEvent.status.get ())
     {
@@ -120,9 +128,11 @@ bool EventFilter::filterChannelVoice (const UmpEvent& event)
         // PROGRAM CHANGE
         case UmpValues::programChange:
             return context.showProgramChange;
+
         // CHANNEL PRESSURE
         case UmpValues::channelPressure:
             return context.showChannelPressure;
+
         // PITCH BEND
         case UmpValues::pitchBend:
             return context.showPitchBend;
