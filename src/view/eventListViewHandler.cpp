@@ -69,23 +69,18 @@ UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Um
         {
             eventView->addLine ();
             // !!! actually get and format the correct hex data.
-            eventView->addValue (
-                "raw", formatValue (event.getattr<uint32_t> (UmpWords::data0Id, 0), 32, ValueFormatType::Hex));
-            if (event.hasattr (UmpWords::data1Id))
+
+            juce::String rawDataStr;
+            std::vector<juce::Identifier> dataIds { UmpWords::data0Id, UmpWords::data1Id, UmpWords::data2Id,
+                                                    UmpWords::data3Id };
+            for (const auto& dataId : dataIds)
             {
-                eventView->addValue (
-                    "", formatValue (event.getattr<uint32_t> (UmpWords::data1Id, 0), 32, ValueFormatType::Hex));
-                if (event.hasattr (UmpWords::data2Id))
-                {
-                    eventView->addValue (
-                        "", formatValue (event.getattr<uint32_t> (UmpWords::data2Id, 0), 32, ValueFormatType::Hex));
-                    if (event.hasattr (UmpWords::data3Id))
-                    {
-                        eventView->addValue (
-                            "", formatValue (event.getattr<uint32_t> (UmpWords::data3Id, 0), 32, ValueFormatType::Hex));
-                    }
-                }
+                if (!event.hasattr (dataId))
+                    break;
+                rawDataStr += formatValue (event.getattr<uint32_t> (dataId, 0), 32, ValueFormatType::Hex) + " ";
             }
+
+            eventView->addValue ("raw", rawDataStr.trimEnd ());
         }
         eventView->sizeToWidth (currentWidth);
     }

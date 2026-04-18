@@ -49,9 +49,14 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (int, col2Width, 140);
     /// @brief Width of the Event column in the event list view.
     MAKE_VALUE_MEMBER (int, col3Width, 160);
+
+    // Individual cell formatting things.
     MAKE_VALUE_MEMBER (OctaveType, octaveType, OctaveType::Yamaha);
     MAKE_VALUE_MEMBER (ValueFormatType, valueFormatType, ValueFormatType::Hex);
     MAKE_VALUE_MEMBER (int, precision, 2);
+
+    // if neither is set to true, we'll just show hex data.
+    MAKE_VALUE_MEMBER (bool, umpShowParsedData, true);
     MAKE_VALUE_MEMBER (bool, umpShowRawData, true);
 };
 
