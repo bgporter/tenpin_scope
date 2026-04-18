@@ -33,6 +33,7 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
 : persistentContext { appContext }
 , runtimeContext { appContext }
 , midiProperties { runtimeContext }
+, eventFilter { appContext }
 , endpoints { juce::ump::Endpoints::getInstance () }
 , session { endpoints->makeSession (sessionName) }
 {
@@ -196,7 +197,7 @@ void MidiController::timerCallback ()
 
 void MidiController::addMidiEvent (UmpEvent& event)
 {
-    if (filterMidiEvent (event))
+    if (eventFilter.filterMidiEvent (event))
         midiProperties.midiEvents.addEvent (event);
 }
 

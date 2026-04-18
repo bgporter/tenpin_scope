@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "eventFilter.h"
 #include "model/appContext.h"
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
@@ -85,6 +86,7 @@ private:
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
+    EventFilter eventFilter;
     std::vector<std::unique_ptr<MidiEndpointProperties>> endpointProperties;
     juce::ump::Endpoints* endpoints;
     juce::ump::Session session;

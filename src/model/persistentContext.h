@@ -66,6 +66,7 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (bool, showControlChange, true);
     MAKE_VALUE_MEMBER (bool, showPitchBend, true);
     MAKE_VALUE_MEMBER (bool, showPerNoteEvents, true);
+    MAKE_VALUE_MEMBER (bool, showChannelPressure, true);
 };
 
 /**

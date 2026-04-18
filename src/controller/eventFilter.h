@@ -34,6 +34,25 @@ class EventFilter
 public:
     EventFilter (AppContext& appContext);
 
+    /**
+     * @brief Decide whether this UMP event should be displayed in the event
+     * list view, based on the filter settings in the current context.
+     *
+     * @param event
+     * @return bool
+     */
+    bool filterMidiEvent (const UmpEvent& event);
+
+private:
+    bool filterUtility (const UmpEvent& event);
+    bool filterCommonRealtime (const UmpEvent& event);
+    bool filterChannelVoice (const UmpEvent& event);
+    bool filterData7 (const UmpEvent& event);
+    bool filterData8 (const UmpEvent& event);
+    bool filterFlexData (const UmpEvent& event);
+    bool filterStream (const UmpEvent& event);
+    bool filterUndefined (const UmpEvent& event);
+
 private:
     EventViewContext context;
 };
