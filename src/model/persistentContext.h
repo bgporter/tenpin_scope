@@ -58,6 +58,14 @@ struct EventViewContext : public cello::Object
     // if neither is set to true, we'll just show hex data.
     MAKE_VALUE_MEMBER (bool, umpShowParsedData, true);
     MAKE_VALUE_MEMBER (bool, umpShowRawData, true);
+
+    // filter settings for the event list view.
+    MAKE_VALUE_MEMBER (bool, showChannelVoice, true);
+    MAKE_VALUE_MEMBER (bool, showNoteOnOff, true);
+    MAKE_VALUE_MEMBER (bool, showProgramChange, true);
+    MAKE_VALUE_MEMBER (bool, showControlChange, true);
+    MAKE_VALUE_MEMBER (bool, showPitchBend, true);
+    MAKE_VALUE_MEMBER (bool, showPerNoteEvents, true);
 };
 
 /**

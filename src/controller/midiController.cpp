@@ -25,11 +25,13 @@
 #include "midiController.h"
 
 #include "endpointController.h"
+#include "model/ump/channelVoice2.h"
 #include "model/ump/umpEvent.h"
 #include "utility/logger.h"
 
 MidiController::MidiController (juce::StringRef sessionName, AppContext& appContext)
-: runtimeContext { appContext }
+: persistentContext { appContext }
+, runtimeContext { appContext }
 , midiProperties { runtimeContext }
 , endpoints { juce::ump::Endpoints::getInstance () }
 , session { endpoints->makeSession (sessionName) }
@@ -100,8 +102,8 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
         }
     }
     INFO_ ({
-        {  "msg", "Found MIDI endpoints"},
-        {"count",                      i}
+        {   "msg", "Found MIDI endpoints" },
+        { "count",                      i }
     });
 
     endpoints->addListener (*this);
@@ -127,8 +129,7 @@ void MidiController::endpointsChanged ()
         // any endpoints IDs that we know about but are no longer present in the
         // vector of connected endpoints has been disconnected. We set it
         // as such but do NOT delete it.
-        if (std::find_if (availableEndpoints.begin (), availableEndpoints.end (),
-                          [&] (const auto& endpointId)
+        if (std::find_if (availableEndpoints.begin (), availableEndpoints.end (), [&] (const auto& endpointId)
                           { return endpointController->getEndpointId () == endpointId; }) == availableEndpoints.end ())
             endpointController->disconnected ();
     }
@@ -151,10 +152,10 @@ void MidiController::addEndpointController (int index, juce::ump::EndpointId end
     jassert (juce::MessageManager::getInstance ()->isThisTheMessageThread ());
     auto endpoint = endpoints->getEndpoint (endpointId);
     INFO_ ({
-        {  "msg",                          "Device found"},
-        { "name",                    endpoint->getName ()},
-        {"srcId", endpointId.get (juce::ump::IOKind::src)},
-        {"dstId", endpointId.get (juce::ump::IOKind::dst)}
+        {   "msg",                          "Device found" },
+        {  "name",                    endpoint->getName () },
+        { "srcId", endpointId.get (juce::ump::IOKind::src) },
+        { "dstId", endpointId.get (juce::ump::IOKind::dst) }
     });
     auto endpointController = std::make_unique<EndpointController> (index, endpointId, midiProperties);
     endpointController->connectEndpoint (&session);
@@ -176,8 +177,8 @@ void MidiController::updateEndpointController (juce::ump::EndpointId endpointId)
     if (endpointController == endpointControllers.end ())
     {
         ERROR_ ({
-            {"msg",                                                         "Endpoint controller not found"},
-            { "id", endpointId.get (juce::ump::IOKind::src) + "-" + endpointId.get (juce::ump::IOKind::dst)}
+            { "msg",                                                         "Endpoint controller not found" },
+            {  "id", endpointId.get (juce::ump::IOKind::src) + "-" + endpointId.get (juce::ump::IOKind::dst) }
         });
         return;
     }
@@ -218,7 +219,7 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
                 currentEvents.addEvent (evCopy);
         }
         DBG ("Added " << i << " RX events from  " << ep->name);
-        for (i =  0; i < ep->transmitted.getNumChildren (); ++i)
+        for (i = 0; i < ep->transmitted.getNumChildren (); ++i)
         {
             UmpEvent evCopy (ep->transmitted[i].createCopy ());
             if (filterMidiEvent (evCopy))
@@ -296,5 +297,46 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
 
 bool MidiController::filterMidiEvent (UmpEvent& event)
 {
+    // const auto mt { event.getType () };
+    // switch (mt)
+    // {
+    //     case MessageTypes::utility:
+    //         if (!pc.eventViewContext.umpShowUtility)
+    //             return false;
+    //         break;
+    //     case MessageTypes::commonRealtime:
+    //         if (!pc.eventViewContext.umpShowCommonRealtime)
+    //             return false;
+    //         break;
+    //     case MessageTypes::midi1ChannelVoice:
+    //         [[fallthrough]];
+    //     case MessageTypes::midi2ChannelVoice:
+    //     {
+    //         // we treat MIDI 1 and 2 as the same for filtering purposes.
+    //         if (!pc.eventViewContext.umpShowChannelVoice)
+    //             return false;
+    //         // step through each of the broad event types.
+    //         const Midi2ChannelVoiceEvent channelVoiceEvent { event };
+    //         const auto status = channelVoiceEvent.getStatus ();
+    //         UmpValues::controlChange
+    //         UmpValues::registeredController
+    //         UmpValues::assignableController
+    //         UmpValues::relativeRegisteredController
+
+    //         UmpValues::registeredPerNoteController
+    //         UmpValues::relativeAssignableController
+    //         UmpValues::perNotePitchBend
+    //         UmpValues::polyPressure
+    //         UmpValues::perNoteManagement
+
+    //         UmpValues::noteOff
+    //         UmpValues::noteOn
+
+    //         UmpValues::programChange
+    //         UmpValues::channelPressure
+    //         UmpValues::pitchBend
+    //     }
+    //     break;
+    // }
     return true;
 }

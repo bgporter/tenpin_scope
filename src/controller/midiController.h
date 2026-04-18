@@ -82,6 +82,7 @@ private:
      */
     bool filterMidiEvent (UmpEvent& event);
 
+    PersistentContext persistentContext;
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;
     std::vector<std::unique_ptr<MidiEndpointProperties>> endpointProperties;

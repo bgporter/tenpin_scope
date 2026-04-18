@@ -69,10 +69,12 @@ set(SOURCES_MAIN
 )
 
 set (SOURCES_CONTROLLER
-    src/controller/midiController.h
-    src/controller/midiController.cpp
     src/controller/endpointController.h
-    src/controller/endpointController.cpp)
+    src/controller/endpointController.cpp
+    src/controller/eventFilter.h
+    src/controller/eventFilter.cpp
+    src/controller/midiController.h
+    src/controller/midiController.cpp)
 
 set (SOURCES_HANDLER
     src/handler/umpHandler.h
