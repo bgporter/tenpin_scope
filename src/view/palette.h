@@ -91,18 +91,65 @@ public:
                        juce::Font (juce::FontOptions { "Fira Code", 15.f, juce::Font::FontStyleFlags::plain }));
 
     // colors from the juce ColourScheme struct:
-    COLOR_M (windowBackground, "#efefef");
+    COLOR_M (windowBackground, "#060e20");
     COLOR_M (widgetBackground, "#fff");
     COLOR_M (menuBackground, "#fff");
-    COLOR_M (outline, "#ddd");
-    COLOR_M (defaultText, "#000");
+    COLOR_M (outline, "#2d3449");
+    COLOR_M (defaultText, "#dae2fe");
+    COLOR_M (secondaryText, "0x94a3b8");
     COLOR_M (defaultFill, "#a9a9a9");
     COLOR_M (highlightedText, "#fff");
     COLOR_M (highlightedFill, "#42a2c8");
     COLOR_M (menuText, "#000");
-    COLOR_M (umpBackground, "#eee");
-    COLOR_M (midi2Label, "#555");
-    COLOR_M (midi2Value, "Green");
+    COLOR_M (surfaceMid, "#0b1426");
+    COLOR_M (surfaceHigh, "#1a2332");
+    COLOR_M (divider, "outline");
+    COLOR_M (deepBackground, "#060e20");
+    COLOR_M (umpBackground, "deepBackground");
+
+    // MIDI 2.0 (UMP) — Emerald 400 / Emerald 800
+    COLOR_M (midi2Label, "#065F46");
+    COLOR_M (midi2Value, "#4EDE91");
+
+    // MIDI 1.0 (Legacy) — Amber 500 / Amber 900
+    COLOR_M (midi1Label, "#78350F");
+    COLOR_M (midi1Value, "#FFB000");
+
+    // Utility — Slate 400 / Slate 700
+    COLOR_M (utilityLabel, "#334155");
+    COLOR_M (utilityValue, "#94A3B8");
+
+    // Common/Realtime — Rose 500 / Rose 900
+    COLOR_M (commonRealtimeLabel, "#881337");
+    COLOR_M (commonRealtimeValue, "#F43F5E");
+
+    // 7-bit SysEx — Purple 500 / Purple 900
+    COLOR_M (sysex7Label, "#581C87");
+    COLOR_M (sysex7Value, "#A855F7");
+
+    // 8-bit SysEx — Blue 500 / Blue 900
+    COLOR_M (sysex8Label, "#1E3A8A");
+    COLOR_M (sysex8Value, "#3B82F6");
+
+    // Flex Data — Cyan 500 / Cyan 900
+    COLOR_M (flexDataLabel, "#164E63");
+    COLOR_M (flexDataValue, "#06B6D4");
+
+    // Stream Data — Yellow 500 / Yellow 900
+    COLOR_M (streamLabel, "#713F12");
+    COLOR_M (streamValue, "#EAB308");
+
+    // Undefined/Error — Red 500 / Red 900
+    COLOR_M (undefinedLabel, "#7F1D1D");
+    COLOR_M (undefinedValue, "#EF4444");
+
+    // Endpoint status
+    COLOR_M (endpointNotAlive, "surfaceHigh");
+    COLOR_M (endpointInputAlive, "#166534");
+    COLOR_M (endpointOutputAlive, "#7F1D1D");
+
+    // Resize handle active (hover/drag)
+    COLOR_M (resizeHandleActive, "outline");
 
 private:
 };

@@ -55,7 +55,7 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (ValueFormatType, valueFormatType, ValueFormatType::Hex);
     MAKE_VALUE_MEMBER (int, precision, 2);
 
-    // if neither is set to true, we'll just show hex data.
+    // if neither is set to true, we'll just show hex (raw) data.
     MAKE_VALUE_MEMBER (bool, umpShowParsedData, true);
     MAKE_VALUE_MEMBER (bool, umpShowRawData, true);
 
@@ -67,6 +67,16 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (bool, showPitchBend, true);
     MAKE_VALUE_MEMBER (bool, showPerNoteEvents, true);
     MAKE_VALUE_MEMBER (bool, showChannelPressure, true);
+
+    // filter settings for data granularity
+    // show individual UMP packets? IF nothing else is enabled, we'll just show the raw UMP data.
+    MAKE_VALUE_MEMBER (bool, showUmpData, true);
+    // display combined sysex / mixed data as a unit when complete.
+    MAKE_VALUE_MEMBER (bool, showCombinedData, true);
+    // show MIDI CI messages as parsed data (when complete)
+    MAKE_VALUE_MEMBER (bool, showMidiCI, true);
+    // show complete property exchange messages as parsed data (when complete)
+    MAKE_VALUE_MEMBER (bool, showPropertyExchange, true);
 };
 
 /**

@@ -279,7 +279,7 @@ void EventListView::paint (juce::Graphics& g)
     g.fillAll (palette.windowBackground.get ());
 
     auto bounds = getLocalBounds ();
-    g.setColour (juce::Colours::grey);
+    g.setColour (palette.divider.get ());
     g.drawHorizontalLine (bounds.getBottom () - 1, bounds.getX (), bounds.getRight ());
 }
 

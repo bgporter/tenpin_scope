@@ -79,8 +79,18 @@ inline juce::String getValueFormatTypeName (ValueFormatType formatType)
     }
 }
 
-juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType,
-                          int precision = 2, float formattedMin = 0.f, float formattedMax = 1.f);
+juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType, int precision = 2,
+                          float formattedMin = 0.f, float formattedMax = 1.f);
+
+/**
+ * @brief Formats a time value in seconds as a compact string, expanding
+ * the number of displayed fields only as needed:
+ *   s.mmm / ss.mmm / M:ss.mmm / MM:ss.mmm / H:ss.mmm / HH:ss.mmm
+ *
+ * @param seconds Non-negative elapsed time in seconds.
+ * @return juce::String
+ */
+juce::String formatTime (double seconds);
 
 /**
  * @brief Gets the name of a note based on its MIDI note number, using

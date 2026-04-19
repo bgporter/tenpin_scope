@@ -47,6 +47,13 @@ public:
     juce::Font getTenpinLabelFont () const;
     juce::Font getTenpinValueFont () const;
 
+    const Palette& getPalette () const { return palette; }
+
+    static TenpinLookAndFeel* getFrom (juce::Component& component)
+    {
+        return dynamic_cast<TenpinLookAndFeel*> (&component.getLookAndFeel ());
+    }
+
 private:
     PersistentContext persistentContext;
     Palette palette;

@@ -24,6 +24,8 @@
 
 #include "resizeHandle.h"
 
+#include "lookAndFeel.h"
+
 ResizeHandle::ResizeHandle (cello::Value<int>& rcValue_,
                              cello::Value<int>& pcValue_,
                              cello::Value<bool>& dragging_,
@@ -50,7 +52,8 @@ void ResizeHandle::paint (juce::Graphics& g)
             case LinePosition::centre: lineX = getWidth () / 2; break;
             case LinePosition::right:  lineX = getWidth () - 1; break;
         }
-        g.setColour (juce::Colours::black);
+        if (auto* laf = TenpinLookAndFeel::getFrom (*this))
+            g.setColour (laf->getPalette ().divider.get ());
         g.drawVerticalLine (lineX, 0.0f, static_cast<float> (getHeight ()));
     }
 }

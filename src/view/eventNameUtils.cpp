@@ -206,8 +206,8 @@ juce::String getOctaveTypeName (OctaveType octaveType)
     }
 }
 
-juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType,
-                          int precision, float formattedMin, float formattedMax)
+juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType, int precision, float formattedMin,
+                          float formattedMax)
 {
     jassert (bitWidth >= 1 && bitWidth <= 32);
     const uint32_t maxVal = (bitWidth == 32) ? 0xFFFFFFFFu : (1u << bitWidth) - 1u;
@@ -267,6 +267,31 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
             jassertfalse;
             return "Unknown Format Type";
     }
+}
+
+juce::String formatTime (double seconds)
+{
+    const int totalMs  = static_cast<int> (seconds * 1000.0f + 0.5f);
+    const int ms       = totalMs % 1000;
+    const int totalSec = totalMs / 1000;
+    const int sec      = totalSec % 60;
+    const int totalMin = totalSec / 60;
+    const int min      = totalMin % 60;
+    const int hours    = totalMin / 60;
+
+    const auto msStr  = juce::String (ms).paddedLeft ('0', 3);
+    const auto secStr = juce::String (sec).paddedLeft ('0', 2);
+
+    if (hours > 0)
+        return juce::String (hours) + ":" + secStr + "." + msStr;
+
+    if (min > 0)
+        return juce::String (min) + ":" + secStr + "." + msStr;
+
+    if (sec >= 10)
+        return secStr + "." + msStr;
+
+    return juce::String (sec) + "." + msStr;
 }
 
 #if RUN_UNIT_TESTS

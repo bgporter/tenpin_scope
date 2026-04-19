@@ -23,6 +23,7 @@
  */
 
 #include "endpointView.h"
+#include "lookAndFeel.h"
 
 EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
 : appContext { theAppContext }
@@ -81,7 +82,8 @@ void EndpointView::paint (juce::Graphics& g)
     }
     g.fillAll (backgroundColor);
 
-    g.setColour (juce::Colours::black);
+    if (auto* laf = TenpinLookAndFeel::getFrom (*this))
+        g.setColour (laf->getPalette ().divider.get ());
     const auto bounds = getLocalBounds ();
     const auto y      = static_cast<float> (bounds.getBottom ()) - 1.0f;
     g.drawLine (0.0f, y, static_cast<float> (bounds.getWidth ()), y, 2.0f);
