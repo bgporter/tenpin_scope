@@ -31,15 +31,20 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
 {
     jassert (endpointProperties.wasWrapped ());
 
-    auto valueFont { juce::Font (juce::FontOptions ().withName ("Monospace")) };
-
     nameLabel.setJustificationType (juce::Justification::centredLeft);
     rxTitleLabel.setJustificationType (juce::Justification::centredLeft);
     rxValueLabel.setJustificationType (juce::Justification::centredLeft);
-    rxValueLabel.setFont (valueFont);
     txTitleLabel.setJustificationType (juce::Justification::centredLeft);
     txValueLabel.setJustificationType (juce::Justification::centredLeft);
-    txValueLabel.setFont (valueFont);
+
+    if (auto* laf = TenpinLookAndFeel::getFrom (*this))
+    {
+        nameLabel.setFont (laf->getTenpinLabelFont ());
+        rxTitleLabel.setFont (laf->getTenpinLabelFont ());
+        txTitleLabel.setFont (laf->getTenpinLabelFont ());
+        rxValueLabel.setFont (laf->getTenpinValueFont ());
+        txValueLabel.setFont (laf->getTenpinValueFont ());
+    }
     addAndMakeVisible (nameLabel);
     addAndMakeVisible (rxTitleLabel);
     addAndMakeVisible (rxValueLabel);
