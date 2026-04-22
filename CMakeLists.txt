@@ -122,6 +122,8 @@ set(SOURCES_VIEW
     src/view/eventView.cpp
     src/view/eventListView.h
     src/view/eventListView.cpp
+    src/view/eventListSettingsView.h
+    src/view/eventListSettingsView.cpp
     src/view/eventListViewHandler.h
     src/view/eventListViewHandler.cpp
     src/view/labeledValue.h
