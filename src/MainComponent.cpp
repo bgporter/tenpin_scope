@@ -6,6 +6,7 @@ MainComponent::MainComponent (AppContext& theAppContext)
 : appContext (theAppContext)
 , persistentContext { theAppContext }
 , runtimeContext { theAppContext }
+, animator { std::make_unique<friz::DisplaySyncController> (this) }
 , dataView { theAppContext }
 , deviceView { theAppContext }
 {

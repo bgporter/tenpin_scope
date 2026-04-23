@@ -33,6 +33,7 @@ private:
     AppContext appContext;
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
+    friz::Animator animator;
     DataView dataView;
     DeviceView deviceView;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

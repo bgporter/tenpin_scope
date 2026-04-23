@@ -27,6 +27,7 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
+#include "model/persistentContext.h"
 
 class EventListSettingsView : public juce::Component
 {
@@ -45,7 +46,26 @@ private:
      */
     void setupButton (juce::Button& button, const juce::StringRef txt, const juce::Identifier& valId);
 
+    /**
+     * @brief Initialize and populate a combox box, connecting it to a
+     * cello::Value in the context.
+     *
+     * @param comboBox
+     * @param valId
+     * @param options
+     */
+    void setupCombobox (juce::ComboBox& comboBox, const juce::Identifier& valId, juce::StringArray& options);
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventListSettingsView)
     AppContext appContext;
     PersistentContext persistentContext;
+    EventViewContext eventViewContext;
+
+    // buttons & controls:
+    juce::ToggleButton showParsedDataButton;
+    juce::ToggleButton showRawDataButton;
+
+    juce::ComboBox octaveTypeComboBox;
+    juce::ComboBox valueFormatTypeComboBox;
+    juce::ComboBox precisionDigitsComboBox;
 };

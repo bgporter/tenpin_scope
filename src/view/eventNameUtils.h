@@ -52,7 +52,7 @@ enum class OctaveType
 
 enum class ValueFormatType
 {
-    Integer, // format as a decimalinteger (e.g. "64")
+    Integer, // format as a decimal integer (e.g. "64")
     Hex,     // format as a hexadecimal integer (e.g. "0x40")
     Float,   // format as a float between 0..1 or -1..1 (e.g. "0.5" or "-0.5")
     Midi,    // format as a (high-res) MIDI value 0..127 with fractional part if present.

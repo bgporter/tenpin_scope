@@ -54,6 +54,8 @@ public:
         return dynamic_cast<TenpinLookAndFeel*> (&component.getLookAndFeel ());
     }
 
+
+
 private:
     PersistentContext persistentContext;
     Palette palette;
