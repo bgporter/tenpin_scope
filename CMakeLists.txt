@@ -174,10 +174,19 @@ target_compile_definitions(${TargetName}
 # static library. These source files can be of any kind (wav data, images, fonts, icons etc.).
 # Conversion to binary-data will happen when your target is built.
 
-juce_add_binary_data(FontData NAMESPACE FontData 
-    SOURCES 
+juce_add_binary_data(FontData NAMESPACE FontData
+    SOURCES
         assets/fonts/Fira_Code/static/FiraCode-Bold.ttf
         assets/fonts/IBM_Plex_Sans/static/IBMPlexSans_Condensed-Bold.ttf
+    )
+
+file(GLOB IMAGE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/assets/images/*.svg")
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/assets/images")
+
+juce_add_binary_data(ImageData NAMESPACE ImageData
+    SOURCES
+        ${IMAGE_FILES}
     )
 
 target_include_directories(${TargetName} PUBLIC 
@@ -192,7 +201,8 @@ target_include_directories(${TargetName} PUBLIC
 
 target_link_libraries(${TargetName}  
     PRIVATE
-        FontData            # If we'd created a binary data target, we'd link to it here
+        FontData
+        ImageData
         juce::juce_gui_extra
         juce::juce_audio_basics
         juce::juce_audio_devices

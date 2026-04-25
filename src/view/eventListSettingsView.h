@@ -47,7 +47,7 @@ private:
     void setupButton (juce::Button& button, const juce::StringRef txt, const juce::Identifier& valId);
 
     /**
-     * @brief Initialize and populate a combox box, connecting it to a
+     * @brief Initialize and populate a combo box, connecting it to a
      * cello::Value in the context.
      *
      * @param comboBox

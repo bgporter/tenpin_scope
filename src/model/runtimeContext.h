@@ -59,6 +59,9 @@ public:
     MAKE_VALUE_MEMBER (int, col1Width, 90);
     MAKE_VALUE_MEMBER (int, col2Width, 140);
     MAKE_VALUE_MEMBER (int, col3Width, 160);
+    // used to control the slide in/out of the settings window.
+    MAKE_VALUE_MEMBER (float, settingsPos, 0.f);
+
     EventList eventList;
     MidiProperties midiProperties { *this };
 };

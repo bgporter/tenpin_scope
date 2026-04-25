@@ -39,9 +39,6 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 , eventViewContext { persistentContext }
 {
     setSize (400, 300);
-    addAndMakeVisible (showParsedDataButton);
-    addAndMakeVisible (showRawDataButton);
-
     setupButton (showParsedDataButton, "Show parsed data", eventViewContext.umpShowParsedData.getId ());
     setupButton (showRawDataButton, "Show raw data", eventViewContext.umpShowRawData.getId ());
 }
@@ -55,6 +52,7 @@ void EventListSettingsView::resized () {}
 
 void EventListSettingsView::setupButton (juce::Button& button, const juce::StringRef txt, const juce::Identifier& valId)
 {
+    addAndMakeVisible (button);
     button.setButtonText (txt);
 
     auto setButtonStateFromContext = [this, &button, valId] ()
@@ -71,13 +69,13 @@ void EventListSettingsView::setupButton (juce::Button& button, const juce::Strin
 
     // when the value in the context changes, update the button's toggle state
     persistentContext.eventViewContext.onPropertyChange (
-                                                         valId, [  valId, setButtonStateFromContext] (const juce::Identifier& /*id*/)
-        { setButtonStateFromContext (); });
+        valId, [valId, setButtonStateFromContext] (const juce::Identifier& /*id*/) { setButtonStateFromContext (); });
 }
 
 void EventListSettingsView::setupCombobox (juce::ComboBox& comboBox, const juce::Identifier& valId,
                                            juce::StringArray& options)
 {
+    addAndMakeVisible (comboBox);
     comboBox.addItemList (options, 1);
     comboBox.setSelectedItemIndex (0);
 
