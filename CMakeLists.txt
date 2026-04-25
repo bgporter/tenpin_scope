@@ -186,7 +186,7 @@ file(GLOB IMAGE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/assets/images/*.svg")
 set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/assets/images")
 
-juce_add_binary_data(ImageData NAMESPACE ImageData
+juce_add_binary_data(ImageData NAMESPACE ImageData HEADER_NAME ImageData.h
     SOURCES
         ${IMAGE_FILES}
     )

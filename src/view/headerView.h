@@ -45,4 +45,5 @@ private:
     AppContext appContext;
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
+    juce::ImageButton filterButton;
 };
