@@ -23,6 +23,7 @@
  */
 
 #include "eventListSettingsView.h"
+#include "lookAndFeel.h"
 
 namespace
 {
@@ -45,7 +46,10 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 
 void EventListSettingsView::paint (juce::Graphics& g)
 {
-    g.fillAll (getLookAndFeel ().findColour (juce::ResizableWindow::backgroundColourId));
+    const auto* lnf    = TenpinLookAndFeel::getFrom (*this);
+    const auto palette = lnf->getPalette ();
+
+    g.fillAll (palette.defaultFill.get ());
 }
 
 void EventListSettingsView::resized () {}

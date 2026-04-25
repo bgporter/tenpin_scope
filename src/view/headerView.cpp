@@ -62,6 +62,11 @@ HeaderView::HeaderView (AppContext& context)
         iconImage, 1.0f, iconColor.withAlpha (0.2f));
     filterButton.setClickingTogglesState (true);
     filterButton.setButtonText ("filter");
+    filterButton.onClick = [this] ()
+    {
+        RuntimeContext rc { appContext };
+        rc.settingsPos = filterButton.getToggleState () ? 1.f : 0.f;
+    };
     addAndMakeVisible (filterButton);
 }
 
