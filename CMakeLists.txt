@@ -132,6 +132,8 @@ set(SOURCES_VIEW
     src/view/palette.cpp
     src/view/resizeHandle.h
     src/view/resizeHandle.cpp
+    src/view/headerView.h
+    src/view/headerView.cpp
     src/view/lookAndFeel.h
     src/view/lookAndFeel.cpp
 )

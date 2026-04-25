@@ -11,6 +11,7 @@
 #include "model/runtimeContext.h"
 #include "view/dataView.h"
 #include "view/deviceView.h"
+#include "view/headerView.h"
 
 //==============================================================================
 /*
@@ -34,6 +35,7 @@ private:
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
     friz::Animator animator;
+    HeaderView headerView;
     DataView dataView;
     DeviceView deviceView;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)

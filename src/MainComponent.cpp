@@ -7,6 +7,7 @@ MainComponent::MainComponent (AppContext& theAppContext)
 , persistentContext { theAppContext }
 , runtimeContext { theAppContext }
 , animator { std::make_unique<friz::DisplaySyncController> (this) }
+, headerView { theAppContext }
 , dataView { theAppContext }
 , deviceView { theAppContext }
 {
@@ -15,6 +16,7 @@ MainComponent::MainComponent (AppContext& theAppContext)
     runtimeContext.sidebarWidth = persistentContext.sidebarWidth.get ();
     runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 
+    addAndMakeVisible (headerView);
     addAndMakeVisible (dataView);
     addAndMakeVisible (deviceView);
     setSize (600, 400);
@@ -25,6 +27,7 @@ void MainComponent::paint (juce::Graphics&) {}
 void MainComponent::resized ()
 {
     auto bounds = getLocalBounds ();
+    headerView.setBounds (bounds.removeFromTop (HeaderView::kHeight));
     deviceView.setBounds (bounds.removeFromLeft (runtimeContext.sidebarWidth));
     dataView.setBounds (bounds);
 }
