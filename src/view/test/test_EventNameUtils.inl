@@ -43,9 +43,12 @@ public:
                   expectEquals (formatValue (0u,   7, ValueFormatType::Float), juce::String ("MIN"));
                   expectEquals (formatValue (64u,  7, ValueFormatType::Float), juce::String ("MID"));
                   expectEquals (formatValue (127u, 7, ValueFormatType::Float), juce::String ("MAX"));
-                  // non-sentinel: 32/127 ~= 0.252
+                  // lower quarter: 32/127 ~= 0.252
                   expectWithinAbsoluteError (
                       formatValue (32u, 7, ValueFormatType::Float).getFloatValue(), 0.252f, 0.01f);
+                  // upper quarter: 96/127 ~= 0.756
+                  expectWithinAbsoluteError (
+                      formatValue (96u, 7, ValueFormatType::Float).getFloatValue(), 0.756f, 0.01f);
               });
 
         test ("float formatting - unipolar 32-bit",
@@ -54,9 +57,12 @@ public:
                   expectEquals (formatValue (0x00000000u, 32, ValueFormatType::Float), juce::String ("MIN"));
                   expectEquals (formatValue (0x80000000u, 32, ValueFormatType::Float), juce::String ("MID"));
                   expectEquals (formatValue (0xFFFFFFFFu, 32, ValueFormatType::Float), juce::String ("MAX"));
-                  // non-sentinel: 0x40000000 ~= 0.25
+                  // lower quarter: 0x40000000 / 0xFFFFFFFF ~= 0.25
                   expectWithinAbsoluteError (
                       formatValue (0x40000000u, 32, ValueFormatType::Float).getFloatValue(), 0.25f, 0.001f);
+                  // upper quarter: 0xC0000000 / 0xFFFFFFFF ~= 0.75
+                  expectWithinAbsoluteError (
+                      formatValue (0xC0000000u, 32, ValueFormatType::Float).getFloatValue(), 0.75f, 0.001f);
               });
 
         test ("float formatting - bipolar 32-bit",
@@ -65,28 +71,35 @@ public:
                   expectEquals (formatValue (0x00000000u, 32, ValueFormatType::Float, 2, -1.f, 1.f), juce::String ("MIN"));
                   expectEquals (formatValue (0x80000000u, 32, ValueFormatType::Float, 2, -1.f, 1.f), juce::String ("MID"));
                   expectEquals (formatValue (0xFFFFFFFFu, 32, ValueFormatType::Float, 2, -1.f, 1.f), juce::String ("MAX"));
-                  // non-sentinel: 0x40000000 ~= -0.50
+                  // lower quarter: -1 + 2 * (0x40000000/0xFFFFFFFF) ~= -0.50
                   expectWithinAbsoluteError (
                       formatValue (0x40000000u, 32, ValueFormatType::Float, 2, -1.f, 1.f).getFloatValue(), -0.5f, 0.001f);
+                  // upper quarter: -1 + 2 * (0xC0000000/0xFFFFFFFF) ~= 0.50
+                  expectWithinAbsoluteError (
+                      formatValue (0xC0000000u, 32, ValueFormatType::Float, 2, -1.f, 1.f).getFloatValue(), 0.5f, 0.001f);
               });
 
         test ("midi formatting - unipolar 7-bit",
               [this] ()
               {
                   expectEquals (formatValue (0u,   7, ValueFormatType::Midi), juce::String ("0"));
+                  expectEquals (formatValue (32u,  7, ValueFormatType::Midi), juce::String ("32"));
                   expectEquals (formatValue (64u,  7, ValueFormatType::Midi), juce::String ("64"));
+                  expectEquals (formatValue (96u,  7, ValueFormatType::Midi), juce::String ("96"));
                   expectEquals (formatValue (127u, 7, ValueFormatType::Midi), juce::String ("127"));
               });
 
         test ("midi formatting - unipolar 32-bit",
               [this] ()
               {
-                  // top 7 bits of 0x80000000 = 1000000b = 64; fraction = 0
-                  expectEquals (formatValue (0x80000000u, 32, ValueFormatType::Midi), juce::String ("64.00"));
                   // minimum: int=0, frac=0
                   expectEquals (formatValue (0x00000000u, 32, ValueFormatType::Midi), juce::String ("0.00"));
+                  // top 7 bits of 0x80000000 = 1000000b = 64; fraction = 0
+                  expectEquals (formatValue (0x80000000u, 32, ValueFormatType::Midi), juce::String ("64.00"));
                   // maximum: top 7 bits = 127, fraction approaches 1.0
                   expect (formatValue (0xFFFFFFFFu, 32, ValueFormatType::Midi).startsWith ("127."));
+                  // 0x51000000: top 7 bits = 40, low 25 bits = 0x01000000 = 0.5 of 2^25
+                  expectEquals (formatValue (0x51000000u, 32, ValueFormatType::Midi), juce::String ("40.50"));
               });
 
         test ("percent formatting - unipolar",
@@ -94,6 +107,11 @@ public:
               {
                   expectEquals (formatValue (0u,   7, ValueFormatType::Percent), juce::String ("0.00%"));
                   expectEquals (formatValue (127u, 7, ValueFormatType::Percent), juce::String ("100.00%"));
+                  // 32/127 ~= 25.20%
+                  expectWithinAbsoluteError (
+                      formatValue (32u, 7, ValueFormatType::Percent).dropLastCharacters (1).getFloatValue(),
+                      25.2f, 0.1f);
+                  // 64/127 ~= 50.39%
                   expectWithinAbsoluteError (
                       formatValue (64u, 7, ValueFormatType::Percent).dropLastCharacters (1).getFloatValue(),
                       50.4f, 0.1f);
@@ -104,9 +122,14 @@ public:
               {
                   expectEquals (formatValue (0x00000000u, 32, ValueFormatType::Percent, 2, -1.f, 1.f), juce::String ("-100.00%"));
                   expectEquals (formatValue (0xFFFFFFFFu, 32, ValueFormatType::Percent, 2, -1.f, 1.f), juce::String ("100.00%"));
+                  // 0x80000000 is midpoint: -1 + 2 * 0.5 = 0
                   expectWithinAbsoluteError (
                       formatValue (0x80000000u, 32, ValueFormatType::Percent, 2, -1.f, 1.f).dropLastCharacters (1).getFloatValue(),
                       0.f, 0.001f);
+                  // 0x40000000 is lower quarter: -1 + 2 * 0.25 = -0.50 -> -50%
+                  expectWithinAbsoluteError (
+                      formatValue (0x40000000u, 32, ValueFormatType::Percent, 2, -1.f, 1.f).dropLastCharacters (1).getFloatValue(),
+                      -50.f, 0.01f);
               });
 
         test ("midi formatting - bipolar 32-bit",
@@ -116,6 +139,8 @@ public:
                   expectEquals (formatValue (0x00000000u, 32, ValueFormatType::Midi, 2, -64.f, 1.f), juce::String ("-64.00"));
                   expectEquals (formatValue (0x80000000u, 32, ValueFormatType::Midi, 2, -64.f, 1.f), juce::String ("0.00"));
                   expect (formatValue (0xFFFFFFFFu, 32, ValueFormatType::Midi, 2, -64.f, 1.f).startsWith ("63."));
+                  // 0x51000000: top 7 bits = 40, offset by -64 = -24; low 25 bits = 0.5 of 2^25
+                  expectEquals (formatValue (0x51000000u, 32, ValueFormatType::Midi, 2, -64.f, 1.f), juce::String ("-24.50"));
               });
     }
 
