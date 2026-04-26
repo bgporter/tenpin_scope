@@ -38,10 +38,17 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 : appContext { theAppContext }
 , persistentContext { appContext }
 , eventViewContext { persistentContext }
+, octaveTypeComboBox { "Octave type" }
+, valueFormatTypeComboBox { "Value format" }
+, precisionDigitsComboBox { "Precision" }
 {
     setSize (400, 300);
     setupButton (showParsedDataButton, "Show parsed data", eventViewContext.umpShowParsedData.getId ());
     setupButton (showRawDataButton, "Show raw data", eventViewContext.umpShowRawData.getId ());
+
+    setupCombobox (octaveTypeComboBox, eventViewContext.octaveType.getId (), octaveTypeOptions, OctaveType::Yamaha);
+    setupCombobox (valueFormatTypeComboBox, eventViewContext.valueFormatType.getId (), valueFormatTypeOptions, ValueFormatType::Integer);
+    setupCombobox (precisionDigitsComboBox, eventViewContext.precision.getId (), precisionDigitsOptions, 2);
 }
 
 void EventListSettingsView::paint (juce::Graphics& g)
@@ -52,7 +59,32 @@ void EventListSettingsView::paint (juce::Graphics& g)
     g.fillAll (palette.defaultFill.get ());
 }
 
-void EventListSettingsView::resized () {}
+void EventListSettingsView::resized ()
+{
+    constexpr int margin  = 8;
+    constexpr int buttonH = 24;
+    constexpr int comboH  = 28;
+    constexpr int gap     = 8;
+
+    auto bounds = getLocalBounds ().reduced (margin);
+
+    // Row 1: display mode toggles side by side
+    auto buttonRow = bounds.removeFromTop (buttonH);
+    bounds.removeFromTop (gap);
+    const int halfWidth = (buttonRow.getWidth () - gap) / 2;
+    showParsedDataButton.setBounds (buttonRow.removeFromLeft (halfWidth));
+    buttonRow.removeFromLeft (gap);
+    showRawDataButton.setBounds (buttonRow);
+
+    // Combobox rows:
+    octaveTypeComboBox.setBounds (bounds.removeFromTop (comboH));
+    bounds.removeFromTop (gap);
+
+    valueFormatTypeComboBox.setBounds (bounds.removeFromTop (comboH));
+    bounds.removeFromTop (gap);
+    precisionDigitsComboBox.setBounds (bounds.removeFromTop (comboH));
+    bounds.removeFromTop (gap);
+}
 
 void EventListSettingsView::setupButton (juce::Button& button, const juce::StringRef txt, const juce::Identifier& valId)
 {
@@ -76,27 +108,3 @@ void EventListSettingsView::setupButton (juce::Button& button, const juce::Strin
         valId, [valId, setButtonStateFromContext] (const juce::Identifier& /*id*/) { setButtonStateFromContext (); });
 }
 
-void EventListSettingsView::setupCombobox (juce::ComboBox& comboBox, const juce::Identifier& valId,
-                                           juce::StringArray& options)
-{
-    addAndMakeVisible (comboBox);
-    comboBox.addItemList (options, 1);
-    comboBox.setSelectedItemIndex (0);
-
-    auto setComboboxStateFromContext = [this, &comboBox, valId] ()
-    {
-        int newValue = persistentContext.eventViewContext.getattr<int> (valId, 1);
-        comboBox.setSelectedItemIndex (newValue);
-    };
-
-    setComboboxStateFromContext ();
-
-    // when the combobox selection changes, update the value in the context
-    comboBox.onChange = [this, &comboBox, valId] ()
-    { persistentContext.eventViewContext.setattr<int> (valId, comboBox.getSelectedId ()); };
-
-    // when the value in the context changes, update the combobox selection
-    persistentContext.eventViewContext.onPropertyChange (
-        valId, [this, &comboBox, valId, setComboboxStateFromContext] (const juce::Identifier& /*id*/)
-        { setComboboxStateFromContext (); });
-}

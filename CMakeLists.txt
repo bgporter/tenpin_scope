@@ -134,6 +134,8 @@ set(SOURCES_VIEW
     src/view/resizeHandle.cpp
     src/view/headerView.h
     src/view/headerView.cpp
+    src/view/labeledComboBox.h
+    src/view/labeledComboBox.cpp
     src/view/lookAndFeel.h
     src/view/lookAndFeel.cpp
 )

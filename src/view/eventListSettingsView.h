@@ -26,6 +26,8 @@
 
 #include <JuceHeader.h>
 
+#include "eventNameUtils.h"
+#include "labeledComboBox.h"
 #include "model/appContext.h"
 #include "model/persistentContext.h"
 
@@ -48,13 +50,33 @@ private:
 
     /**
      * @brief Initialize and populate a combo box, connecting it to a
-     * cello::Value in the context.
-     *
-     * @param comboBox
-     * @param valId
-     * @param options
+     * typed cello::Value in the context. T must be castable to/from int
+     * and match the combo box item IDs (1-based).
      */
-    void setupCombobox (juce::ComboBox& comboBox, const juce::Identifier& valId, juce::StringArray& options);
+    template <typename T>
+    void setupCombobox (LabeledComboBox& labeledComboBox, const juce::Identifier& valId,
+                        juce::StringArray& options, T defaultValue)
+    {
+        addAndMakeVisible (labeledComboBox);
+        auto& comboBox = labeledComboBox.comboBox;
+        comboBox.addItemList (options, 1);
+
+        auto setFromContext = [this, &comboBox, valId, defaultValue] ()
+        {
+            T value = persistentContext.eventViewContext.getattr<T> (valId, defaultValue);
+            comboBox.setSelectedId (static_cast<int> (value), juce::dontSendNotification);
+        };
+
+        setFromContext ();
+
+        comboBox.onChange = [this, &comboBox, valId] ()
+        {
+            persistentContext.eventViewContext.setattr<T> (valId, static_cast<T> (comboBox.getSelectedId ()));
+        };
+
+        persistentContext.eventViewContext.onPropertyChange (
+            valId, [setFromContext] (const juce::Identifier&) { setFromContext (); });
+    }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventListSettingsView)
     AppContext appContext;
@@ -65,7 +87,7 @@ private:
     juce::ToggleButton showParsedDataButton;
     juce::ToggleButton showRawDataButton;
 
-    juce::ComboBox octaveTypeComboBox;
-    juce::ComboBox valueFormatTypeComboBox;
-    juce::ComboBox precisionDigitsComboBox;
+    LabeledComboBox octaveTypeComboBox { "Octave type" };
+    LabeledComboBox valueFormatTypeComboBox { "Value format" };
+    LabeledComboBox precisionDigitsComboBox { "Precision" };
 };
