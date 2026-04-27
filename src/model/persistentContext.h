@@ -68,6 +68,17 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (bool, showPerNoteEvents, true);
     MAKE_VALUE_MEMBER (bool, showChannelPressure, true);
 
+    // top-level message type filters
+    MAKE_VALUE_MEMBER (bool, showUtility, true);
+    MAKE_VALUE_MEMBER (bool, showSystemCommonRealtime, true);
+    MAKE_VALUE_MEMBER (bool, showSysex7, true);
+    MAKE_VALUE_MEMBER (bool, showSysex8, true);
+    MAKE_VALUE_MEMBER (bool, showSysex8Packets, true);
+    MAKE_VALUE_MEMBER (bool, showMixedData, true);
+    MAKE_VALUE_MEMBER (bool, showFlexData, true);
+    MAKE_VALUE_MEMBER (bool, showStreamData, true);
+    MAKE_VALUE_MEMBER (bool, showUndefined, true);
+
     // filter settings for data granularity
     // show individual UMP packets? IF nothing else is enabled, we'll just show the raw UMP data.
     MAKE_VALUE_MEMBER (bool, showUmpData, true);

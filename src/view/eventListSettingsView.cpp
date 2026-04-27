@@ -42,13 +42,76 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 , valueFormatTypeComboBox { "Value format" }
 , precisionDigitsComboBox { "Precision" }
 {
-    setSize (400, 300);
     setupButton (showParsedDataButton, "Show parsed data", eventViewContext.umpShowParsedData.getId ());
     setupButton (showRawDataButton, "Show raw data", eventViewContext.umpShowRawData.getId ());
 
     setupCombobox (octaveTypeComboBox, eventViewContext.octaveType.getId (), octaveTypeOptions, OctaveType::Yamaha);
-    setupCombobox (valueFormatTypeComboBox, eventViewContext.valueFormatType.getId (), valueFormatTypeOptions, ValueFormatType::Integer);
+    setupCombobox (valueFormatTypeComboBox, eventViewContext.valueFormatType.getId (), valueFormatTypeOptions,
+                   ValueFormatType::Integer);
     setupCombobox (precisionDigitsComboBox, eventViewContext.precision.getId (), precisionDigitsOptions, 2);
+
+    addAndMakeVisible (messageFiltersLabel);
+    messageFiltersLabel.setText ("Message Filters", juce::dontSendNotification);
+    messageFiltersLabel.setFont (juce::Font (13.f, juce::Font::bold));
+
+    setupButton (showUtilityButton, "Utility", eventViewContext.showUtility.getId ());
+    setupButton (showSystemCommonRealtimeButton, "System Common/Realtime",
+                 eventViewContext.showSystemCommonRealtime.getId ());
+    setupButton (showChannelVoiceButton, "Channel Voice (MIDI 1/2)", eventViewContext.showChannelVoice.getId ());
+    setupButton (showNoteOnOffButton, "Note On/Off", eventViewContext.showNoteOnOff.getId ());
+    setupButton (showControlChangeButton, "CC", eventViewContext.showControlChange.getId ());
+    setupButton (showProgramChangeButton, "Program Change", eventViewContext.showProgramChange.getId ());
+    setupButton (showChannelPressureButton, "Channel Pressure", eventViewContext.showChannelPressure.getId ());
+    setupButton (showPitchBendButton, "Pitch Bend", eventViewContext.showPitchBend.getId ());
+    setupButton (showPerNoteEventsButton, "Per-Note", eventViewContext.showPerNoteEvents.getId ());
+    setupButton (showSysex7Button, "Data 7 (SysEx 7)", eventViewContext.showSysex7.getId ());
+    setupButton (showSysex8Button, "Data 8", eventViewContext.showSysex8.getId ());
+    setupButton (showSysex8PacketsButton, "SysEx 8", eventViewContext.showSysex8Packets.getId ());
+    setupButton (showMixedDataButton, "Mixed Data", eventViewContext.showMixedData.getId ());
+    setupButton (showFlexDataButton, "Flex Data", eventViewContext.showFlexData.getId ());
+    setupButton (showStreamDataButton, "Stream Data", eventViewContext.showStreamData.getId ());
+    setupButton (showUndefinedButton, "Undefined", eventViewContext.showUndefined.getId ());
+
+    // When the Channel Voice parent is toggled, enable/disable its children to
+    // make it clear they have no effect while the parent is off.
+    auto syncChannelVoiceChildren = [this] ()
+    {
+        const bool on = eventViewContext.showChannelVoice;
+        for (auto* btn : { &showNoteOnOffButton, &showControlChangeButton, &showProgramChangeButton,
+                           &showChannelPressureButton, &showPitchBendButton, &showPerNoteEventsButton })
+            btn->setEnabled (on);
+    };
+    eventViewContext.onPropertyChange (eventViewContext.showChannelVoice.getId (),
+                                       [syncChannelVoiceChildren] (const juce::Identifier&)
+                                       { syncChannelVoiceChildren (); });
+    syncChannelVoiceChildren ();
+
+    // Same for the Data 8 parent and its sub-filters.
+    auto syncSysex8Children = [this] ()
+    {
+        const bool on = eventViewContext.showSysex8;
+        showSysex8PacketsButton.setEnabled (on);
+        showMixedDataButton.setEnabled (on);
+    };
+    eventViewContext.onPropertyChange (eventViewContext.showSysex8.getId (),
+                                       [syncSysex8Children] (const juce::Identifier&) { syncSysex8Children (); });
+    syncSysex8Children ();
+
+    // Compute height: 2*margin + display-format section + sectionGap + label + gap + 16 filter rows.
+    // Each filter row is buttonH(24) + gap(8) = 32; last row has no trailing gap.
+    constexpr int margin     = 8;
+    constexpr int buttonH    = 24;
+    constexpr int comboH     = 28;
+    constexpr int gap        = 8;
+    constexpr int sectionGap = 16;
+    constexpr int labelH     = 20;
+    constexpr int innerH     = buttonH + gap              // parsed/raw row
+                               + comboH + gap             // octave
+                               + comboH + gap             // format
+                               + comboH                   // precision
+                               + sectionGap + labelH + gap // section header
+                               + 15 * (buttonH + gap) + buttonH; // 16 filter rows
+    setSize (400, innerH + 2 * margin);
 }
 
 void EventListSettingsView::paint (juce::Graphics& g)
@@ -61,10 +124,13 @@ void EventListSettingsView::paint (juce::Graphics& g)
 
 void EventListSettingsView::resized ()
 {
-    constexpr int margin  = 8;
-    constexpr int buttonH = 24;
-    constexpr int comboH  = 28;
-    constexpr int gap     = 8;
+    constexpr int margin     = 8;
+    constexpr int buttonH    = 24;
+    constexpr int comboH     = 28;
+    constexpr int gap        = 8;
+    constexpr int indent     = 20;
+    constexpr int sectionGap = 16;
+    constexpr int labelH     = 20;
 
     auto bounds = getLocalBounds ().reduced (margin);
 
@@ -76,14 +142,48 @@ void EventListSettingsView::resized ()
     buttonRow.removeFromLeft (gap);
     showRawDataButton.setBounds (buttonRow);
 
-    // Combobox rows:
+    // Combobox rows
     octaveTypeComboBox.setBounds (bounds.removeFromTop (comboH));
     bounds.removeFromTop (gap);
-
     valueFormatTypeComboBox.setBounds (bounds.removeFromTop (comboH));
     bounds.removeFromTop (gap);
     precisionDigitsComboBox.setBounds (bounds.removeFromTop (comboH));
+
+    // Section label for message type filters
+    bounds.removeFromTop (sectionGap);
+    messageFiltersLabel.setBounds (bounds.removeFromTop (labelH));
     bounds.removeFromTop (gap);
+
+    // Helpers: full-width and indented filter button placement
+    auto placeFull = [&] (juce::Button& btn)
+    {
+        btn.setBounds (bounds.removeFromTop (buttonH));
+        bounds.removeFromTop (gap);
+    };
+    auto placeIndented = [&] (juce::Button& btn)
+    {
+        auto row = bounds.removeFromTop (buttonH);
+        row.removeFromLeft (indent);
+        btn.setBounds (row);
+        bounds.removeFromTop (gap);
+    };
+
+    placeFull (showUtilityButton);
+    placeFull (showSystemCommonRealtimeButton);
+    placeFull (showChannelVoiceButton);
+    placeIndented (showNoteOnOffButton);
+    placeIndented (showControlChangeButton);
+    placeIndented (showProgramChangeButton);
+    placeIndented (showChannelPressureButton);
+    placeIndented (showPitchBendButton);
+    placeIndented (showPerNoteEventsButton);
+    placeFull (showSysex7Button);
+    placeFull (showSysex8Button);
+    placeIndented (showSysex8PacketsButton);
+    placeIndented (showMixedDataButton);
+    placeFull (showFlexDataButton);
+    placeFull (showStreamDataButton);
+    placeFull (showUndefinedButton); // last row — no trailing gap needed
 }
 
 void EventListSettingsView::setupButton (juce::Button& button, const juce::StringRef txt, const juce::Identifier& valId)

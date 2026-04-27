@@ -78,12 +78,12 @@ bool EventFilter::filterMidiEvent (const UmpEvent& event)
 
 bool EventFilter::filterUtility (const UmpEvent& event)
 {
-    return true;
+    return context.showUtility;
 }
 
 bool EventFilter::filterCommonRealtime (const UmpEvent& event)
 {
-    return true;
+    return context.showSystemCommonRealtime;
 }
 
 bool EventFilter::filterChannelVoice (const UmpEvent& event)

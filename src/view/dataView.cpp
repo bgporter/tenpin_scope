@@ -33,12 +33,14 @@ DataView::DataView (AppContext& theAppContext)
 , eventListView { appContext }
 , settingsView { appContext }
 {
-    // Z-order: viewport at back, settingsView above content, header at front
-    // (header occludes the settingsView when it is in its hidden position)
+    // Z-order: viewport at back, settingsViewport above content, header at front
+    // (header occludes the settingsViewport when it is in its hidden position)
     addAndMakeVisible (viewport);
-    addAndMakeVisible (settingsView);
+    addAndMakeVisible (settingsViewport);
     addAndMakeVisible (header);
     viewport.setViewedComponent (&eventListView, false);
+    settingsViewport.setViewedComponent (&settingsView, false);
+    settingsViewport.setScrollBarsShown (true, false);
 
     viewport.getVerticalScrollBar ().addListener (this);
 
@@ -89,13 +91,16 @@ void DataView::resized ()
     // behind the header. At settingsPos=0 its bottom edge is flush with the
     // top of the viewport (hidden behind the header). At settingsPos=1 its
     // top edge is flush with the top of the viewport (fully visible).
-    const float settingsPos = runtimeContext.settingsPos;
-    const int settingsW     = settingsView.getWidth ();
-    const int settingsH     = settingsView.getHeight ();
-    const int settingsX     = (getWidth () - settingsW) / 2;
-    const int settingsY     = DataViewHeader::kHeaderHeight
-                              + juce::roundToInt (settingsH * (settingsPos - 1.f));
-    settingsView.setBounds (settingsX, settingsY, settingsW, settingsH);
+    // The settingsViewport caps the visible height to the available space so the
+    // panel never overflows the window; the content scrolls inside it.
+    const float settingsPos  = runtimeContext.settingsPos;
+    const int settingsW      = settingsView.getWidth ();
+    const int availableH     = getHeight () - DataViewHeader::kHeaderHeight;
+    const int settingsH      = juce::jmin (settingsView.getHeight (), availableH);
+    const int settingsX      = (getWidth () - settingsW) / 2;
+    const int settingsY      = DataViewHeader::kHeaderHeight
+                               + juce::roundToInt (settingsH * (settingsPos - 1.f));
+    settingsViewport.setBounds (settingsX, settingsY, settingsW, settingsH);
 }
 
 void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)

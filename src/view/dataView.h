@@ -53,5 +53,6 @@ private:
     juce::Viewport viewport;
     EventListView eventListView;
     EventListSettingsView settingsView;
+    juce::Viewport settingsViewport;
     bool wasAtBottomBeforeAdd { false };
 };

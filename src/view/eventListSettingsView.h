@@ -90,4 +90,29 @@ private:
     LabeledComboBox octaveTypeComboBox { "Octave type" };
     LabeledComboBox valueFormatTypeComboBox { "Value format" };
     LabeledComboBox precisionDigitsComboBox { "Precision" };
+
+    // message type filter section label
+    juce::Label messageFiltersLabel;
+
+    // top-level message type toggles
+    juce::ToggleButton showUtilityButton;
+    juce::ToggleButton showSystemCommonRealtimeButton;
+    juce::ToggleButton showChannelVoiceButton;
+    juce::ToggleButton showSysex7Button;
+    juce::ToggleButton showSysex8Button;
+    juce::ToggleButton showFlexDataButton;
+    juce::ToggleButton showStreamDataButton;
+    juce::ToggleButton showUndefinedButton;
+
+    // channel voice sub-filters (indented, disabled when parent is off)
+    juce::ToggleButton showNoteOnOffButton;
+    juce::ToggleButton showControlChangeButton;
+    juce::ToggleButton showProgramChangeButton;
+    juce::ToggleButton showChannelPressureButton;
+    juce::ToggleButton showPitchBendButton;
+    juce::ToggleButton showPerNoteEventsButton;
+
+    // data8 sub-filters (indented, disabled when parent is off)
+    juce::ToggleButton showSysex8PacketsButton;
+    juce::ToggleButton showMixedDataButton;
 };

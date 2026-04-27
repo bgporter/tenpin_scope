@@ -109,6 +109,9 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
 
     endpoints->addListener (*this);
     startTimer (33); // 30 times per second (30 Hz)
+
+    persistentContext.eventViewContext.onPropertyChange (
+        [this] (const juce::Identifier&) { rebuildMidiEventsFromEndpoints (); });
 }
 
 MidiController::~MidiController ()
@@ -216,14 +219,14 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
             // auto ev = ep->received[i].createCopy ();
             // DBG (ev.toXmlString ());
             UmpEvent evCopy (ep->received[i].createCopy ());
-            if (filterMidiEvent (evCopy))
+            if (eventFilter.filterMidiEvent (evCopy))
                 currentEvents.addEvent (evCopy);
         }
         DBG ("Added " << i << " RX events from  " << ep->name);
         for (i = 0; i < ep->transmitted.getNumChildren (); ++i)
         {
             UmpEvent evCopy (ep->transmitted[i].createCopy ());
-            if (filterMidiEvent (evCopy))
+            if (eventFilter.filterMidiEvent (evCopy))
                 currentEvents.addEvent (evCopy);
         }
         DBG ("Added " << ep->transmitted.count.get () << " TX events from  " << ep->name);
@@ -294,50 +297,4 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
         midiProperties.midiEvents.remove (0);
     midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
 #endif
-}
-
-bool MidiController::filterMidiEvent (UmpEvent& event)
-{
-    // const auto mt { event.getType () };
-    // switch (mt)
-    // {
-    //     case MessageTypes::utility:
-    //         if (!pc.eventViewContext.umpShowUtility)
-    //             return false;
-    //         break;
-    //     case MessageTypes::commonRealtime:
-    //         if (!pc.eventViewContext.umpShowCommonRealtime)
-    //             return false;
-    //         break;
-    //     case MessageTypes::midi1ChannelVoice:
-    //         [[fallthrough]];
-    //     case MessageTypes::midi2ChannelVoice:
-    //     {
-    //         // we treat MIDI 1 and 2 as the same for filtering purposes.
-    //         if (!pc.eventViewContext.umpShowChannelVoice)
-    //             return false;
-    //         // step through each of the broad event types.
-    //         const Midi2ChannelVoiceEvent channelVoiceEvent { event };
-    //         const auto status = channelVoiceEvent.getStatus ();
-    //         UmpValues::controlChange
-    //         UmpValues::registeredController
-    //         UmpValues::assignableController
-    //         UmpValues::relativeRegisteredController
-
-    //         UmpValues::registeredPerNoteController
-    //         UmpValues::relativeAssignableController
-    //         UmpValues::perNotePitchBend
-    //         UmpValues::polyPressure
-    //         UmpValues::perNoteManagement
-
-    //         UmpValues::noteOff
-    //         UmpValues::noteOn
-
-    //         UmpValues::programChange
-    //         UmpValues::channelPressure
-    //         UmpValues::pitchBend
-    //     }
-    //     break;
-    // }
-    return true;
 }

@@ -74,14 +74,6 @@ private:
      */
     void rebuildMidiEventsFromEndpoints ();
 
-    /**
-     * @brief Filter a MIDI event to see if it should be added to the event list.
-     *
-     * @param event
-     * @return true if the event should be added to the event list
-     * @return false if the event should not be added to the event list
-     */
-    bool filterMidiEvent (UmpEvent& event);
 
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
