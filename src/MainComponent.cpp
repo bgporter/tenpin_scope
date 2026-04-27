@@ -1,6 +1,8 @@
 #include "MainComponent.h"
 #include "model/persistentContext.h"
 
+static constexpr int kSettingsAnimId { 1 };
+
 //==============================================================================
 MainComponent::MainComponent (AppContext& theAppContext)
 : appContext (theAppContext)
@@ -15,6 +17,25 @@ MainComponent::MainComponent (AppContext& theAppContext)
     // resized() call uses the persisted sidebar width, not the default.
     runtimeContext.sidebarWidth = persistentContext.sidebarWidth.get ();
     runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+
+    headerView.onSettingsToggled = [this] (bool show)
+    {
+        const float startVal = runtimeContext.settingsPos;
+        const float endVal   = show ? 1.f : 0.f;
+
+        animator.cancelAnimation (kSettingsAnimId, false);
+
+        auto anim = friz::makeAnimation<friz::Parametric> (
+            kSettingsAnimId, startVal, endVal, 250,
+            friz::Parametric::CurveType::kEaseInOutCubic);
+
+        anim->onUpdate ([this] (int, const std::array<float, 1>& vals)
+        {
+            runtimeContext.settingsPos = vals[0];
+        });
+
+        animator.addAnimation (std::move (anim));
+    };
 
     addAndMakeVisible (headerView);
     addAndMakeVisible (dataView);

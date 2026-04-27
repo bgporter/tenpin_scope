@@ -64,8 +64,8 @@ HeaderView::HeaderView (AppContext& context)
     filterButton.setButtonText ("filter");
     filterButton.onClick = [this] ()
     {
-        RuntimeContext rc { appContext };
-        rc.settingsPos = filterButton.getToggleState () ? 1.f : 0.f;
+        if (onSettingsToggled)
+            onSettingsToggled (filterButton.getToggleState ());
     };
     addAndMakeVisible (filterButton);
 }

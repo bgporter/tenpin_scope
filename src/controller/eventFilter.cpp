@@ -144,27 +144,27 @@ bool EventFilter::filterChannelVoice (const UmpEvent& event)
 
 bool EventFilter::filterData7 (const UmpEvent& event)
 {
-    return true;
+    return context.showSysex7;
 }
 
 bool EventFilter::filterData8 (const UmpEvent& event)
 {
-    return true;
+    return context.showSysex8Packets;
 }
 
 bool EventFilter::filterFlexData (const UmpEvent& event)
 {
-    return true;
+    return context.showFlexData;
 }
 
 bool EventFilter::filterStream (const UmpEvent& event)
 {
-    return true;
+    return context.showStreamData;
 }
 
 bool EventFilter::filterUndefined (const UmpEvent& event)
 {
-    return true;
+    return context.showUndefined;
 }
 
 #if RUN_UNIT_TESTS

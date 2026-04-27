@@ -35,6 +35,8 @@ class HeaderView : public juce::Component
 public:
     HeaderView (AppContext& context);
 
+    std::function<void (bool)> onSettingsToggled;
+
     void paint (juce::Graphics& g) override;
     void resized () override;
 

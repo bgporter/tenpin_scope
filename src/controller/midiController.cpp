@@ -295,6 +295,6 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     constexpr int kMaxEvents = 100;
     while (midiProperties.midiEvents.getNumChildren () > kMaxEvents)
         midiProperties.midiEvents.remove (0);
-    midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
+git status    midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
 #endif
 }
