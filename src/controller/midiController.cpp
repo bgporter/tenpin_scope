@@ -206,7 +206,6 @@ void MidiController::addMidiEvent (UmpEvent& event)
 
 void MidiController::rebuildMidiEventsFromEndpoints ()
 {
-#if 1
     midiProperties.midiEvents.isRebuilding = true;
     // concatenate all the events from all the endpoints into a single event list
     EventList currentEvents { "midiEvents" };
@@ -250,51 +249,4 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     }
     DBG ("rebuilt midiEvents from endpoints: " << i << " events");
     midiProperties.midiEvents.isRebuilding = false;
-#else
-    midiProperties.midiEvents.clear ();
-
-    for (const auto& ep : endpointProperties)
-    {
-        const auto& name = ep->name.get ();
-        for (int i = 0; i < ep->received.getNumChildren (); ++i)
-        {
-            UmpEvent ev (ep->received[i].createCopy ());
-            ev.endpointName = name;
-            ev.isReceived   = true;
-            if (filterMidiEvent (ev))
-            {
-                midiProperties.midiEvents.append (&ev);
-                midiProperties.midiEvents.count.set (midiProperties.midiEvents.count.get () + 1);
-            }
-        }
-        for (int i = 0; i < ep->transmitted.getNumChildren (); ++i)
-        {
-            UmpEvent ev (ep->transmitted[i].createCopy ());
-            ev.endpointName = name;
-            ev.isReceived   = false;
-            if (filterMidiEvent (ev))
-            {
-                midiProperties.midiEvents.append (&ev);
-                midiProperties.midiEvents.count.set (midiProperties.midiEvents.count.get () + 1);
-            }
-        }
-    }
-
-    struct TimestampSort
-    {
-        int compareElements (const juce::ValueTree& a, const juce::ValueTree& b)
-        {
-            double ta = a.getProperty (UmpEvent::timestampId, 0.0);
-            double tb = b.getProperty (UmpEvent::timestampId, 0.0);
-            return ta < tb ? -1 : (ta > tb ? 1 : 0);
-        }
-    };
-    TimestampSort comp;
-    midiProperties.midiEvents.sort (comp, true);
-
-    constexpr int kMaxEvents = 100;
-    while (midiProperties.midiEvents.getNumChildren () > kMaxEvents)
-        midiProperties.midiEvents.remove (0);
-    midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
-#endif
 }
