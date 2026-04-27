@@ -110,8 +110,8 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
     endpoints->addListener (*this);
     startTimer (33); // 30 times per second (30 Hz)
 
-    persistentContext.eventViewContext.onPropertyChange (
-        [this] (const juce::Identifier&) { rebuildMidiEventsFromEndpoints (); });
+    persistentContext.eventViewContext.onPropertyChange ([this] (const juce::Identifier&)
+                                                         { rebuildMidiEventsFromEndpoints (); });
 }
 
 MidiController::~MidiController ()
@@ -295,6 +295,6 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     constexpr int kMaxEvents = 100;
     while (midiProperties.midiEvents.getNumChildren () > kMaxEvents)
         midiProperties.midiEvents.remove (0);
-git status    midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
+    midiProperties.midiEvents.count.set (midiProperties.midiEvents.getNumChildren ());
 #endif
 }

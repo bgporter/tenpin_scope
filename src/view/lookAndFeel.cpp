@@ -41,6 +41,11 @@ void TenpinLookAndFeel::updateFromPalette ()
     setColourScheme ({ palette.windowBackground.get (), palette.widgetBackground.get (), palette.menuBackground.get (),
                        palette.outline.get (), palette.defaultText.get (), palette.defaultFill.get (),
                        palette.highlightedText.get (), palette.highlightedFill.get (), palette.menuText.get () });
+
+    setColour (juce::ComboBox::backgroundColourId, palette.widgetBackground.get ());
+    setColour (juce::ComboBox::textColourId, palette.menuText.get ());
+    setColour (juce::ToggleButton::textColourId, palette.menuText.get ());
+    setColour (juce::ToggleButton::tickColourId, palette.menuText.get ());
 }
 
 void TenpinLookAndFeel::updateFonts ()
