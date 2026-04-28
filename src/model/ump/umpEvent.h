@@ -54,10 +54,11 @@ namespace UmpValues
 
 namespace Utility
 {
-constexpr int noop              = 0x0;
-constexpr int jrClock           = 0x1;
-constexpr int jrTimestamp       = 0x2;
-constexpr int jrDeltaClockstamp = 0x3;
+constexpr int noop                          = 0x0;
+constexpr int jrClock                       = 0x1;
+constexpr int jrTimestamp                   = 0x2;
+constexpr int deltaClockstampTPQ            = 0x3;
+constexpr int deltaClockstampSinceLastEvent = 0x4;
 } // namespace Utility
 
 namespace ChannelVoice

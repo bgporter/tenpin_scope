@@ -34,7 +34,7 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
     Midi2ChannelVoiceEvent (const UmpEvent& event)
     : UmpEvent (event)
     {
-        eventName = "MIDI 2 Channel Voice";
+        init ();
     }
 
     Midi2ChannelVoiceEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel)
@@ -47,7 +47,7 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
         userGroup   = theGroup;
         status      = theStatus;
         userChannel = theChannel;
-        eventName   = "MIDI 2 Channel Voice";
+        init ();
     }
 
     MAKE_BITFIELD (int, group, 0, 4, 24);
@@ -60,6 +60,9 @@ struct Midi2ChannelVoiceEvent : public UmpEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         int, userChannel, [this] () -> int { return channel.get () + 1; },
         [this] (const int& val) { channel = val - 1; });
+
+private:
+    void init () { eventName = "MIDI 2 Channel Voice"; }
 };
 
 struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
@@ -67,8 +70,9 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
     Midi2PerNoteEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Per Note";
+        init ();
     }
+
     Midi2PerNoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
                        uint8_t theController, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
@@ -76,7 +80,7 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
         note       = theNote;
         controller = theController;
         setattr<uint32_t> (UmpWords::data1Id, theValue);
-        eventName  = "MIDI 2 Per Note";
+        init ();
     }
 
     Midi2PerNoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
@@ -92,6 +96,9 @@ struct Midi2PerNoteEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Per Note"; }
 };
 
 struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
@@ -99,15 +106,15 @@ struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
     Midi2PerNotePitchBendEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Per Note Pitch Bend";
+        init ();
     }
 
     Midi2PerNotePitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, int32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::perNotePitchBend, theChannel)
     {
-        note      = theNote;
-        value     = theValue;
-        eventName = "MIDI 2 Per Note Pitch Bend";
+        note  = theNote;
+        value = theValue;
+        init ();
     }
 
     Midi2PerNotePitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiBipolarFloat theValue)
@@ -121,6 +128,9 @@ struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiBipolarFloat::fromInt32 (value.get ()); },
         [this] (const MidiBipolarFloat& val) { value = val.toInt32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Per Note Pitch Bend"; }
 };
 
 struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
@@ -128,7 +138,7 @@ struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
     Midi2ControlChangeEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Control Change";
+        init ();
     }
 
     Midi2ControlChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theController, uint32_t theValue)
@@ -136,7 +146,7 @@ struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
     {
         controller = theController;
         value      = theValue;
-        eventName  = "MIDI 2 Control Change";
+        init ();
     }
 
     Midi2ControlChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theController,
@@ -151,6 +161,9 @@ struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Control Change"; }
 };
 
 struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
@@ -158,7 +171,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
     Midi2ProgramChangeEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Program Change";
+        init ();
     }
 
     Midi2ProgramChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiWord theBank, MidiByte theProgram)
@@ -167,7 +180,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
         bankValid = true;
         bank      = theBank;
         program   = theProgram;
-        eventName = "MIDI 2 Program Change";
+        init ();
     }
 
     Midi2ProgramChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theProgram)
@@ -177,7 +190,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
         bankMsb   = 0;
         bankLsb   = 0;
         program   = theProgram;
-        eventName = "MIDI 2 Program Change";
+        init ();
     }
 
     MAKE_BITFIELD (bool, bankValid, 0, 1, 0);
@@ -193,6 +206,9 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
             bankMsb = w.getMsb ();
             bankLsb = w.getLsb ();
         });
+
+private:
+    void init () { eventName = "MIDI 2 Program Change"; }
 };
 
 struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
@@ -200,7 +216,7 @@ struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
     Midi2PerNoteManagementEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Per Note Management";
+        init ();
     }
 
     Midi2PerNoteManagementEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, bool theDetach,
@@ -208,15 +224,18 @@ struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::perNoteManagement, theChannel)
     {
         jassert (theDetach || theReset);
-        note      = theNote;
-        detach    = theDetach;
-        reset     = theReset;
-        eventName = "MIDI 2 Per Note Management";
+        note   = theNote;
+        detach = theDetach;
+        reset  = theReset;
+        init ();
     }
 
     MAKE_BITFIELD (int, note, 0, 8, 8);
     MAKE_BITFIELD (bool, detach, 0, 1, 1);
     MAKE_BITFIELD (bool, reset, 0, 1, 0);
+
+private:
+    void init () { eventName = "MIDI 2 Per Note Management"; }
 };
 
 struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
@@ -224,15 +243,15 @@ struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
     Midi2PolyPressureEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Poly Pressure";
+        init ();
     }
 
     Midi2PolyPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::polyPressure, theChannel)
     {
-        note      = theNote;
-        value     = theValue;
-        eventName = "MIDI 2 Poly Pressure";
+        note  = theNote;
+        value = theValue;
+        init ();
     }
 
     Midi2PolyPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiUnipolarFloat theValue)
@@ -246,6 +265,9 @@ struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Poly Pressure"; }
 };
 
 struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
@@ -253,14 +275,14 @@ struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
     Midi2ChannelPressureEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Channel Pressure";
+        init ();
     }
 
     Midi2ChannelPressureEvent (MidiGroup theGroup, MidiChannel theChannel, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::channelPressure, theChannel)
     {
-        value     = theValue;
-        eventName = "MIDI 2 Channel Pressure";
+        value = theValue;
+        init ();
     }
 
     Midi2ChannelPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiUnipolarFloat theValue)
@@ -273,6 +295,9 @@ struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Channel Pressure"; }
 };
 
 struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
@@ -280,14 +305,14 @@ struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
     Midi2PitchBendEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Pitch Bend";
+        init ();
     }
 
     Midi2PitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, int32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::pitchBend, theChannel)
     {
-        value     = theValue;
-        eventName = "MIDI 2 Pitch Bend";
+        value = theValue;
+        init ();
     }
 
     Midi2PitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiBipolarFloat theValue)
@@ -300,6 +325,9 @@ struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiBipolarFloat::fromInt32 (value.get ()); },
         [this] (const MidiBipolarFloat& val) { value = val.toInt32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Pitch Bend"; }
 };
 
 struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
@@ -307,13 +335,14 @@ struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
     Midi2RegisteredPerNoteControllerEvent (const UmpEvent& event)
     : Midi2PerNoteEvent (event)
     {
-        eventName = "MIDI 2 Registered Per Note Controller";
+        init ();
     }
+
     Midi2RegisteredPerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, uint32_t theValue)
     : Midi2PerNoteEvent (theGroup, UmpValues::ChannelVoice::registeredPerNoteController, theChannel, theNote, theController, theValue)
     {
-        eventName = "MIDI 2 Registered Per Note Controller";
+        init ();
     }
 
     Midi2RegisteredPerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
@@ -321,6 +350,9 @@ struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
     : Midi2RegisteredPerNoteControllerEvent (theGroup, theChannel, theNote, theController, theValue.toUint32 ())
     {
     }
+
+private:
+    void init () { eventName = "MIDI 2 Registered Per Note Controller"; }
 };
 
 struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
@@ -328,13 +360,14 @@ struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
     Midi2AssignablePerNoteControllerEvent (const UmpEvent& event)
     : Midi2PerNoteEvent (event)
     {
-        eventName = "MIDI 2 Assignable Per Note Controller";
+        init ();
     }
+
     Midi2AssignablePerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, uint32_t theValue)
     : Midi2PerNoteEvent (theGroup, UmpValues::ChannelVoice::assignablePerNoteController, theChannel, theNote, theController, theValue)
     {
-        eventName = "MIDI 2 Assignable Per Note Controller";
+        init ();
     }
 
     Midi2AssignablePerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
@@ -342,6 +375,9 @@ struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
     : Midi2AssignablePerNoteControllerEvent (theGroup, theChannel, theNote, theController, theValue.toUint32 ())
     {
     }
+
+private:
+    void init () { eventName = "MIDI 2 Assignable Per Note Controller"; }
 };
 
 struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
@@ -349,8 +385,9 @@ struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
     Midi2ControllerEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Control Change";
+        init ();
     }
+
     Midi2ControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
                           uint8_t theController, uint32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
@@ -358,7 +395,7 @@ struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
         bank       = theBank;
         controller = theController;
         setattr<uint32_t> (UmpWords::data1Id, theValue);
-        eventName  = "MIDI 2 Control Change";
+        init ();
     }
 
     Midi2ControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
@@ -374,6 +411,9 @@ struct Midi2ControllerEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiUnipolarFloat::fromUint32 (value.get ()); },
         [this] (const MidiUnipolarFloat& val) { value = val.toUint32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Control Change"; }
 };
 
 struct Midi2RegisteredControllerEvent : public Midi2ControllerEvent
@@ -381,20 +421,24 @@ struct Midi2RegisteredControllerEvent : public Midi2ControllerEvent
     Midi2RegisteredControllerEvent (const UmpEvent& event)
     : Midi2ControllerEvent (event)
     {
-        eventName = "MIDI 2 Registered Controller";
-    }
-    Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
-                                    uint32_t theValue)
-    : Midi2ControllerEvent (theGroup, UmpValues::ChannelVoice::registeredController, theChannel, theBank, theController, theValue)
-    {
-        eventName = "MIDI 2 Registered Controller";
+        init ();
     }
 
-    Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
-                                    MidiUnipolarFloat theValue)
+    Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
+                                    uint8_t theController, uint32_t theValue)
+    : Midi2ControllerEvent (theGroup, UmpValues::ChannelVoice::registeredController, theChannel, theBank, theController, theValue)
+    {
+        init ();
+    }
+
+    Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
+                                    uint8_t theController, MidiUnipolarFloat theValue)
     : Midi2RegisteredControllerEvent (theGroup, theChannel, theBank, theController, theValue.toUint32 ())
     {
     }
+
+private:
+    void init () { eventName = "MIDI 2 Registered Controller"; }
 };
 
 struct Midi2AssignableControllerEvent : public Midi2ControllerEvent
@@ -402,20 +446,24 @@ struct Midi2AssignableControllerEvent : public Midi2ControllerEvent
     Midi2AssignableControllerEvent (const UmpEvent& event)
     : Midi2ControllerEvent (event)
     {
-        eventName = "MIDI 2 Assignable Controller";
-    }
-    Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
-                                    uint32_t theValue)
-    : Midi2ControllerEvent (theGroup, UmpValues::ChannelVoice::assignableController, theChannel, theBank, theController, theValue)
-    {
-        eventName = "MIDI 2 Assignable Controller";
+        init ();
     }
 
-    Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
-                                    MidiUnipolarFloat theValue)
+    Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
+                                    uint8_t theController, uint32_t theValue)
+    : Midi2ControllerEvent (theGroup, UmpValues::ChannelVoice::assignableController, theChannel, theBank, theController, theValue)
+    {
+        init ();
+    }
+
+    Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
+                                    uint8_t theController, MidiUnipolarFloat theValue)
     : Midi2AssignableControllerEvent (theGroup, theChannel, theBank, theController, theValue.toUint32 ())
     {
     }
+
+private:
+    void init () { eventName = "MIDI 2 Assignable Controller"; }
 };
 
 struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
@@ -423,8 +471,9 @@ struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
     Midi2RelativeControllerEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Relative Control Change";
+        init ();
     }
+
     Midi2RelativeControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
                                   uint8_t theController, int32_t theValue)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
@@ -432,7 +481,7 @@ struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
         bank       = theBank;
         controller = theController;
         setattr<int32_t> (UmpWords::data1Id, theValue);
-        eventName  = "MIDI 2 Relative Control Change";
+        init ();
     }
 
     Midi2RelativeControllerEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theBank,
@@ -448,6 +497,9 @@ struct Midi2RelativeControllerEvent : public Midi2ChannelVoiceEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         float, valueFloat, [this] () -> float { return MidiBipolarFloat::fromInt32 (value.get ()); },
         [this] (const MidiBipolarFloat& val) { value = val.toInt32 (); });
+
+private:
+    void init () { eventName = "MIDI 2 Relative Control Change"; }
 };
 
 struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEvent
@@ -455,14 +507,15 @@ struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEv
     Midi2RelativeRegisteredControllerEvent (const UmpEvent& event)
     : Midi2RelativeControllerEvent (event)
     {
-        eventName = "MIDI 2 Relative Registered Controller";
+        init ();
     }
+
     Midi2RelativeRegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, int32_t theValue)
     : Midi2RelativeControllerEvent (theGroup, UmpValues::ChannelVoice::relativeRegisteredController, theChannel, theBank,
                                     theController, theValue)
     {
-        eventName = "MIDI 2 Relative Registered Controller";
+        init ();
     }
 
     Midi2RelativeRegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
@@ -470,6 +523,9 @@ struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEv
     : Midi2RelativeRegisteredControllerEvent (theGroup, theChannel, theBank, theController, theValue.toInt32 ())
     {
     }
+
+private:
+    void init () { eventName = "MIDI 2 Relative Registered Controller"; }
 };
 
 struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEvent
@@ -477,14 +533,15 @@ struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEv
     Midi2RelativeAssignableControllerEvent (const UmpEvent& event)
     : Midi2RelativeControllerEvent (event)
     {
-        eventName = "MIDI 2 Relative Assignable Controller";
+        init ();
     }
+
     Midi2RelativeAssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, int32_t theValue)
     : Midi2RelativeControllerEvent (theGroup, UmpValues::ChannelVoice::relativeAssignableController, theChannel, theBank,
                                     theController, theValue)
     {
-        eventName = "MIDI 2 Relative Assignable Controller";
+        init ();
     }
 
     Midi2RelativeAssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
@@ -492,6 +549,9 @@ struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEv
     : Midi2RelativeAssignableControllerEvent (theGroup, theChannel, theBank, theController, theValue.toInt32 ())
     {
     }
+
+private:
+    void init () { eventName = "MIDI 2 Relative Assignable Controller"; }
 };
 
 struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
@@ -499,16 +559,16 @@ struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
     Midi2NoteEvent (const UmpEvent& event)
     : Midi2ChannelVoiceEvent (event)
     {
-        eventName = "MIDI 2 Note";
+        init ();
     }
 
     Midi2NoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
                     uint16_t theVelocity)
     : Midi2ChannelVoiceEvent (theGroup, theStatus, theChannel)
     {
-        note      = theNote;
-        velocity  = theVelocity;
-        eventName = "MIDI 2 Note";
+        note     = theNote;
+        velocity = theVelocity;
+        init ();
     }
 
     Midi2NoteEvent (MidiGroup theGroup, MidiNibble theStatus, MidiChannel theChannel, MidiByte theNote,
@@ -524,6 +584,9 @@ struct Midi2NoteEvent : public Midi2ChannelVoiceEvent
         float, velocityFloat, [this] () -> float { return velocity.get () / 65535.0f; },
         [this] (const MidiUnipolarFloat& val) { velocity = static_cast<uint16_t> (0.5f + val * 65535.0f); });
     MAKE_BITFIELD (int, attributeValue, 1, 16, 0);
+
+private:
+    void init () { eventName = "MIDI 2 Note"; }
 };
 
 struct Midi2NoteOffEvent : public Midi2NoteEvent
@@ -531,7 +594,7 @@ struct Midi2NoteOffEvent : public Midi2NoteEvent
     Midi2NoteOffEvent (const UmpEvent& event)
     : Midi2NoteEvent (event)
     {
-        eventName = "MIDI 2 Note Off";
+        init ();
     }
 
     Midi2NoteOffEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiUnipolarFloat theVelocity)
@@ -542,8 +605,11 @@ struct Midi2NoteOffEvent : public Midi2NoteEvent
     Midi2NoteOffEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint16_t theVelocity)
     : Midi2NoteEvent (theGroup, UmpValues::ChannelVoice::noteOff, theChannel, theNote, theVelocity)
     {
-        eventName = "MIDI 2 Note Off";
+        init ();
     }
+
+private:
+    void init () { eventName = "MIDI 2 Note Off"; }
 };
 
 struct Midi2NoteOnEvent : public Midi2NoteEvent
@@ -551,15 +617,20 @@ struct Midi2NoteOnEvent : public Midi2NoteEvent
     Midi2NoteOnEvent (const UmpEvent& event)
     : Midi2NoteEvent (event)
     {
-        eventName = "MIDI 2 Note On";
+        init ();
     }
+
     Midi2NoteOnEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, MidiUnipolarFloat theVelocity)
     : Midi2NoteOnEvent (theGroup, theChannel, theNote, theVelocity.toUint16 ())
     {
     }
+
     Midi2NoteOnEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint16_t theVelocity)
     : Midi2NoteEvent (theGroup, UmpValues::ChannelVoice::noteOn, theChannel, theNote, theVelocity)
     {
-        eventName = "MIDI 2 Note On";
+        init ();
     }
+
+private:
+    void init () { eventName = "MIDI 2 Note On"; }
 };
