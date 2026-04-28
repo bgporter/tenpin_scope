@@ -103,7 +103,7 @@ struct Midi2PerNotePitchBendEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2PerNotePitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, int32_t theValue)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::perNotePitchBend, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::perNotePitchBend, theChannel)
     {
         note      = theNote;
         value     = theValue;
@@ -132,7 +132,7 @@ struct Midi2ControlChangeEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2ControlChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theController, uint32_t theValue)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::controlChange, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::controlChange, theChannel)
     {
         controller = theController;
         value      = theValue;
@@ -162,7 +162,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2ProgramChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiWord theBank, MidiByte theProgram)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::programChange, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::programChange, theChannel)
     {
         bankValid = true;
         bank      = theBank;
@@ -171,7 +171,7 @@ struct Midi2ProgramChangeEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2ProgramChangeEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theProgram)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::programChange, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::programChange, theChannel)
     {
         bankValid = false;
         bankMsb   = 0;
@@ -205,7 +205,7 @@ struct Midi2PerNoteManagementEvent : public Midi2ChannelVoiceEvent
 
     Midi2PerNoteManagementEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, bool theDetach,
                                  bool theReset)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::perNoteManagement, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::perNoteManagement, theChannel)
     {
         jassert (theDetach || theReset);
         note      = theNote;
@@ -228,7 +228,7 @@ struct Midi2PolyPressureEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2PolyPressureEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint32_t theValue)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::polyPressure, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::polyPressure, theChannel)
     {
         note      = theNote;
         value     = theValue;
@@ -257,7 +257,7 @@ struct Midi2ChannelPressureEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2ChannelPressureEvent (MidiGroup theGroup, MidiChannel theChannel, uint32_t theValue)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::channelPressure, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::channelPressure, theChannel)
     {
         value     = theValue;
         eventName = "MIDI 2 Channel Pressure";
@@ -284,7 +284,7 @@ struct Midi2PitchBendEvent : public Midi2ChannelVoiceEvent
     }
 
     Midi2PitchBendEvent (MidiGroup theGroup, MidiChannel theChannel, int32_t theValue)
-    : Midi2ChannelVoiceEvent (theGroup, UmpValues::pitchBend, theChannel)
+    : Midi2ChannelVoiceEvent (theGroup, UmpValues::ChannelVoice::pitchBend, theChannel)
     {
         value     = theValue;
         eventName = "MIDI 2 Pitch Bend";
@@ -311,7 +311,7 @@ struct Midi2RegisteredPerNoteControllerEvent : public Midi2PerNoteEvent
     }
     Midi2RegisteredPerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, uint32_t theValue)
-    : Midi2PerNoteEvent (theGroup, UmpValues::registeredPerNoteController, theChannel, theNote, theController, theValue)
+    : Midi2PerNoteEvent (theGroup, UmpValues::ChannelVoice::registeredPerNoteController, theChannel, theNote, theController, theValue)
     {
         eventName = "MIDI 2 Registered Per Note Controller";
     }
@@ -332,7 +332,7 @@ struct Midi2AssignablePerNoteControllerEvent : public Midi2PerNoteEvent
     }
     Midi2AssignablePerNoteControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote,
                                            uint8_t theController, uint32_t theValue)
-    : Midi2PerNoteEvent (theGroup, UmpValues::assignablePerNoteController, theChannel, theNote, theController, theValue)
+    : Midi2PerNoteEvent (theGroup, UmpValues::ChannelVoice::assignablePerNoteController, theChannel, theNote, theController, theValue)
     {
         eventName = "MIDI 2 Assignable Per Note Controller";
     }
@@ -385,7 +385,7 @@ struct Midi2RegisteredControllerEvent : public Midi2ControllerEvent
     }
     Midi2RegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
                                     uint32_t theValue)
-    : Midi2ControllerEvent (theGroup, UmpValues::registeredController, theChannel, theBank, theController, theValue)
+    : Midi2ControllerEvent (theGroup, UmpValues::ChannelVoice::registeredController, theChannel, theBank, theController, theValue)
     {
         eventName = "MIDI 2 Registered Controller";
     }
@@ -406,7 +406,7 @@ struct Midi2AssignableControllerEvent : public Midi2ControllerEvent
     }
     Midi2AssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank, uint8_t theController,
                                     uint32_t theValue)
-    : Midi2ControllerEvent (theGroup, UmpValues::assignableController, theChannel, theBank, theController, theValue)
+    : Midi2ControllerEvent (theGroup, UmpValues::ChannelVoice::assignableController, theChannel, theBank, theController, theValue)
     {
         eventName = "MIDI 2 Assignable Controller";
     }
@@ -459,7 +459,7 @@ struct Midi2RelativeRegisteredControllerEvent : public Midi2RelativeControllerEv
     }
     Midi2RelativeRegisteredControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, int32_t theValue)
-    : Midi2RelativeControllerEvent (theGroup, UmpValues::relativeRegisteredController, theChannel, theBank,
+    : Midi2RelativeControllerEvent (theGroup, UmpValues::ChannelVoice::relativeRegisteredController, theChannel, theBank,
                                     theController, theValue)
     {
         eventName = "MIDI 2 Relative Registered Controller";
@@ -481,7 +481,7 @@ struct Midi2RelativeAssignableControllerEvent : public Midi2RelativeControllerEv
     }
     Midi2RelativeAssignableControllerEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theBank,
                                             uint8_t theController, int32_t theValue)
-    : Midi2RelativeControllerEvent (theGroup, UmpValues::relativeAssignableController, theChannel, theBank,
+    : Midi2RelativeControllerEvent (theGroup, UmpValues::ChannelVoice::relativeAssignableController, theChannel, theBank,
                                     theController, theValue)
     {
         eventName = "MIDI 2 Relative Assignable Controller";
@@ -540,7 +540,7 @@ struct Midi2NoteOffEvent : public Midi2NoteEvent
     }
 
     Midi2NoteOffEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint16_t theVelocity)
-    : Midi2NoteEvent (theGroup, UmpValues::noteOff, theChannel, theNote, theVelocity)
+    : Midi2NoteEvent (theGroup, UmpValues::ChannelVoice::noteOff, theChannel, theNote, theVelocity)
     {
         eventName = "MIDI 2 Note Off";
     }
@@ -558,7 +558,7 @@ struct Midi2NoteOnEvent : public Midi2NoteEvent
     {
     }
     Midi2NoteOnEvent (MidiGroup theGroup, MidiChannel theChannel, MidiByte theNote, uint16_t theVelocity)
-    : Midi2NoteEvent (theGroup, UmpValues::noteOn, theChannel, theNote, theVelocity)
+    : Midi2NoteEvent (theGroup, UmpValues::ChannelVoice::noteOn, theChannel, theNote, theVelocity)
     {
         eventName = "MIDI 2 Note On";
     }

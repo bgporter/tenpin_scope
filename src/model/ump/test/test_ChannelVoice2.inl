@@ -31,7 +31,7 @@ public:
                   Midi2NoteOffEvent noteOffEvent (1_gr, 2_ch, 60, (uint16_t) 100);
                   expect (noteOffEvent.userGroup == 1);
                   expect (noteOffEvent.group == 0);
-                  expect (noteOffEvent.status == UmpValues::noteOff);
+                  expect (noteOffEvent.status == UmpValues::ChannelVoice::noteOff);
                   expect (noteOffEvent.userChannel == 2);
                   expect (noteOffEvent.channel == 1);
                   expect (noteOffEvent.note == 60);
@@ -58,7 +58,7 @@ public:
                   Midi2NoteOffEvent noteOffEvent2 (umpEvent);
                   expect (noteOffEvent2.userGroup == 1);
                   expect (noteOffEvent2.group == 0);
-                  expect (noteOffEvent2.status == UmpValues::noteOff);
+                  expect (noteOffEvent2.status == UmpValues::ChannelVoice::noteOff);
                   expect (noteOffEvent2.userChannel == 2);
                   expect (noteOffEvent2.channel == 1);
                   expect (noteOffEvent2.note == 60);
@@ -98,7 +98,7 @@ public:
                   Midi2AssignablePerNoteControllerEvent event (1_gr, 2_ch, 60, 5, 0x12345678);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::assignablePerNoteController);
+                  expect (event.status == UmpValues::ChannelVoice::assignablePerNoteController);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.note == 60);
@@ -116,7 +116,7 @@ public:
                   Midi2RegisteredControllerEvent event (1, 2, 0, 1, 0x12345678);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::registeredController);
+                  expect (event.status == UmpValues::ChannelVoice::registeredController);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.bank == 0);
@@ -130,7 +130,7 @@ public:
                   Midi2AssignableControllerEvent event (1, 2, 127, 2, 0x80000000);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::assignableController);
+                  expect (event.status == UmpValues::ChannelVoice::assignableController);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.bank == 127);
@@ -144,7 +144,7 @@ public:
                   Midi2RelativeRegisteredControllerEvent event (1, 2, 0, 1, (int32_t) -100);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::relativeRegisteredController);
+                  expect (event.status == UmpValues::ChannelVoice::relativeRegisteredController);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.bank == 0);
@@ -162,7 +162,7 @@ public:
                   Midi2RelativeAssignableControllerEvent event (1, 2, 127, 2, (int32_t) 100);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::relativeAssignableController);
+                  expect (event.status == UmpValues::ChannelVoice::relativeAssignableController);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.bank == 127);
@@ -180,7 +180,7 @@ public:
                   Midi2PerNotePitchBendEvent event (1, 2, 60, (int32_t) -100);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::perNotePitchBend);
+                  expect (event.status == UmpValues::ChannelVoice::perNotePitchBend);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.note == 60);
@@ -197,7 +197,7 @@ public:
                   Midi2ControlChangeEvent event (1_gr, 2_ch, 7, 0x12345678);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::controlChange);
+                  expect (event.status == UmpValues::ChannelVoice::controlChange);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.controller == 7);
@@ -214,7 +214,7 @@ public:
                   Midi2ProgramChangeEvent event (1, 2, MidiWord (0x1234), 10);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::programChange);
+                  expect (event.status == UmpValues::ChannelVoice::programChange);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.bankValid == true);
@@ -233,7 +233,7 @@ public:
                   Midi2PerNoteManagementEvent event (1, 2, 60, true, false);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::perNoteManagement);
+                  expect (event.status == UmpValues::ChannelVoice::perNoteManagement);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.note == 60);
@@ -251,7 +251,7 @@ public:
                   Midi2PolyPressureEvent event (1, 2, 60, 0x12345678);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::polyPressure);
+                  expect (event.status == UmpValues::ChannelVoice::polyPressure);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.note == 60);
@@ -268,7 +268,7 @@ public:
                   Midi2ChannelPressureEvent event (1, 2, 0x12345678);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::channelPressure);
+                  expect (event.status == UmpValues::ChannelVoice::channelPressure);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.value == 0x12345678);
@@ -284,7 +284,7 @@ public:
                   Midi2PitchBendEvent event (1, 2, (int32_t) -100);
                   expect (event.userGroup == 1);
                   expect (event.group == 0);
-                  expect (event.status == UmpValues::pitchBend);
+                  expect (event.status == UmpValues::ChannelVoice::pitchBend);
                   expect (event.userChannel == 2);
                   expect (event.channel == 1);
                   expect (event.value == -100);

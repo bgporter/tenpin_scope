@@ -96,45 +96,45 @@ bool EventFilter::filterChannelVoice (const UmpEvent& event)
     switch (cvEvent.status.get ())
     {
         // NOTE ON / OFF
-        case UmpValues::noteOff:
+        case UmpValues::ChannelVoice::noteOff:
             [[fallthrough]];
-        case UmpValues::noteOn:
+        case UmpValues::ChannelVoice::noteOn:
             return context.showNoteOnOff;
 
         // ALL THE PER-NOTE EVENTS
-        case UmpValues::polyPressure:
+        case UmpValues::ChannelVoice::polyPressure:
             [[fallthrough]];
-        case UmpValues::perNotePitchBend:
+        case UmpValues::ChannelVoice::perNotePitchBend:
             [[fallthrough]];
-        case UmpValues::perNoteManagement:
+        case UmpValues::ChannelVoice::perNoteManagement:
             [[fallthrough]];
-        case UmpValues::registeredPerNoteController:
+        case UmpValues::ChannelVoice::registeredPerNoteController:
             [[fallthrough]];
-        case UmpValues::assignablePerNoteController:
+        case UmpValues::ChannelVoice::assignablePerNoteController:
             return context.showPerNoteEvents;
 
         // ALL THE CHANNEL CONTROLLER EVENTS
-        case UmpValues::controlChange:
+        case UmpValues::ChannelVoice::controlChange:
             [[fallthrough]];
-        case UmpValues::registeredController:
+        case UmpValues::ChannelVoice::registeredController:
             [[fallthrough]];
-        case UmpValues::assignableController:
+        case UmpValues::ChannelVoice::assignableController:
             [[fallthrough]];
-        case UmpValues::relativeRegisteredController:
+        case UmpValues::ChannelVoice::relativeRegisteredController:
             [[fallthrough]];
-        case UmpValues::relativeAssignableController:
+        case UmpValues::ChannelVoice::relativeAssignableController:
             return context.showControlChange;
 
         // PROGRAM CHANGE
-        case UmpValues::programChange:
+        case UmpValues::ChannelVoice::programChange:
             return context.showProgramChange;
 
         // CHANNEL PRESSURE
-        case UmpValues::channelPressure:
+        case UmpValues::ChannelVoice::channelPressure:
             return context.showChannelPressure;
 
         // PITCH BEND
-        case UmpValues::pitchBend:
+        case UmpValues::ChannelVoice::pitchBend:
             return context.showPitchBend;
         default:
             jassertfalse;

@@ -51,6 +51,17 @@ constexpr int stream            = 0xf;
 
 namespace UmpValues
 {
+
+namespace Utility
+{
+constexpr int noop              = 0x0;
+constexpr int jrClock           = 0x1;
+constexpr int jrTimestamp       = 0x2;
+constexpr int jrDeltaClockstamp = 0x3;
+} // namespace Utility
+
+namespace ChannelVoice
+{
 /// @brief Channel voice status values
 constexpr int registeredPerNoteController  = 0x0;
 constexpr int assignablePerNoteController  = 0x1;
@@ -67,6 +78,7 @@ constexpr int programChange                = 0xC;
 constexpr int channelPressure              = 0xD;
 constexpr int pitchBend                    = 0xE;
 constexpr int perNoteManagement            = 0xF;
+} // namespace ChannelVoice
 } // namespace UmpValues
 
 struct UmpEvent : public cello::Object

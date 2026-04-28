@@ -54,79 +54,79 @@ UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& eve
     Midi2ChannelVoiceEvent midi2ChannelVoiceEvent (event);
     switch (midi2ChannelVoiceEvent.status)
     {
-        case UmpValues::registeredPerNoteController:
+        case UmpValues::ChannelVoice::registeredPerNoteController:
             result = onMidi2RegisteredPerNoteControllerEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2PerNoteEvent (event);
             break;
 
-        case UmpValues::assignablePerNoteController:
+        case UmpValues::ChannelVoice::assignablePerNoteController:
             result = onMidi2AssignablePerNoteControllerEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2PerNoteEvent (event);
             break;
 
-        case UmpValues::registeredController:
+        case UmpValues::ChannelVoice::registeredController:
             result = onMidi2RegisteredControllerEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2ControllerEvent (event);
             break;
 
-        case UmpValues::assignableController:
+        case UmpValues::ChannelVoice::assignableController:
             result = onMidi2AssignableControllerEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2ControllerEvent (event);
             break;
 
-        case UmpValues::relativeRegisteredController:
+        case UmpValues::ChannelVoice::relativeRegisteredController:
             result = onMidi2RelativeRegisteredControllerEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2RelativeControllerEvent (event);
             break;
 
-        case UmpValues::relativeAssignableController:
+        case UmpValues::ChannelVoice::relativeAssignableController:
             result = onMidi2RelativeAssignableControllerEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2RelativeControllerEvent (event);
             break;
 
-        case UmpValues::perNotePitchBend:
+        case UmpValues::ChannelVoice::perNotePitchBend:
             result = onMidi2PerNotePitchBendEvent (event);
             break;
 
-        case UmpValues::noteOff:
+        case UmpValues::ChannelVoice::noteOff:
             result = onMidi2NoteOffEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2NoteEvent (event);
             break;
 
-        case UmpValues::noteOn:
+        case UmpValues::ChannelVoice::noteOn:
             result = onMidi2NoteOnEvent (event);
             if (result == Result::notHandled)
                 result = onMidi2NoteEvent (event);
             break;
 
-        case UmpValues::polyPressure:
+        case UmpValues::ChannelVoice::polyPressure:
             result = onMidi2PolyPressureEvent (event);
             break;
 
-        case UmpValues::controlChange:
+        case UmpValues::ChannelVoice::controlChange:
             result = onMidi2ControlChangeEvent (event);
             break;
 
-        case UmpValues::programChange:
+        case UmpValues::ChannelVoice::programChange:
             result = onMidi2ProgramChangeEvent (event);
             break;
 
-        case UmpValues::channelPressure:
+        case UmpValues::ChannelVoice::channelPressure:
             result = onMidi2ChannelPressureEvent (event);
             break;
 
-        case UmpValues::pitchBend:
+        case UmpValues::ChannelVoice::pitchBend:
             result = onMidi2PitchBendEvent (event);
             break;
 
-        case UmpValues::perNoteManagement:
+        case UmpValues::ChannelVoice::perNoteManagement:
             result = onMidi2PerNoteManagementEvent (event);
             break;
 
