@@ -140,9 +140,6 @@ UmpHandler::Result EventListViewHandler::onNoOpEvent (const UmpEvent& event)
 {
     NoOpEvent e (event);
     eventView->setEvent (event.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    /// !!! Add parsed components
     return UmpHandler::Result::ok;
 }
 
@@ -152,7 +149,8 @@ UmpHandler::Result EventListViewHandler::onJrClockEvent (const UmpEvent& event)
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return UmpHandler::Result::ok;
-    /// !!! Add parsed components
+    // no group, no channel.
+    eventView->addValue ("ticks", juce::String (e.ticks));
     return UmpHandler::Result::ok;
 }
 
@@ -162,7 +160,8 @@ UmpHandler::Result EventListViewHandler::onJrTimestampEvent (const UmpEvent& eve
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return UmpHandler::Result::ok;
-    /// !!! Add parsed components
+    // no group, no channel.
+    eventView->addValue ("ticks", juce::String (e.ticks));
     return UmpHandler::Result::ok;
 }
 
@@ -172,7 +171,8 @@ UmpHandler::Result EventListViewHandler::onDeltaTicksPerQuarterEvent (const UmpE
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return UmpHandler::Result::ok;
-    /// !!! Add parsed components
+    // no group, no channel.
+    eventView->addValue ("ticks", juce::String (e.ticks));
     return UmpHandler::Result::ok;
 }
 
@@ -182,7 +182,8 @@ UmpHandler::Result EventListViewHandler::onDeltaTicksSinceLastEvent (const UmpEv
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return UmpHandler::Result::ok;
-    /// !!! Add parsed components
+    // no group, no channel.
+    eventView->addValue ("ticks", juce::String (e.ticks));
     return UmpHandler::Result::ok;
 }
 
