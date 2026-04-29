@@ -42,7 +42,21 @@ public:
 private:
     UmpHandler::Result preDispatch (const UmpEvent& event) override;
     UmpHandler::Result postDispatch (const UmpEvent& event, UmpHandler::Result pendingResult) override;
+    /**
+     * @name Utility Message Handlers
+     */
+    ///@{
+    UmpHandler::Result onNoOpEvent (const UmpEvent& event) override;
+    UmpHandler::Result onJrClockEvent (const UmpEvent& event) override;
+    UmpHandler::Result onJrTimestampEvent (const UmpEvent& event) override;
+    UmpHandler::Result onDeltaTicksPerQuarterEvent (const UmpEvent& event) override;
+    UmpHandler::Result onDeltaTicksSinceLastEvent (const UmpEvent& event) override;
+    ///@}
 
+    /**
+     * @name MIDI 2.0 Channel Voice Message Handlers
+     */
+    ///@{
     UmpHandler::Result onMidi2NoteOffEvent (const UmpEvent& event) override;
     UmpHandler::Result onMidi2NoteOnEvent (const UmpEvent& event) override;
     UmpHandler::Result onMidi2NoteEvent (const UmpEvent& event) override;
@@ -64,6 +78,7 @@ private:
     UmpHandler::Result onMidi2RelativeControllerEvent (const UmpEvent& event) override;
     UmpHandler::Result onMidi2ChannelVoiceEvent (const UmpEvent& event) override;
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
+    ///@}
 
     AppContext appContext;
     PersistentContext pc;

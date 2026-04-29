@@ -25,6 +25,7 @@
 #include "umpHandler.h"
 
 #include "model/ump/channelVoice2.h"
+#include "model/ump/utility.h"
 
 UmpHandler::UmpHandler () {}
 
@@ -37,6 +38,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
     {
         switch (event.messageType)
         {
+            case MessageTypes::utility:
+                result = handleUtilityEvent (event);
+                break;
             case MessageTypes::midi2ChannelVoice:
                 result = handleMidi2ChannelVoiceEvent (event);
                 break;
@@ -46,6 +50,37 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
         }
     }
     return postDispatch (event, result);
+}
+
+UmpHandler::Result UmpHandler::handleUtilityEvent (const UmpEvent& event)
+{
+    Result result { defaultResult };
+    UtilityEvent utilityEvent (event);
+    switch (utilityEvent.status)
+    {
+        case UmpValues::Utility::noop:
+            result = onNoOpEvent (event);
+            break;
+        case UmpValues::Utility::jrClock:
+            result = onJrClockEvent (event);
+            break;
+        case UmpValues::Utility::jrTimestamp:
+            result = onJrTimestampEvent (event);
+            break;
+        case UmpValues::Utility::deltaClockstampTPQ:
+            result = onDeltaTicksPerQuarterEvent (event);
+            break;
+        case UmpValues::Utility::deltaClockstampSinceLastEvent:
+            result = onDeltaTicksSinceLastEvent (event);
+            break;
+        default:
+            break;
+    }
+
+    if (result == Result::notHandled)
+        result = onUmpEvent (event);
+
+    return result;
 }
 
 UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& event)

@@ -47,6 +47,7 @@ protected:
     Result defaultResult { Result::notHandled };
 
 private:
+    Result handleUtilityEvent (const UmpEvent& event);
     Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
 
     /**
@@ -67,6 +68,17 @@ private:
     virtual Result postDispatch (const UmpEvent& event, Result pendingResult) { return pendingResult; }
 
     virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
+
+    /**
+     * @name Utility Message Handlers
+     */
+    ///@{
+    virtual Result onNoOpEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onJrClockEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onJrTimestampEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onDeltaTicksPerQuarterEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onDeltaTicksSinceLastEvent (const UmpEvent&) { return defaultResult; }
+    ///@}
 
     /**
      * @name MIDI 2.0 Channel Voice Message Handlers

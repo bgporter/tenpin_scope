@@ -25,6 +25,8 @@
 #include "eventListViewHandler.h"
 
 #include "model/ump/channelVoice2.h"
+#include "model/ump/utility.h"
+
 #include "palette.h"
 
 EventListViewHandler::EventListViewHandler (AppContext& theAppContext)
@@ -43,7 +45,50 @@ UmpHandler::Result EventListViewHandler::handle (const UmpEvent& event, int inde
     eventView = view;
     Palette pal { pc };
 
-    eventView->setColors (pal.umpBackground.get (), pal.midi2Label.get (), pal.midi2Value.get (), pal.outline.get ());
+    juce::Colour labelColor;
+    juce::Colour valueColor;
+
+    switch (event.messageType)
+    {
+        case MessageTypes::utility:
+            labelColor = pal.utilityLabel.get ();
+            valueColor = pal.utilityValue.get ();
+            break;
+        case MessageTypes::commonRealtime:
+            labelColor = pal.commonRealtimeLabel.get ();
+            valueColor = pal.commonRealtimeValue.get ();
+            break;
+        case MessageTypes::midi1ChannelVoice:
+            labelColor = pal.midi1Label.get ();
+            valueColor = pal.midi1Value.get ();
+            break;
+        case MessageTypes::sysex7:
+            labelColor = pal.sysex7Label.get ();
+            valueColor = pal.sysex7Value.get ();
+            break;
+        case MessageTypes::midi2ChannelVoice:
+            labelColor = pal.midi2Label.get ();
+            valueColor = pal.midi2Value.get ();
+            break;
+        case MessageTypes::sysex8:
+            labelColor = pal.sysex8Label.get ();
+            valueColor = pal.sysex8Value.get ();
+            break;
+        case MessageTypes::flexData:
+            labelColor = pal.flexDataLabel.get ();
+            valueColor = pal.flexDataValue.get ();
+            break;
+        case MessageTypes::stream:
+            labelColor = pal.streamLabel.get ();
+            valueColor = pal.streamValue.get ();
+            break;
+        default:
+            labelColor = pal.undefinedLabel.get ();
+            valueColor = pal.undefinedValue.get ();
+            break;
+    }
+
+    eventView->setColors (pal.umpBackground.get (), labelColor, valueColor, pal.outline.get ());
 
     currentIndex = index;
     currentWidth = width;
@@ -52,8 +97,6 @@ UmpHandler::Result EventListViewHandler::handle (const UmpEvent& event, int inde
 
 UmpHandler::Result EventListViewHandler::preDispatch (const UmpEvent& event)
 {
-    // const auto timeStr = juce::String ((double) event.timestamp, 3);
-    // eventView->setTime (timeStr);
     eventView->setTime (formatTime ((double) event.timestamp));
 
     const auto endpointStr = juce::String (event.endpointName) + " " + (event.isReceived ? "Rx" : "Tx");
@@ -91,6 +134,56 @@ UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Um
     currentIndex = -1;
     currentWidth = 0;
     return pendingResult;
+}
+
+UmpHandler::Result EventListViewHandler::onNoOpEvent (const UmpEvent& event)
+{
+    NoOpEvent e (event);
+    eventView->setEvent (event.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    /// !!! Add parsed components
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onJrClockEvent (const UmpEvent& event)
+{
+    JrClockEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    /// !!! Add parsed components
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onJrTimestampEvent (const UmpEvent& event)
+{
+    JrTimestampEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    /// !!! Add parsed components
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onDeltaTicksPerQuarterEvent (const UmpEvent& event)
+{
+    DeltaTicksPerQuarterEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    /// !!! Add parsed components
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onDeltaTicksSinceLastEvent (const UmpEvent& event)
+{
+    DeltaTicksSinceLastEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    /// !!! Add parsed components
+    return UmpHandler::Result::ok;
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2NoteOffEvent (const UmpEvent& event)
