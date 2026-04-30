@@ -79,6 +79,28 @@ inline juce::String getValueFormatTypeName (ValueFormatType formatType)
     }
 }
 
+inline juce::String getNoteAttributeName (int attributeNumber)
+{
+    const juce::String name = [attributeNumber] ()
+    {
+        switch (attributeNumber)
+        {
+            case 0:
+                return "none";
+            case 1:
+                return "Mfr Specific";
+            case 2:
+                return "Profile Specific";
+            case 3:
+                return "Pitch 7.9";
+            default:
+                jassertfalse;
+                return "Reserved";
+        }
+    }();
+    return juce::String (attributeNumber) + " (" + name + ")";
+}
+
 juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType, int precision = 2,
                           float formattedMin = 0.f, float formattedMax = 1.f);
 

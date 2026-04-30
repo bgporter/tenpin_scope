@@ -31,6 +31,8 @@
 #include "handler/umpHandler.h"
 #include "model/appContext.h"
 
+struct Midi2NoteEvent;
+
 class EventListViewHandler : public UmpHandler
 {
 public:
@@ -94,6 +96,8 @@ private:
     UmpHandler::Result onMidi2ChannelVoiceEvent (const UmpEvent& event) override;
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
     ///@}
+
+    UmpHandler::Result addMidi2NoteValues (const Midi2NoteEvent& e);
 
     AppContext appContext;
     PersistentContext pc;
