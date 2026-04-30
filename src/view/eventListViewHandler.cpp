@@ -24,6 +24,7 @@
 
 #include "eventListViewHandler.h"
 
+#include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/utility.h"
 
@@ -184,6 +185,125 @@ UmpHandler::Result EventListViewHandler::onDeltaTicksSinceLastEvent (const UmpEv
         return UmpHandler::Result::ok;
     // no group, no channel.
     eventView->addValue ("ticks", juce::String (e.ticks));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1NoteOffEvent (const UmpEvent& event)
+{
+    Midi1NoteOffEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1NoteOnEvent (const UmpEvent& event)
+{
+    Midi1NoteOnEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1NoteEvent (const UmpEvent& event)
+{
+    Midi1NoteEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1PolyPressureEvent (const UmpEvent& event)
+{
+    Midi1PolyPressureEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
+    eventView->addValue ("val", formatValue ((uint32_t) e.pressure, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1ControlChangeEvent (const UmpEvent& event)
+{
+    Midi1ControlChangeEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("ctrl", getControllerName ((int) e.controller));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1ProgramChangeEvent (const UmpEvent& event)
+{
+    Midi1ProgramChangeEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("prog", juce::String ((int) e.program));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1ChannelPressureEvent (const UmpEvent& event)
+{
+    Midi1ChannelPressureEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("val", formatValue ((uint32_t) e.pressure, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1PitchBendEvent (const UmpEvent& event)
+{
+    Midi1PitchBendEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 14, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision, -1.f, 1.f));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidi1ChannelVoiceEvent (const UmpEvent& event)
+{
+    Midi1ChannelVoiceEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
     return UmpHandler::Result::ok;
 }
 

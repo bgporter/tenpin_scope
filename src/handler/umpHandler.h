@@ -48,6 +48,7 @@ protected:
 
 private:
     Result handleUtilityEvent (const UmpEvent& event);
+    Result handleMidi1ChannelVoiceEvent (const UmpEvent& event);
     Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
 
     /**
@@ -78,6 +79,21 @@ private:
     virtual Result onJrTimestampEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onDeltaTicksPerQuarterEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onDeltaTicksSinceLastEvent (const UmpEvent&) { return defaultResult; }
+    ///@}
+
+    /**
+     * @name MIDI 1.0 Channel Voice Message Handlers
+     */
+    ///@{
+    virtual Result onMidi1ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1NoteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1NoteOffEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1NoteOnEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1PolyPressureEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1ControlChangeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1ProgramChangeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1ChannelPressureEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidi1PitchBendEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**

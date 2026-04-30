@@ -20,6 +20,7 @@ set (TargetName ${PROJECT_NAME})
 
 set (CMAKE_CXX_STANDARD 20)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 option(JUCE_ENABLE_MODULE_SOURCE_GROUPS "Show all module sources in IDE projects" ON)
 
@@ -91,6 +92,8 @@ set (SOURCES_MODEL
     src/model/persistentContext.h
     src/model/runtimeContext.h
     src/model/ump/bitField.h
+    src/model/ump/channelVoice1.h
+    src/model/ump/channelVoice1.cpp
     src/model/ump/channelVoice2.h
     src/model/ump/channelVoice2.cpp
     src/model/ump/umpEvent.h

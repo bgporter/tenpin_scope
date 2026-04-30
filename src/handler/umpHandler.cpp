@@ -24,6 +24,7 @@
 
 #include "umpHandler.h"
 
+#include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/utility.h"
 
@@ -40,6 +41,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
         {
             case MessageTypes::utility:
                 result = handleUtilityEvent (event);
+                break;
+            case MessageTypes::midi1ChannelVoice:
+                result = handleMidi1ChannelVoiceEvent (event);
                 break;
             case MessageTypes::midi2ChannelVoice:
                 result = handleMidi2ChannelVoiceEvent (event);
@@ -76,6 +80,57 @@ UmpHandler::Result UmpHandler::handleUtilityEvent (const UmpEvent& event)
         default:
             break;
     }
+
+    if (result == Result::notHandled)
+        result = onUmpEvent (event);
+
+    return result;
+}
+
+UmpHandler::Result UmpHandler::handleMidi1ChannelVoiceEvent (const UmpEvent& event)
+{
+    Result result { defaultResult };
+    Midi1ChannelVoiceEvent midi1ChannelVoiceEvent (event);
+    switch (midi1ChannelVoiceEvent.status)
+    {
+        case UmpValues::ChannelVoice::noteOff:
+            result = onMidi1NoteOffEvent (event);
+            if (result == Result::notHandled)
+                result = onMidi1NoteEvent (event);
+            break;
+
+        case UmpValues::ChannelVoice::noteOn:
+            result = onMidi1NoteOnEvent (event);
+            if (result == Result::notHandled)
+                result = onMidi1NoteEvent (event);
+            break;
+
+        case UmpValues::ChannelVoice::polyPressure:
+            result = onMidi1PolyPressureEvent (event);
+            break;
+
+        case UmpValues::ChannelVoice::controlChange:
+            result = onMidi1ControlChangeEvent (event);
+            break;
+
+        case UmpValues::ChannelVoice::programChange:
+            result = onMidi1ProgramChangeEvent (event);
+            break;
+
+        case UmpValues::ChannelVoice::channelPressure:
+            result = onMidi1ChannelPressureEvent (event);
+            break;
+
+        case UmpValues::ChannelVoice::pitchBend:
+            result = onMidi1PitchBendEvent (event);
+            break;
+
+        default:
+            break;
+    }
+
+    if (result == Result::notHandled)
+        result = onMidi1ChannelVoiceEvent (event);
 
     if (result == Result::notHandled)
         result = onUmpEvent (event);

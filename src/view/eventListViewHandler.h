@@ -54,6 +54,21 @@ private:
     ///@}
 
     /**
+     * @name MIDI 1.0 Channel Voice Message Handlers
+     */
+    ///@{
+    UmpHandler::Result onMidi1NoteOffEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1NoteOnEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1NoteEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1PolyPressureEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1ControlChangeEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1ProgramChangeEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1ChannelPressureEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1PitchBendEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidi1ChannelVoiceEvent (const UmpEvent& event) override;
+    ///@}
+
+    /**
      * @name MIDI 2.0 Channel Voice Message Handlers
      */
     ///@{
