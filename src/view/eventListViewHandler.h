@@ -31,7 +31,11 @@
 #include "handler/umpHandler.h"
 #include "model/appContext.h"
 
+struct Midi1NoteEvent;
 struct Midi2NoteEvent;
+struct Midi2PerNoteEvent;
+struct Midi2ControllerEvent;
+struct Midi2RelativeControllerEvent;
 
 class EventListViewHandler : public UmpHandler
 {
@@ -97,7 +101,12 @@ private:
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
     ///@}
 
+    UmpHandler::Result addUtilityTicksValues (juce::String name, int ticks);
+    UmpHandler::Result addMidi1NoteValues (const Midi1NoteEvent& e);
     UmpHandler::Result addMidi2NoteValues (const Midi2NoteEvent& e);
+    UmpHandler::Result addMidi2PerNoteValues (const Midi2PerNoteEvent& e);
+    UmpHandler::Result addMidi2ControllerValues (const Midi2ControllerEvent& e);
+    UmpHandler::Result addMidi2RelativeControllerValues (const Midi2RelativeControllerEvent& e);
 
     AppContext appContext;
     PersistentContext pc;

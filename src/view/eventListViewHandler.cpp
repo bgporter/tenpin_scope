@@ -147,87 +147,43 @@ UmpHandler::Result EventListViewHandler::onNoOpEvent (const UmpEvent& event)
 UmpHandler::Result EventListViewHandler::onJrClockEvent (const UmpEvent& event)
 {
     JrClockEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    // no group, no channel.
-    eventView->addValue ("ticks", juce::String (e.ticks));
-    return UmpHandler::Result::ok;
+    return addUtilityTicksValues (e.eventName, e.ticks);
 }
 
 UmpHandler::Result EventListViewHandler::onJrTimestampEvent (const UmpEvent& event)
 {
     JrTimestampEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    // no group, no channel.
-    eventView->addValue ("ticks", juce::String (e.ticks));
-    return UmpHandler::Result::ok;
+    return addUtilityTicksValues (e.eventName, e.ticks);
 }
 
 UmpHandler::Result EventListViewHandler::onDeltaTicksPerQuarterEvent (const UmpEvent& event)
 {
     DeltaTicksPerQuarterEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    // no group, no channel.
-    eventView->addValue ("ticks", juce::String (e.ticks));
-    return UmpHandler::Result::ok;
+    return addUtilityTicksValues (e.eventName, e.ticks);
 }
 
 UmpHandler::Result EventListViewHandler::onDeltaTicksSinceLastEvent (const UmpEvent& event)
 {
     DeltaTicksSinceLastEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    // no group, no channel.
-    eventView->addValue ("ticks", juce::String (e.ticks));
-    return UmpHandler::Result::ok;
+    return addUtilityTicksValues (e.eventName, e.ticks);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi1NoteOffEvent (const UmpEvent& event)
 {
     Midi1NoteOffEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi1NoteValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi1NoteOnEvent (const UmpEvent& event)
 {
     Midi1NoteOnEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi1NoteValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi1NoteEvent (const UmpEvent& event)
 {
     Midi1NoteEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi1NoteValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi1PolyPressureEvent (const UmpEvent& event)
@@ -326,6 +282,70 @@ UmpHandler::Result EventListViewHandler::addMidi2NoteValues (const Midi2NoteEven
     return UmpHandler::Result::ok;
 }
 
+UmpHandler::Result EventListViewHandler::addUtilityTicksValues (juce::String name, int ticks)
+{
+    eventView->setEvent (name);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("ticks", juce::String (ticks));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addMidi1NoteValues (const Midi1NoteEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
+    eventView->addValue ("vel", formatValue ((uint32_t) e.velocity, 7, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addMidi2PerNoteValues (const Midi2PerNoteEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
+    eventView->addValue ("ctrl", getControllerName ((int) e.controller));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addMidi2ControllerValues (const Midi2ControllerEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("bank", juce::String ((int) e.bank));
+    eventView->addValue ("ctrl", juce::String ((int) e.controller));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addMidi2RelativeControllerValues (const Midi2RelativeControllerEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("ch", juce::String ((int) e.userChannel));
+    eventView->addValue ("bank", juce::String ((int) e.bank));
+    eventView->addValue ("ctrl", juce::String ((int) e.controller));
+    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
+                                             pc.eventViewContext.precision));
+    return UmpHandler::Result::ok;
+}
+
 UmpHandler::Result EventListViewHandler::onMidi2NoteOffEvent (const UmpEvent& event)
 {
     Midi2NoteOffEvent e (event);
@@ -347,46 +367,19 @@ UmpHandler::Result EventListViewHandler::onMidi2NoteEvent (const UmpEvent& event
 UmpHandler::Result EventListViewHandler::onMidi2RegisteredPerNoteControllerEvent (const UmpEvent& event)
 {
     Midi2RegisteredPerNoteControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2PerNoteValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2AssignablePerNoteControllerEvent (const UmpEvent& event)
 {
     Midi2AssignablePerNoteControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2PerNoteValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2PerNoteEvent (const UmpEvent& event)
 {
     Midi2PerNoteEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("note", getNoteName ((int) e.note, pc.eventViewContext.octaveType));
-    eventView->addValue ("ctrl", getControllerName ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2PerNoteValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2PerNotePitchBendEvent (const UmpEvent& event)
@@ -488,91 +481,37 @@ UmpHandler::Result EventListViewHandler::onMidi2PitchBendEvent (const UmpEvent& 
 UmpHandler::Result EventListViewHandler::onMidi2RegisteredControllerEvent (const UmpEvent& event)
 {
     Midi2RegisteredControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("bank", juce::String ((int) e.bank));
-    eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2ControllerValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2AssignableControllerEvent (const UmpEvent& event)
 {
     Midi2AssignableControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("bank", juce::String ((int) e.bank));
-    eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2ControllerValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2ControllerEvent (const UmpEvent& event)
 {
     Midi2ControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("bank", juce::String ((int) e.bank));
-    eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2ControllerValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2RelativeRegisteredControllerEvent (const UmpEvent& event)
 {
     Midi2RelativeRegisteredControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("bank", juce::String ((int) e.bank));
-    eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2RelativeControllerValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2RelativeAssignableControllerEvent (const UmpEvent& event)
 {
     Midi2RelativeAssignableControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("bank", juce::String ((int) e.bank));
-    eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2RelativeControllerValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2RelativeControllerEvent (const UmpEvent& event)
 {
     Midi2RelativeControllerEvent e (event);
-    eventView->setEvent (e.eventName);
-    if (!pc.eventViewContext.umpShowParsedData)
-        return UmpHandler::Result::ok;
-    eventView->addValue ("grp", juce::String ((int) e.userGroup));
-    eventView->addValue ("ch", juce::String ((int) e.userChannel));
-    eventView->addValue ("bank", juce::String ((int) e.bank));
-    eventView->addValue ("ctrl", juce::String ((int) e.controller));
-    eventView->addValue ("val", formatValue ((uint32_t) e.value, 32, pc.eventViewContext.valueFormatType,
-                                             pc.eventViewContext.precision));
-    return UmpHandler::Result::ok;
+    return addMidi2RelativeControllerValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi2ChannelVoiceEvent (const UmpEvent& event)
