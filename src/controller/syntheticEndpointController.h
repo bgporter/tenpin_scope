@@ -58,6 +58,9 @@ public:
 
 private:
     void buildDefaultEventList ();
+    void addUtilityEvents ();
+    void addMidi1Events ();
+    void addMidi2Events ();
     void startPlayback ();
 
     MidiProperties         midiProperties;

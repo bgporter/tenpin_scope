@@ -26,6 +26,7 @@
 
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
+#include "model/ump/utility.h"
 
 SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& mp,
                                                            const juce::String& name)
@@ -88,14 +89,34 @@ void SyntheticEndpointController::processUmpEvents ()
 
 void SyntheticEndpointController::buildDefaultEventList ()
 {
-    eventList.addEvent (500,  Midi1NoteOnEvent          (1, 1, 60, 100));
-    eventList.addEvent (250,  Midi1NoteOffEvent         (1, 1, 60, 0));
-    eventList.addEvent (100,  Midi1ControlChangeEvent   (1, 1, 7, 100));
-    eventList.addEvent (100,  Midi1PitchBendEvent       (1, 1, MidiWord { 12288 }));
-    eventList.addEvent (100,  Midi1PitchBendEvent       (1, 1, MidiWord { 8192 }));
-    eventList.addEvent (150,  Midi1PolyPressureEvent    (1, 1, 60, 64));
-    eventList.addEvent (150,  Midi1ChannelPressureEvent (1, 1, 80));
-    eventList.addEvent (150,  Midi1ProgramChangeEvent   (1, 1, 42));
-    eventList.addEvent (1000, Midi2NoteOnEvent          (1, 1, 62, MidiUnipolarFloat (0.8f)));
-    eventList.addEvent (250,  Midi2NoteOffEvent         (1, 1, 62, MidiUnipolarFloat (0.25f)));
+    addUtilityEvents ();
+    addMidi1Events ();
+    addMidi2Events ();
+}
+
+void SyntheticEndpointController::addUtilityEvents ()
+{
+    eventList.addEvent (100, NoOpEvent ());
+    eventList.addEvent (100, JrClockEvent (480));
+    eventList.addEvent (100, JrTimestampEvent (960));
+    eventList.addEvent (100, DeltaTicksPerQuarterEvent (480));
+    eventList.addEvent (100, DeltaTicksSinceLastEvent (240));
+}
+
+void SyntheticEndpointController::addMidi1Events ()
+{
+    eventList.addEvent (500, Midi1NoteOnEvent          (1, 1, 60, 100));
+    eventList.addEvent (250, Midi1NoteOffEvent         (1, 1, 60, 0));
+    eventList.addEvent (100, Midi1ControlChangeEvent   (1, 1, 7, 100));
+    eventList.addEvent (100, Midi1PitchBendEvent       (1, 1, MidiWord { 12288 }));
+    eventList.addEvent (100, Midi1PitchBendEvent       (1, 1, MidiWord { 8192 }));
+    eventList.addEvent (150, Midi1PolyPressureEvent    (1, 1, 60, 64));
+    eventList.addEvent (150, Midi1ChannelPressureEvent (1, 1, 80));
+    eventList.addEvent (150, Midi1ProgramChangeEvent   (1, 1, 42));
+}
+
+void SyntheticEndpointController::addMidi2Events ()
+{
+    eventList.addEvent (1000, Midi2NoteOnEvent  (1, 1, 62, MidiUnipolarFloat (0.8f)));
+    eventList.addEvent (250,  Midi2NoteOffEvent (1, 1, 62, MidiUnipolarFloat (0.25f)));
 }
