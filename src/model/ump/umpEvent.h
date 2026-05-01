@@ -80,6 +80,27 @@ constexpr int channelPressure              = 0xD;
 constexpr int pitchBend                    = 0xE;
 constexpr int perNoteManagement            = 0xF;
 } // namespace ChannelVoice
+
+/// @brief  @brief UMP common realtime message status values
+namespace SystemCommon
+{
+// constexpr int reserved            = 0xF0;
+// constexpr int reserved2           = 0xF4;
+// constexpr int reserved3           = 0xF5;
+// constexpr int reserved4           = 0xF7;
+// constexpr int reserved5           = 0xF9;
+
+constexpr int midiTimeCode        = 0xF1;
+constexpr int songPositionPointer = 0xF2;
+constexpr int songSelect          = 0xF3;
+constexpr int tuneRequest         = 0xF6;
+constexpr int timingClock         = 0xF8;
+constexpr int start               = 0xFA;
+constexpr int continue_           = 0xFB;
+constexpr int stop                = 0xFC;
+constexpr int activeSensing       = 0xFE;
+constexpr int systemReset         = 0xFF;
+} // namespace SystemCommon
 } // namespace UmpValues
 
 struct UmpEvent : public cello::Object

@@ -147,25 +147,25 @@ UmpHandler::Result EventListViewHandler::onNoOpEvent (const UmpEvent& event)
 UmpHandler::Result EventListViewHandler::onJrClockEvent (const UmpEvent& event)
 {
     JrClockEvent e (event);
-    return addUtilityTicksValues (e.eventName, e.ticks);
+    return addUtilityTicksValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onJrTimestampEvent (const UmpEvent& event)
 {
     JrTimestampEvent e (event);
-    return addUtilityTicksValues (e.eventName, e.ticks);
+    return addUtilityTicksValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onDeltaTicksPerQuarterEvent (const UmpEvent& event)
 {
     DeltaTicksPerQuarterEvent e (event);
-    return addUtilityTicksValues (e.eventName, e.ticks);
+    return addUtilityTicksValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onDeltaTicksSinceLastEvent (const UmpEvent& event)
 {
     DeltaTicksSinceLastEvent e (event);
-    return addUtilityTicksValues (e.eventName, e.ticks);
+    return addUtilityTicksValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onMidi1NoteOffEvent (const UmpEvent& event)
@@ -282,12 +282,21 @@ UmpHandler::Result EventListViewHandler::addMidi2NoteValues (const Midi2NoteEven
     return UmpHandler::Result::ok;
 }
 
-UmpHandler::Result EventListViewHandler::addUtilityTicksValues (juce::String name, int ticks)
+UmpHandler::Result EventListViewHandler::addUtilityTicksValues (const UtilityEvent16T& e)
 {
-    eventView->setEvent (name);
+    eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return UmpHandler::Result::ok;
-    eventView->addValue ("ticks", juce::String (ticks));
+    eventView->addValue ("ticks", juce::String ((int) e.ticks));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addUtilityTicksValues (const DeltaTicksSinceLastEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("ticks", juce::String ((int) e.ticks));
     return UmpHandler::Result::ok;
 }
 
