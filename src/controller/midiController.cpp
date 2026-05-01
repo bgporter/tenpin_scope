@@ -26,6 +26,9 @@
 
 #include "endpointController.h"
 #include "model/ump/channelVoice2.h"
+#if JUCE_DEBUG
+#include "syntheticEndpointController.h"
+#endif
 #include "model/ump/umpEvent.h"
 #include "utility/logger.h"
 
@@ -109,6 +112,9 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
 
     endpoints->addListener (*this);
     startTimer (33); // 30 times per second (30 Hz)
+#if JUCE_DEBUG
+    syntheticController = std::make_unique<SyntheticEndpointController> (midiProperties, "Synthetic Input");
+#endif
 
     persistentContext.eventViewContext.onPropertyChange ([this] (const juce::Identifier&)
                                                          { rebuildMidiEventsFromEndpoints (); });
@@ -193,9 +199,11 @@ void MidiController::updateEndpointController (juce::ump::EndpointId endpointId)
 void MidiController::timerCallback ()
 {
     for (auto& endpointController : endpointControllers)
-    {
         endpointController->processUmpEvents ();
-    }
+#if JUCE_DEBUG
+    if (syntheticController)
+        syntheticController->processUmpEvents ();
+#endif
 }
 
 void MidiController::addMidiEvent (UmpEvent& event)

@@ -76,6 +76,12 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
     endpointProperties.transmitted.count.onPropertyChange ([updateTx] (const juce::Identifier&) { updateTx (); });
     endpointProperties.isInputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
     endpointProperties.isOutputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+
+    if (endpointProperties.isSynthetic.get ())
+    {
+        playButton.onClick = [this] { endpointProperties.playRequested = true; };
+        addAndMakeVisible (playButton);
+    }
 }
 
 void EndpointView::paint (juce::Graphics& g)
@@ -96,8 +102,14 @@ void EndpointView::paint (juce::Graphics& g)
 
 void EndpointView::resized ()
 {
-    auto bounds       = getLocalBounds ();
-    const auto topRow = bounds.removeFromTop (bounds.getHeight () / 2);
+    auto bounds  = getLocalBounds ();
+    auto topRow  = bounds.removeFromTop (bounds.getHeight () / 2);
+
+    if (endpointProperties.isSynthetic.get ())
+    {
+        const auto buttonW = topRow.getHeight ();
+        playButton.setBounds (topRow.removeFromRight (buttonW));
+    }
     nameLabel.setBounds (topRow);
 
     auto bottomRow    = bounds;

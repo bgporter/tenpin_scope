@@ -75,7 +75,9 @@ set (SOURCES_CONTROLLER
     src/controller/eventFilter.h
     src/controller/eventFilter.cpp
     src/controller/midiController.h
-    src/controller/midiController.cpp)
+    src/controller/midiController.cpp
+    src/controller/syntheticEndpointController.h
+    src/controller/syntheticEndpointController.cpp)
 
 set (SOURCES_HANDLER
     src/handler/umpHandler.h

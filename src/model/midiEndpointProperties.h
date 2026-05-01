@@ -80,6 +80,10 @@ public:
     /// true when either the input or output is alive.
     MAKE_COMPUTED_VALUE_MEMBER (bool, isAlive,
                                 [this] () -> bool { return isInputAlive.get () || isOutputAlive.get (); });
+    /// True for the synthetic test endpoint, false for real hardware endpoints.
+    MAKE_VALUE_MEMBER (bool, isSynthetic, false);
+    /// Set to true to trigger a one-shot playback of the synthetic event list.
+    MAKE_VALUE_MEMBER (bool, playRequested, false);
     /// TEMPORARY DEBUG: UUID string for debugging purposes.
     MAKE_VALUE_MEMBER (juce::String, debugUuid, juce::Uuid ().toString ());
 

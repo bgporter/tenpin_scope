@@ -34,6 +34,9 @@
 #include "model/runtimeContext.h"
 
 class EndpointController;
+#if JUCE_DEBUG
+class SyntheticEndpointController;
+#endif
 class MidiController : public juce::ump::EndpointsListener,
                        public juce::Timer
 {
@@ -83,4 +86,7 @@ private:
     juce::ump::Endpoints* endpoints;
     juce::ump::Session session;
     std::vector<std::unique_ptr<EndpointController>> endpointControllers;
+#if JUCE_DEBUG
+    std::unique_ptr<SyntheticEndpointController> syntheticController;
+#endif
 };

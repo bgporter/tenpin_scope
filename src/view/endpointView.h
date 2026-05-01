@@ -45,4 +45,5 @@ private:
     juce::Label rxValueLabel;
     juce::Label txTitleLabel;
     juce::Label txValueLabel;
+    juce::TextButton playButton { ">" };
 };
