@@ -144,7 +144,7 @@ struct DeltaTicksSinceLastEvent : public UtilityEvent
         ticks = ticksSinceLastEvent;
     }
 
-    MAKE_BITFIELD (int, ticks, 0, 24, 0);
+    MAKE_BITFIELD (int, ticks, 0, 20, 0);
 
 private:
     void init () { eventName = "Utility: Delta Ticks Since Last Event"; }
