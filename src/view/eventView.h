@@ -71,6 +71,8 @@ public:
      */
     void addValue (const juce::String& label, const juce::String& value);
 
+    int getNumDataValues () const { return static_cast<int> (dataValues.size ()); }
+
     /**
      * @brief add an empty LabeledValue, which we'll interpret in our layout
      * algorithm as being a newline indicator.

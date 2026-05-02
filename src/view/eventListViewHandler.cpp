@@ -112,9 +112,10 @@ UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Um
     {
         if (pc.eventViewContext.umpShowRawData || !pc.eventViewContext.umpShowParsedData)
         {
-            if (pc.eventViewContext.umpShowParsedData)
+            // add a newline iff we've already displayed parsed data (e.g., do NOT
+            // add a line break for a NOOP message!)
+            if (pc.eventViewContext.umpShowParsedData && eventView->getNumDataValues () > 0)
                 eventView->addLine ();
-            // !!! actually get and format the correct hex data.
 
             juce::String rawDataStr;
             std::vector<juce::Identifier> dataIds { UmpWords::data0Id, UmpWords::data1Id, UmpWords::data2Id,
@@ -276,8 +277,9 @@ UmpHandler::Result EventListViewHandler::addMidi2NoteValues (const Midi2NoteEven
     if (e.attributeType.get () != 0)
     {
         eventView->addValue ("attrType", getNoteAttributeName ((int) e.attributeType));
-        eventView->addValue ("attrVal", formatValue ((uint32_t) e.attributeValue, 16,
-                                                     pc.eventViewContext.valueFormatType, pc.eventViewContext.precision));
+        eventView->addValue ("attrVal",
+                             formatValue ((uint32_t) e.attributeValue, 16, pc.eventViewContext.valueFormatType,
+                                          pc.eventViewContext.precision));
     }
     return UmpHandler::Result::ok;
 }
