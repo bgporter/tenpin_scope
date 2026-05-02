@@ -32,7 +32,7 @@
 namespace MessageTypes
 {
 constexpr int utility           = 0x0;
-constexpr int commonRealtime    = 0x1;
+constexpr int systemCommon      = 0x1;
 constexpr int midi1ChannelVoice = 0x2;
 constexpr int sysex7            = 0x3;
 constexpr int midi2ChannelVoice = 0x4;

@@ -45,7 +45,7 @@ public:
 
 private:
     bool filterUtility (const UmpEvent& event);
-    bool filterCommonRealtime (const UmpEvent& event);
+    bool filterSystemCommon (const UmpEvent& event);
     bool filterChannelVoice (const UmpEvent& event);
     bool filterData7 (const UmpEvent& event);
     bool filterData8 (const UmpEvent& event);

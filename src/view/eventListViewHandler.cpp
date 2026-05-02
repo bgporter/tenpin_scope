@@ -55,9 +55,9 @@ UmpHandler::Result EventListViewHandler::handle (const UmpEvent& event, int inde
             labelColor = pal.utilityLabel.get ();
             valueColor = pal.utilityValue.get ();
             break;
-        case MessageTypes::commonRealtime:
-            labelColor = pal.commonRealtimeLabel.get ();
-            valueColor = pal.commonRealtimeValue.get ();
+        case MessageTypes::systemCommon:
+            labelColor = pal.systemCommonLabel.get ();
+            valueColor = pal.systemCommonValue.get ();
             break;
         case MessageTypes::midi1ChannelVoice:
             labelColor = pal.midi1Label.get ();

@@ -54,8 +54,8 @@ private:
      * and match the combo box item IDs (1-based).
      */
     template <typename T>
-    void setupCombobox (LabeledComboBox& labeledComboBox, const juce::Identifier& valId,
-                        juce::StringArray& options, T defaultValue)
+    void setupCombobox (LabeledComboBox& labeledComboBox, const juce::Identifier& valId, juce::StringArray& options,
+                        T defaultValue)
     {
         addAndMakeVisible (labeledComboBox);
         auto& comboBox = labeledComboBox.comboBox;
@@ -70,12 +70,10 @@ private:
         setFromContext ();
 
         comboBox.onChange = [this, &comboBox, valId] ()
-        {
-            persistentContext.eventViewContext.setattr<T> (valId, static_cast<T> (comboBox.getSelectedId ()));
-        };
+        { persistentContext.eventViewContext.setattr<T> (valId, static_cast<T> (comboBox.getSelectedId ())); };
 
-        persistentContext.eventViewContext.onPropertyChange (
-            valId, [setFromContext] (const juce::Identifier&) { setFromContext (); });
+        persistentContext.eventViewContext.onPropertyChange (valId, [setFromContext] (const juce::Identifier&)
+                                                             { setFromContext (); });
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EventListSettingsView)

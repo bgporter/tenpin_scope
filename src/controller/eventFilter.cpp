@@ -43,8 +43,8 @@ bool EventFilter::filterMidiEvent (const UmpEvent& event)
     {
         case MessageTypes::utility:
             return filterUtility (event);
-        case MessageTypes::commonRealtime:
-            return filterCommonRealtime (event);
+        case MessageTypes::systemCommon:
+            return filterSystemCommon (event);
         case MessageTypes::midi1ChannelVoice:
             [[fallthrough]];
         case MessageTypes::midi2ChannelVoice:
@@ -81,7 +81,7 @@ bool EventFilter::filterUtility (const UmpEvent& event)
     return context.showUtility;
 }
 
-bool EventFilter::filterCommonRealtime (const UmpEvent& event)
+bool EventFilter::filterSystemCommon (const UmpEvent& event)
 {
     return context.showSystemCommonRealtime;
 }

@@ -119,9 +119,9 @@ public:
     COLOR_M (utilityLabel, "#334155");
     COLOR_M (utilityValue, "#94A3B8");
 
-    // Common/Realtime — Rose 500 / Rose 900
-    COLOR_M (commonRealtimeLabel, "#881337");
-    COLOR_M (commonRealtimeValue, "#F43F5E");
+    // System/Common — Rose 500 / Rose 900
+    COLOR_M (systemCommonLabel, "#881337");
+    COLOR_M (systemCommonValue, "#F43F5E");
 
     // 7-bit SysEx — Purple 500 / Purple 900
     COLOR_M (sysex7Label, "#581C87");
