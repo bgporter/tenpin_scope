@@ -130,9 +130,20 @@ void SyntheticEndpointController::addSysex7Events ()
     eventList.addEvent (100, Sysex7Event (1, SysexStatus::complete, 6, 0x7E, 0x7F, 0x09, 0x01, 0x00, 0x00));
 
     // Multi-packet: 16-byte payload split across start / continue / end
-    eventList.addEvent (100, Sysex7Event (1, SysexStatus::start,    6, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::start,     6, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00));
     eventList.addEvent (100, Sysex7Event (1, SysexStatus::continue_, 6, 0x00, 0x7F, 0x00, 0x00, 0x41, 0x00));
-    eventList.addEvent (100, Sysex7Event (1, SysexStatus::end,      4, 0x01, 0x02, 0x03, 0x00));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::end,       4, 0x01, 0x02, 0x03, 0x00));
+
+    // Factory: 20-byte payload auto-sliced into start / continue / continue / end
+    const uint8_t payload[] = {
+        0x7E, 0x7F, 0x06, 0x01,              // Universal Non-Realtime: Identity Request
+        0x41, 0x10, 0x42, 0x12, 0x40, 0x00,  // Roland GS header
+        0x00, 0x7F, 0x00, 0x00, 0x41, 0x00,  // GS parameter data
+        0x01, 0x02, 0x03, 0x00               // trailing bytes
+    };
+    Sysex7EventFactory factory ([this] (const Sysex7Event& e)
+                                { eventList.addEvent (100, e); });
+    factory.createEvents (1, std::span (payload));
 }
 
 void SyntheticEndpointController::addMidi1Events ()

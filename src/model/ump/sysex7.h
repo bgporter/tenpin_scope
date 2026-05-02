@@ -25,6 +25,7 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <functional>
 #include <span>
 
 #include "../midiTypes.h"
@@ -122,4 +123,40 @@ private:
     }
 
     void init () { eventName = "SysEx 7"; }
+};
+
+using Sysex7EventHandler = std::function<void(const Sysex7Event&)>;
+
+class Sysex7EventFactory
+{
+public:
+    Sysex7EventFactory (Sysex7EventHandler theHandler)
+    : handler { std::move (theHandler) }
+    {}
+
+    void createEvents (MidiGroup group, std::span<const uint8_t> data)
+    {
+        if (!handler)
+            return;
+
+        if (data.size () <= 6)
+        {
+            handler (Sysex7Event (group, SysexStatus::complete, data));
+            return;
+        }
+
+        handler (Sysex7Event (group, SysexStatus::start, data.first (6)));
+        data = data.subspan (6);
+
+        while (data.size () > 6)
+        {
+            handler (Sysex7Event (group, SysexStatus::continue_, data.first (6)));
+            data = data.subspan (6);
+        }
+
+        handler (Sysex7Event (group, SysexStatus::end, data));
+    }
+
+private:
+    Sysex7EventHandler handler;
 };

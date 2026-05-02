@@ -82,6 +82,123 @@ public:
                   expect (Sysex7Event (1_gr, SysexStatus::end,       0).status == SysexStatus::end);
               });
 
+        test ("factory: 3-byte span → complete",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 0x7E, 0x7F, 0x06 };
+                  int count = 0;
+                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  {
+                      ++count;
+                      expect (e.status == SysexStatus::complete);
+                      expect (e.numBytes == 3);
+                      expect (e[0] == 0x7E);
+                      expect (e[2] == 0x06);
+                  });
+                  factory.createEvents (1_gr, std::span (buf));
+                  expect (count == 1);
+              });
+
+        test ("factory: 6-byte span → complete, numBytes 6",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3, 4, 5, 6 };
+                  int count = 0;
+                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  {
+                      ++count;
+                      expect (e.status == SysexStatus::complete);
+                      expect (e.numBytes == 6);`
+                  });
+                  factory.createEvents (1_gr, std::span (buf));
+                  expect (count == 1);
+              });
+
+        test ("factory: 7-byte span → start + end",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7 };
+                  int count = 0;
+                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  {
+                      if (count == 0)
+                      {
+                          expect (e.status == SysexStatus::start);
+                          expect (e.numBytes == 6);
+                      }
+                      else if (count == 1)
+                      {
+                          expect (e.status == SysexStatus::end);
+                          expect (e.numBytes == 1);
+                          expect (e[0] == 7);
+                      }
+                      ++count;
+                  });
+                  factory.createEvents (1_gr, std::span (buf));
+                  expect (count == 2);
+              });
+
+        test ("factory: 12-byte span → start + end, both 6 bytes",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
+                  int count = 0;
+                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  {
+                      if (count == 0)
+                      {
+                          expect (e.status == SysexStatus::start);
+                          expect (e.numBytes == 6);
+                      }
+                      else if (count == 1)
+                      {
+                          expect (e.status == SysexStatus::end);
+                          expect (e.numBytes == 6);
+                      }
+                      ++count;
+                  });
+                  factory.createEvents (1_gr, std::span (buf));
+                  expect (count == 2);
+              });
+
+        test ("factory: 13-byte span → start + continue + end",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
+                  int count = 0;
+                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  {
+                      if (count == 0)
+                      {
+                          expect (e.status == SysexStatus::start);
+                          expect (e.numBytes == 6);
+                      }
+                      else if (count == 1)
+                      {
+                          expect (e.status == SysexStatus::continue_);
+                          expect (e.numBytes == 6);
+                      }
+                      else if (count == 2)
+                      {
+                          expect (e.status == SysexStatus::end);
+                          expect (e.numBytes == 1);
+                          expect (e[0] == 13);
+                      }
+                      ++count;
+                  });
+                  factory.createEvents (1_gr, std::span (buf));
+                  expect (count == 3);
+              });
+
+        test ("factory: null handler → no crash",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3 };
+                  Sysex7EventFactory factory (nullptr);
+                  factory.createEvents (1_gr, std::span (buf));
+                  expect (true);
+              });
+
         test ("roundtrip via ValueTree",
               [&] ()
               {
