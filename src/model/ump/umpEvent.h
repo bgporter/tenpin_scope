@@ -115,8 +115,25 @@ enum class MtcMessageType
     hoursAndSmpteType = 7,
 };
 
+enum class SysexStatus
+{
+    complete  = 0,
+    start     = 1,
+    continue_ = 2,
+    end       = 3,
+};
+
 namespace juce
 {
+template <> struct VariantConverter<SysexStatus>
+{
+    static SysexStatus fromVar (const juce::var& v)
+    {
+        return static_cast<SysexStatus> (std::clamp (static_cast<int> (v), 0, 3));
+    }
+    static juce::var toVar (SysexStatus val) { return static_cast<int> (val); }
+};
+
 template <> struct VariantConverter<MtcMessageType>
 {
     static MtcMessageType fromVar (const juce::var& v)

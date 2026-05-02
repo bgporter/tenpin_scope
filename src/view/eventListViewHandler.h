@@ -31,6 +31,7 @@
 #include "handler/umpHandler.h"
 #include "model/appContext.h"
 
+struct Sysex7Event;
 struct SystemCommonEvent;
 struct UtilityEvent16T;
 struct DeltaTicksSinceLastEvent;
@@ -51,6 +52,17 @@ public:
 private:
     UmpHandler::Result preDispatch (const UmpEvent& event) override;
     UmpHandler::Result postDispatch (const UmpEvent& event, UmpHandler::Result pendingResult) override;
+    /**
+     * @name SysEx 7 Message Handlers
+     */
+    ///@{
+    UmpHandler::Result onSysex7CompleteEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSysex7StartEvent    (const UmpEvent& event) override;
+    UmpHandler::Result onSysex7ContinueEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSysex7EndEvent      (const UmpEvent& event) override;
+    UmpHandler::Result onSysex7Event         (const UmpEvent& event) override;
+    ///@}
+
     /**
      * @name System Common Message Handlers
      */
@@ -121,6 +133,7 @@ private:
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
     ///@}
 
+    UmpHandler::Result addSysex7DataValues (const Sysex7Event& e);
     UmpHandler::Result addSystemCommonNoDataValues (const SystemCommonEvent& e);
     UmpHandler::Result addUtilityTicksValues (const UtilityEvent16T& e);
     UmpHandler::Result addUtilityTicksValues (const DeltaTicksSinceLastEvent& e);

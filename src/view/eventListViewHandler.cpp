@@ -27,6 +27,7 @@
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
+#include "model/ump/sysex7.h"
 #include "model/ump/utility.h"
 
 #include "palette.h"
@@ -631,6 +632,59 @@ UmpHandler::Result EventListViewHandler::onMidi2ChannelVoiceEvent (const UmpEven
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("ch", juce::String ((int) e.userChannel));
     return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addSysex7DataValues (const Sysex7Event& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("status", getSysexStatusName (e.status));
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    juce::String bytesStr;
+    for (int i = 0; i < (int) e.numBytes; ++i)
+    {
+        if (i > 0)
+            bytesStr += " ";
+        const int b = e[i];
+        bytesStr += isInteger
+            ? juce::String (b)
+            : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
+    }
+    if (bytesStr.isNotEmpty ())
+        eventView->addValue ("data", bytesStr);
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSysex7CompleteEvent (const UmpEvent& event)
+{
+    Sysex7Event e (event);
+    return addSysex7DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex7StartEvent (const UmpEvent& event)
+{
+    Sysex7Event e (event);
+    return addSysex7DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex7ContinueEvent (const UmpEvent& event)
+{
+    Sysex7Event e (event);
+    return addSysex7DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex7EndEvent (const UmpEvent& event)
+{
+    Sysex7Event e (event);
+    return addSysex7DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex7Event (const UmpEvent& event)
+{
+    Sysex7Event e (event);
+    return addSysex7DataValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)

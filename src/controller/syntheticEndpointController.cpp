@@ -27,6 +27,7 @@
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
+#include "model/ump/sysex7.h"
 #include "model/ump/utility.h"
 
 SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& mp,
@@ -92,6 +93,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
 {
     addUtilityEvents ();
     addSystemCommonEvents ();
+    addSysex7Events ();
     addMidi1Events ();
     addMidi2Events ();
 }
@@ -117,6 +119,20 @@ void SyntheticEndpointController::addSystemCommonEvents ()
     eventList.addEvent (100, StopEvent                (1));
     eventList.addEvent (100, ActiveSensingEvent       (1));
     eventList.addEvent (100, SystemResetEvent         (1));
+}
+
+void SyntheticEndpointController::addSysex7Events ()
+{
+    // Complete messages: varying byte counts
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::complete, 0));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::complete, 1, 0x41));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::complete, 3, 0x7E, 0x7F, 0x06));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::complete, 6, 0x7E, 0x7F, 0x09, 0x01, 0x00, 0x00));
+
+    // Multi-packet: 16-byte payload split across start / continue / end
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::start,    6, 0x41, 0x10, 0x42, 0x12, 0x40, 0x00));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::continue_, 6, 0x00, 0x7F, 0x00, 0x00, 0x41, 0x00));
+    eventList.addEvent (100, Sysex7Event (1, SysexStatus::end,      4, 0x01, 0x02, 0x03, 0x00));
 }
 
 void SyntheticEndpointController::addMidi1Events ()

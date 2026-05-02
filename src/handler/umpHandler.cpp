@@ -27,6 +27,7 @@
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
+#include "model/ump/sysex7.h"
 #include "model/ump/utility.h"
 
 UmpHandler::UmpHandler () {}
@@ -46,6 +47,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
             case MessageTypes::systemCommon:
                 result = handleSystemCommonEvent (event);
                 break;
+            case MessageTypes::sysex7:
+                result = handleSysex7Event (event);
+                break;
             case MessageTypes::midi1ChannelVoice:
                 result = handleMidi1ChannelVoiceEvent (event);
                 break;
@@ -58,6 +62,28 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
         }
     }
     return postDispatch (event, result);
+}
+
+UmpHandler::Result UmpHandler::handleSysex7Event (const UmpEvent& event)
+{
+    Result result { defaultResult };
+    Sysex7Event e (event);
+    switch (e.status)
+    {
+        case SysexStatus::complete:  result = onSysex7CompleteEvent (event); break;
+        case SysexStatus::start:     result = onSysex7StartEvent (event);    break;
+        case SysexStatus::continue_: result = onSysex7ContinueEvent (event); break;
+        case SysexStatus::end:       result = onSysex7EndEvent (event);      break;
+        default: break;
+    }
+
+    if (result == Result::notHandled)
+        result = onSysex7Event (event);
+
+    if (result == Result::notHandled)
+        result = onUmpEvent (event);
+
+    return result;
 }
 
 UmpHandler::Result UmpHandler::handleSystemCommonEvent (const UmpEvent& event)

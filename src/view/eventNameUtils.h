@@ -29,6 +29,11 @@
 #include "model/ump/umpEvent.h"
 
 /**
+ * @brief Returns a concise UI string for a SysEx packet status.
+ */
+juce::String getSysexStatusName (SysexStatus status);
+
+/**
  * @brief Returns a concise UI string for a MIDI Time Code quarter-frame message type.
  */
 juce::String getMtcMessageTypeName (MtcMessageType mtcType);

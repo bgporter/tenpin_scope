@@ -166,6 +166,20 @@ static const std::array<juce::String, 12> noteNames = {
 
 } // namespace
 
+juce::String getSysexStatusName (SysexStatus status)
+{
+    switch (status)
+    {
+        case SysexStatus::complete:  return "Complete";
+        case SysexStatus::start:     return "Start";
+        case SysexStatus::continue_: return "Continue";
+        case SysexStatus::end:       return "End";
+        default:
+            jassertfalse;
+            return "Unknown";
+    }
+}
+
 juce::String getMtcMessageTypeName (MtcMessageType mtcType)
 {
     switch (mtcType)

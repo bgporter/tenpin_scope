@@ -49,6 +49,7 @@ protected:
 private:
     Result handleUtilityEvent (const UmpEvent& event);
     Result handleSystemCommonEvent (const UmpEvent& event);
+    Result handleSysex7Event (const UmpEvent& event);
     Result handleMidi1ChannelVoiceEvent (const UmpEvent& event);
     Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
 
@@ -70,6 +71,17 @@ private:
     virtual Result postDispatch (const UmpEvent& event, Result pendingResult) { return pendingResult; }
 
     virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
+
+    /**
+     * @name SysEx 7 Message Handlers
+     */
+    ///@{
+    virtual Result onSysex7Event (const UmpEvent&) { return defaultResult; }
+    virtual Result onSysex7CompleteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onSysex7StartEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onSysex7ContinueEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onSysex7EndEvent (const UmpEvent&) { return defaultResult; }
+    ///@}
 
     /**
      * @name System Common Message Handlers
