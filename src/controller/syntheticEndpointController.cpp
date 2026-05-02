@@ -26,6 +26,7 @@
 
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
+#include "model/ump/systemCommon.h"
 #include "model/ump/utility.h"
 
 SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& mp,
@@ -90,6 +91,7 @@ void SyntheticEndpointController::processUmpEvents ()
 void SyntheticEndpointController::buildDefaultEventList ()
 {
     addUtilityEvents ();
+    addSystemCommonEvents ();
     addMidi1Events ();
     addMidi2Events ();
 }
@@ -101,6 +103,20 @@ void SyntheticEndpointController::addUtilityEvents ()
     eventList.addEvent (100, JrTimestampEvent (960));
     eventList.addEvent (100, DeltaTicksPerQuarterEvent (480));
     eventList.addEvent (100, DeltaTicksSinceLastEvent (240));
+}
+
+void SyntheticEndpointController::addSystemCommonEvents ()
+{
+    eventList.addEvent (100, MidiTimeCodeEvent       (1, MtcMessageType::secondsCountMsb, 9));
+    eventList.addEvent (100, SongPositionPointerEvent (1, MidiWord { 1024 }));
+    eventList.addEvent (100, SongSelectEvent          (1, MidiByte { 3 }));
+    eventList.addEvent (100, TuneRequestEvent         (1));
+    eventList.addEvent (100, TimingClockEvent         (1));
+    eventList.addEvent (100, StartEvent               (1));
+    eventList.addEvent (100, ContinueEvent            (1));
+    eventList.addEvent (100, StopEvent                (1));
+    eventList.addEvent (100, ActiveSensingEvent       (1));
+    eventList.addEvent (100, SystemResetEvent         (1));
 }
 
 void SyntheticEndpointController::addMidi1Events ()

@@ -103,6 +103,30 @@ constexpr int systemReset         = 0xFF;
 } // namespace SystemCommon
 } // namespace UmpValues
 
+enum class MtcMessageType
+{
+    frameCountLsb    = 0,
+    frameCountMsb    = 1,
+    secondsCountLsb  = 2,
+    secondsCountMsb  = 3,
+    minutesCountLsb  = 4,
+    minutesCountMsb  = 5,
+    hoursCountLsb    = 6,
+    hoursAndSmpteType = 7,
+};
+
+namespace juce
+{
+template <> struct VariantConverter<MtcMessageType>
+{
+    static MtcMessageType fromVar (const juce::var& v)
+    {
+        return static_cast<MtcMessageType> (std::clamp (static_cast<int> (v), 0, 7));
+    }
+    static juce::var toVar (MtcMessageType val) { return static_cast<int> (val); }
+};
+} // namespace juce
+
 struct UmpEvent : public cello::Object
 {
     static const inline juce::Identifier type { "UmpEvent" };

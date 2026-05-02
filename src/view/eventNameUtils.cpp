@@ -166,6 +166,24 @@ static const std::array<juce::String, 12> noteNames = {
 
 } // namespace
 
+juce::String getMtcMessageTypeName (MtcMessageType mtcType)
+{
+    switch (mtcType)
+    {
+        case MtcMessageType::frameCountLsb:    return "Frame LSB";
+        case MtcMessageType::frameCountMsb:    return "Frame MSB";
+        case MtcMessageType::secondsCountLsb:  return "Seconds LSB";
+        case MtcMessageType::secondsCountMsb:  return "Seconds MSB";
+        case MtcMessageType::minutesCountLsb:  return "Minutes LSB";
+        case MtcMessageType::minutesCountMsb:  return "Minutes MSB";
+        case MtcMessageType::hoursCountLsb:    return "Hours LSB";
+        case MtcMessageType::hoursAndSmpteType: return "Hours/Type MSB";
+        default:
+            jassertfalse;
+            return "Unknown";
+    }
+}
+
 juce::String getControllerName (int controllerNumber)
 {
     if (controllerNumber < 0 || controllerNumber > 127)

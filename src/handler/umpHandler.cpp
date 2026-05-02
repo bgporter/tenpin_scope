@@ -26,6 +26,7 @@
 
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
+#include "model/ump/systemCommon.h"
 #include "model/ump/utility.h"
 
 UmpHandler::UmpHandler () {}
@@ -42,6 +43,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
             case MessageTypes::utility:
                 result = handleUtilityEvent (event);
                 break;
+            case MessageTypes::systemCommon:
+                result = handleSystemCommonEvent (event);
+                break;
             case MessageTypes::midi1ChannelVoice:
                 result = handleMidi1ChannelVoiceEvent (event);
                 break;
@@ -54,6 +58,55 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
         }
     }
     return postDispatch (event, result);
+}
+
+UmpHandler::Result UmpHandler::handleSystemCommonEvent (const UmpEvent& event)
+{
+    Result result { defaultResult };
+    SystemCommonEvent systemCommonEvent (event);
+    switch (systemCommonEvent.status)
+    {
+        case UmpValues::SystemCommon::midiTimeCode:
+            result = onMidiTimeCodeEvent (event);
+            break;
+        case UmpValues::SystemCommon::songPositionPointer:
+            result = onSongPositionPointerEvent (event);
+            break;
+        case UmpValues::SystemCommon::songSelect:
+            result = onSongSelectEvent (event);
+            break;
+        case UmpValues::SystemCommon::tuneRequest:
+            result = onTuneRequestEvent (event);
+            break;
+        case UmpValues::SystemCommon::timingClock:
+            result = onTimingClockEvent (event);
+            break;
+        case UmpValues::SystemCommon::start:
+            result = onStartEvent (event);
+            break;
+        case UmpValues::SystemCommon::continue_:
+            result = onContinueEvent (event);
+            break;
+        case UmpValues::SystemCommon::stop:
+            result = onStopEvent (event);
+            break;
+        case UmpValues::SystemCommon::activeSensing:
+            result = onActiveSensingEvent (event);
+            break;
+        case UmpValues::SystemCommon::systemReset:
+            result = onSystemResetEvent (event);
+            break;
+        default:
+            break;
+    }
+
+    if (result == Result::notHandled)
+        result = onSystemCommonEvent (event);
+
+    if (result == Result::notHandled)
+        result = onUmpEvent (event);
+
+    return result;
 }
 
 UmpHandler::Result UmpHandler::handleUtilityEvent (const UmpEvent& event)

@@ -26,6 +26,7 @@
 
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
+#include "model/ump/systemCommon.h"
 #include "model/ump/utility.h"
 
 #include "palette.h"
@@ -136,6 +137,102 @@ UmpHandler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Um
     currentIndex = -1;
     currentWidth = 0;
     return pendingResult;
+}
+
+UmpHandler::Result EventListViewHandler::addSystemCommonNoDataValues (const SystemCommonEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSystemCommonEvent (const UmpEvent& event)
+{
+    SystemCommonEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("status", formatValue ((uint32_t) e.status, 8, ValueFormatType::Hex));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMidiTimeCodeEvent (const UmpEvent& event)
+{
+    MidiTimeCodeEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("type", getMtcMessageTypeName (e.mtcType));
+    eventView->addValue ("data", juce::String ((int) e.mtcData));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSongPositionPointerEvent (const UmpEvent& event)
+{
+    SongPositionPointerEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("pos", juce::String ((int) e.value));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSongSelectEvent (const UmpEvent& event)
+{
+    SongSelectEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("song", juce::String ((int) e.song));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onTuneRequestEvent (const UmpEvent& event)
+{
+    TuneRequestEvent e (event);
+    return addSystemCommonNoDataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onTimingClockEvent (const UmpEvent& event)
+{
+    TimingClockEvent e (event);
+    return addSystemCommonNoDataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onStartEvent (const UmpEvent& event)
+{
+    StartEvent e (event);
+    return addSystemCommonNoDataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onContinueEvent (const UmpEvent& event)
+{
+    ContinueEvent e (event);
+    return addSystemCommonNoDataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onStopEvent (const UmpEvent& event)
+{
+    StopEvent e (event);
+    return addSystemCommonNoDataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onActiveSensingEvent (const UmpEvent& event)
+{
+    ActiveSensingEvent e (event);
+    return addSystemCommonNoDataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSystemResetEvent (const UmpEvent& event)
+{
+    SystemResetEvent e (event);
+    return addSystemCommonNoDataValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onNoOpEvent (const UmpEvent& event)

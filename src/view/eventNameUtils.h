@@ -26,6 +26,13 @@
 
 #include <JuceHeader.h>
 
+#include "model/ump/umpEvent.h"
+
+/**
+ * @brief Returns a concise UI string for a MIDI Time Code quarter-frame message type.
+ */
+juce::String getMtcMessageTypeName (MtcMessageType mtcType);
+
 /**
  * @brief Gets the name of a controller based on its number.
  *

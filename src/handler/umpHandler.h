@@ -48,6 +48,7 @@ protected:
 
 private:
     Result handleUtilityEvent (const UmpEvent& event);
+    Result handleSystemCommonEvent (const UmpEvent& event);
     Result handleMidi1ChannelVoiceEvent (const UmpEvent& event);
     Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
 
@@ -69,6 +70,23 @@ private:
     virtual Result postDispatch (const UmpEvent& event, Result pendingResult) { return pendingResult; }
 
     virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
+
+    /**
+     * @name System Common Message Handlers
+     */
+    ///@{
+    virtual Result onSystemCommonEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMidiTimeCodeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onSongPositionPointerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onSongSelectEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onTuneRequestEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onTimingClockEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onStartEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onContinueEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onStopEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onActiveSensingEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onSystemResetEvent (const UmpEvent&) { return defaultResult; }
+    ///@}
 
     /**
      * @name Utility Message Handlers

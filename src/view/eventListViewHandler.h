@@ -31,6 +31,7 @@
 #include "handler/umpHandler.h"
 #include "model/appContext.h"
 
+struct SystemCommonEvent;
 struct UtilityEvent16T;
 struct DeltaTicksSinceLastEvent;
 struct Midi1NoteEvent;
@@ -50,6 +51,23 @@ public:
 private:
     UmpHandler::Result preDispatch (const UmpEvent& event) override;
     UmpHandler::Result postDispatch (const UmpEvent& event, UmpHandler::Result pendingResult) override;
+    /**
+     * @name System Common Message Handlers
+     */
+    ///@{
+    UmpHandler::Result onSystemCommonEvent (const UmpEvent& event) override;
+    UmpHandler::Result onMidiTimeCodeEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSongPositionPointerEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSongSelectEvent (const UmpEvent& event) override;
+    UmpHandler::Result onTuneRequestEvent (const UmpEvent& event) override;
+    UmpHandler::Result onTimingClockEvent (const UmpEvent& event) override;
+    UmpHandler::Result onStartEvent (const UmpEvent& event) override;
+    UmpHandler::Result onContinueEvent (const UmpEvent& event) override;
+    UmpHandler::Result onStopEvent (const UmpEvent& event) override;
+    UmpHandler::Result onActiveSensingEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSystemResetEvent (const UmpEvent& event) override;
+    ///@}
+
     /**
      * @name Utility Message Handlers
      */
@@ -103,6 +121,7 @@ private:
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
     ///@}
 
+    UmpHandler::Result addSystemCommonNoDataValues (const SystemCommonEvent& e);
     UmpHandler::Result addUtilityTicksValues (const UtilityEvent16T& e);
     UmpHandler::Result addUtilityTicksValues (const DeltaTicksSinceLastEvent& e);
     UmpHandler::Result addMidi1NoteValues (const Midi1NoteEvent& e);
