@@ -61,6 +61,7 @@ private:
     void addUtilityEvents ();
     void addSystemCommonEvents ();
     void addSysex7Events ();
+    void addSysex8Events ();
     void addMidi1Events ();
     void addMidi2Events ();
     void startPlayback ();

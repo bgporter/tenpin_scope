@@ -103,6 +103,8 @@ set (SOURCES_MODEL
     src/model/ump/systemCommon.cpp
     src/model/ump/sysex7.h
     src/model/ump/sysex7.cpp
+    src/model/ump/sysex8.h
+    src/model/ump/sysex8.cpp
     src/model/ump/utility.h
     src/model/ump/utility.cpp)
 

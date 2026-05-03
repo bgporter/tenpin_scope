@@ -108,7 +108,7 @@ public:
                   {
                       ++count;
                       expect (e.status == SysexStatus::complete);
-                      expect (e.numBytes == 6);`
+                      expect (e.numBytes == 6);
                   });
                   factory.createEvents (1_gr, std::span (buf));
                   expect (count == 1);

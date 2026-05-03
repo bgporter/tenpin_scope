@@ -32,6 +32,7 @@
 #include "model/appContext.h"
 
 struct Sysex7Event;
+struct Sysex8Event;
 struct SystemCommonEvent;
 struct UtilityEvent16T;
 struct DeltaTicksSinceLastEvent;
@@ -61,6 +62,17 @@ private:
     UmpHandler::Result onSysex7ContinueEvent (const UmpEvent& event) override;
     UmpHandler::Result onSysex7EndEvent      (const UmpEvent& event) override;
     UmpHandler::Result onSysex7Event         (const UmpEvent& event) override;
+    ///@}
+
+    /**
+     * @name SysEx 8 Message Handlers
+     */
+    ///@{
+    UmpHandler::Result onSysex8CompleteEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSysex8StartEvent    (const UmpEvent& event) override;
+    UmpHandler::Result onSysex8ContinueEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSysex8EndEvent      (const UmpEvent& event) override;
+    UmpHandler::Result onSysex8Event         (const UmpEvent& event) override;
     ///@}
 
     /**
@@ -134,6 +146,7 @@ private:
     ///@}
 
     UmpHandler::Result addSysex7DataValues (const Sysex7Event& e);
+    UmpHandler::Result addSysex8DataValues (const Sysex8Event& e);
     UmpHandler::Result addSystemCommonNoDataValues (const SystemCommonEvent& e);
     UmpHandler::Result addUtilityTicksValues (const UtilityEvent16T& e);
     UmpHandler::Result addUtilityTicksValues (const DeltaTicksSinceLastEvent& e);

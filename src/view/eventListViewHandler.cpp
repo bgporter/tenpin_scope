@@ -28,6 +28,7 @@
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
+#include "model/ump/sysex8.h"
 #include "model/ump/utility.h"
 
 #include "palette.h"
@@ -685,6 +686,69 @@ UmpHandler::Result EventListViewHandler::onSysex7Event (const UmpEvent& event)
 {
     Sysex7Event e (event);
     return addSysex7DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::addSysex8DataValues (const Sysex8Event& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+
+    eventView->addValue ("grp",    juce::String ((int) e.userGroup));
+    eventView->addValue ("status", getSysexStatusName (e.status));
+    eventView->addValue ("sid",    juce::String::toHexString ((int) e.streamId).paddedLeft ('0', 2).toUpperCase ());
+
+    // numBytes includes the stream ID; actual data byte count is numBytes - 1,
+    // clamped to 0–13. The special unknown-quality value (0xF) produces 14 here
+    // and is intentionally skipped.
+    const int numDataBytes = std::min ((int) e.numBytes - 1, 13);
+    if (numDataBytes > 0)
+    {
+        const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+        juce::String bytesStr;
+        for (int i = 0; i < numDataBytes; ++i)
+        {
+            if (i > 0)
+                bytesStr += " ";
+            const int b = e[i];
+            bytesStr += isInteger
+                ? juce::String (b)
+                : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
+        }
+        eventView->addValue ("data", bytesStr);
+    }
+
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSysex8CompleteEvent (const UmpEvent& event)
+{
+    Sysex8Event e (event);
+    return addSysex8DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex8StartEvent (const UmpEvent& event)
+{
+    Sysex8Event e (event);
+    return addSysex8DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex8ContinueEvent (const UmpEvent& event)
+{
+    Sysex8Event e (event);
+    return addSysex8DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex8EndEvent (const UmpEvent& event)
+{
+    Sysex8Event e (event);
+    return addSysex8DataValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onSysex8Event (const UmpEvent& event)
+{
+    Sysex8Event e (event);
+    return addSysex8DataValues (e);
 }
 
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)

@@ -28,6 +28,7 @@
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
+#include "model/ump/sysex8.h"
 #include "model/ump/utility.h"
 
 SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& mp,
@@ -94,6 +95,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addUtilityEvents ();
     addSystemCommonEvents ();
     addSysex7Events ();
+    addSysex8Events ();
     addMidi1Events ();
     addMidi2Events ();
 }
@@ -144,6 +146,38 @@ void SyntheticEndpointController::addSysex7Events ()
     Sysex7EventFactory factory ([this] (const Sysex7Event& e)
                                 { eventList.addEvent (100, e); });
     factory.createEvents (1, std::span (payload));
+}
+
+void SyntheticEndpointController::addSysex8Events ()
+{
+    // Complete messages: empty (stream ID only), small, and full 13-byte
+    eventList.addEvent (100, Sysex8Event (1, SysexStatus::complete, 0x01, std::span<const uint8_t> {}));
+    const uint8_t threeBytes[] = { 0x41, 0x10, 0x42 };
+    eventList.addEvent (100, Sysex8Event (1, SysexStatus::complete, 0x01, std::span (threeBytes)));
+    const uint8_t fullPacket[] = { 0xFF, 0x80, 0xC0, 0xA0, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09 };
+    eventList.addEvent (100, Sysex8Event (1, SysexStatus::complete, 0x01, std::span (fullPacket)));
+
+    // Hand-built multi-packet sequence (stream ID 0x02)
+    const uint8_t startBytes[]    = { 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xFE, 0xDC, 0xBA, 0x98 };
+    const uint8_t continueBytes[] = { 0x76, 0x54, 0x32, 0x10, 0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88, 0x77 };
+    const uint8_t endBytes[]      = { 0x01, 0x02, 0x03 };
+    eventList.addEvent (100, Sysex8Event (1, SysexStatus::start,     0x02, std::span (startBytes)));
+    eventList.addEvent (100, Sysex8Event (1, SysexStatus::continue_, 0x02, std::span (continueBytes)));
+    eventList.addEvent (100, Sysex8Event (1, SysexStatus::end,       0x02, std::span (endBytes)));
+
+    // Special early-termination end packets
+    eventList.addEvent (100, Sysex8Event (1, 0x03, Sysex8EndType::valid));
+    eventList.addEvent (100, Sysex8Event (1, 0x03, Sysex8EndType::unknown));
+
+    // Factory: 30-byte payload auto-sliced into start / continue / end (stream ID 0x04)
+    const uint8_t payload[] = {
+        0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0x00, 0x01, 0x02, 0x03,
+        0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33,
+        0x22, 0x11, 0x00, 0xAB
+    };
+    Sysex8EventFactory factory ([this] (const Sysex8Event& e)
+                                { eventList.addEvent (100, e); });
+    factory.createEvents (1, 0x04, std::span (payload));
 }
 
 void SyntheticEndpointController::addMidi1Events ()
