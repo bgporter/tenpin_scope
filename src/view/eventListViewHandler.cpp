@@ -847,6 +847,33 @@ UmpHandler::Result EventListViewHandler::onSetMetronomeEvent (const UmpEvent& ev
     return UmpHandler::Result::ok;
 }
 
+UmpHandler::Result EventListViewHandler::onSetKeySignatureEvent (const UmpEvent& event)
+{
+    SetKeySignatureEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+
+    const int sf = e.sharpsFlats;
+    juce::String sfStr;
+    if (sf == -8)
+        sfStr = "unknown";
+    else if (sf == 0)
+        sfStr = "0";
+    else if (sf > 0)
+        sfStr = "+" + juce::String (sf) + " (" + juce::String (sf) + " sharp" + (sf == 1 ? "" : "s") + ")";
+    else
+        sfStr = juce::String (sf) + " (" + juce::String (-sf) + " flat" + (sf == -1 ? "" : "s") + ")";
+    eventView->addValue ("key", sfStr);
+
+    static constexpr const char* noteNames[] = { "unknown", "A", "B", "C", "D", "E", "F", "G" };
+    const int tn = static_cast<int> (e.tonicNote.get ());
+    eventView->addValue ("tonic", (tn >= 0 && tn <= 7) ? noteNames[tn] : "reserved");
+
+    return UmpHandler::Result::ok;
+}
+
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)
 {
     eventView->setEvent (event.eventName);

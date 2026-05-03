@@ -163,6 +163,69 @@ public:
                   expect (e.numSubdivisionClicks2    == 2);
               });
 
+        test ("SetKeySignatureEvent: sharpsFlats sign extension",
+              [&] ()
+              {
+                  // Verify the computed member sign-extends the raw 4-bit value correctly.
+                  // We test by constructing events with known signed values and reading back.
+                  expect (SetKeySignatureEvent (1_gr,  0, TonicNote::c).sharpsFlats ==  0);
+                  expect (SetKeySignatureEvent (1_gr,  7, TonicNote::g).sharpsFlats ==  7);
+                  expect (SetKeySignatureEvent (1_gr, -1, TonicNote::f).sharpsFlats == -1);
+                  expect (SetKeySignatureEvent (1_gr, -7, TonicNote::a).sharpsFlats == -7);
+                  expect (SetKeySignatureEvent (1_gr, -8, TonicNote::unknown).sharpsFlats == -8);
+              });
+
+        test ("SetKeySignatureEvent construction: C major",
+              [&] ()
+              {
+                  SetKeySignatureEvent e (2_gr, 0, TonicNote::c);
+                  expect (e.userGroup  == 2);
+                  expect (e.format     == FlexDataFormat::complete);
+                  expect (e.address    == FlexDataAddress::group);
+                  expect (e.statusBank == FlexDataStatusBank::setupAndPerformance);
+                  expect (e.status     == static_cast<int> (SetupAndPerformanceStatus::setKeySignature));
+                  expect (e.sharpsFlats == 0);
+                  expect (e.tonicNote   == TonicNote::c);
+              });
+
+        test ("SetKeySignatureEvent construction: G major (1 sharp)",
+              [&] ()
+              {
+                  SetKeySignatureEvent e (1_gr, 1, TonicNote::g);
+                  expect (e.sharpsFlats == 1);
+                  expect (e.tonicNote   == TonicNote::g);
+              });
+
+        test ("SetKeySignatureEvent construction: Bb major (2 flats)",
+              [&] ()
+              {
+                  SetKeySignatureEvent e (1_gr, -2, TonicNote::b);
+                  expect (e.sharpsFlats == -2);
+                  expect (e.tonicNote   == TonicNote::b);
+              });
+
+        test ("SetKeySignatureEvent construction: unknown key",
+              [&] ()
+              {
+                  SetKeySignatureEvent e (1_gr, -8, TonicNote::unknown);
+                  expect (e.sharpsFlats == -8);
+                  expect (e.tonicNote   == TonicNote::unknown);
+              });
+
+        test ("SetKeySignatureEvent ValueTree roundtrip",
+              [&] ()
+              {
+                  SetKeySignatureEvent e (3_gr, -3, TonicNote::e);
+                  juce::ValueTree vt = e;
+                  UmpEvent ump (vt);
+                  SetKeySignatureEvent e2 (ump);
+                  expect (e2.userGroup   == 3);
+                  expect (e2.sharpsFlats == -3);
+                  expect (e2.tonicNote   == TonicNote::e);
+                  expect (e2.statusBank  == FlexDataStatusBank::setupAndPerformance);
+                  expect (e2.status      == static_cast<int> (SetupAndPerformanceStatus::setKeySignature));
+              });
+
         test ("SetMetronomeEvent ValueTree roundtrip",
               [&] ()
               {

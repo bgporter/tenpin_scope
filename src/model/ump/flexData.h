@@ -55,6 +55,19 @@ enum class SetupAndPerformanceStatus
     setTempo         = 0x00,
     setTimeSignature = 0x01,
     setMetronome     = 0x02,
+    setKeySignature  = 0x05,
+};
+
+enum class TonicNote
+{
+    unknown = 0x0,
+    a       = 0x1,
+    b       = 0x2,
+    c       = 0x3,
+    d       = 0x4,
+    e       = 0x5,
+    f       = 0x6,
+    g       = 0x7,
 };
 
 namespace juce
@@ -84,6 +97,15 @@ template <> struct VariantConverter<FlexDataStatusBank>
         return static_cast<FlexDataStatusBank> (static_cast<int> (v));
     }
     static juce::var toVar (FlexDataStatusBank val) { return static_cast<int> (val); }
+};
+
+template <> struct VariantConverter<TonicNote>
+{
+    static TonicNote fromVar (const juce::var& v)
+    {
+        return static_cast<TonicNote> (std::clamp (static_cast<int> (v), 0, 7));
+    }
+    static juce::var toVar (TonicNote val) { return static_cast<int> (val); }
 };
 } // namespace juce
 
@@ -251,4 +273,44 @@ struct SetMetronomeEvent : public FlexDataEvent
 
 private:
     void init () { eventName = "Flex Data: Set Metronome"; }
+};
+
+// ---------------------------------------------------------------------------
+
+struct SetKeySignatureEvent : public FlexDataEvent
+{
+    SetKeySignatureEvent (const UmpEvent& event)
+    : FlexDataEvent (event)
+    {
+        init ();
+    }
+
+    // theSharpsFlats: +1..+7 = sharps, 0 = none, -1..-7 = flats, -8 = unknown/non-standard
+    SetKeySignatureEvent (MidiGroup theGroup, int theSharpsFlats, TonicNote theTonicNote)
+    : FlexDataEvent (theGroup,
+                     FlexDataFormat::complete,
+                     FlexDataAddress::group,
+                     0,
+                     FlexDataStatusBank::setupAndPerformance,
+                     SetupAndPerformanceStatus::setKeySignature)
+    {
+        init ();
+        sharpsFlats = theSharpsFlats;
+        tonicNote   = theTonicNote;
+    }
+
+    // Signed view of the 4-bit two's complement sharps/flats field.
+    MAKE_COMPUTED_VALUE_MEMBER (
+        int, sharpsFlats,
+        [this] () -> int {
+            const int raw = sharpsFlatsRaw_.get ();
+            return (raw >= 8) ? (raw - 16) : raw;
+        },
+        [this] (const int& val) { sharpsFlatsRaw_ = val & 0xF; });
+
+    MAKE_BITFIELD (TonicNote, tonicNote, 1, 4, 24);
+
+private:
+    MAKE_BITFIELD (int, sharpsFlatsRaw_, 1, 4, 28);
+    void init () { eventName = "Flex Data: Set Key Signature"; }
 };
