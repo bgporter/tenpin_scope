@@ -96,10 +96,12 @@ UmpHandler::Result UmpHandler::handleSysex8Event (const UmpEvent& event)
     Sysex8Event e (event);
     switch (e.status)
     {
-        case SysexStatus::complete:  result = onSysex8CompleteEvent (event); break;
-        case SysexStatus::start:     result = onSysex8StartEvent (event);    break;
-        case SysexStatus::continue_: result = onSysex8ContinueEvent (event); break;
-        case SysexStatus::end:       result = onSysex8EndEvent (event);      break;
+        case SysexStatus::complete:   result = onSysex8CompleteEvent (event);       break;
+        case SysexStatus::start:      result = onSysex8StartEvent (event);          break;
+        case SysexStatus::continue_:  result = onSysex8ContinueEvent (event);       break;
+        case SysexStatus::end:        result = onSysex8EndEvent (event);            break;
+        case SysexStatus::mdsHeader:  result = onMixedDataSetHeaderEvent (event);   break;
+        case SysexStatus::mdsPayload: result = onMixedDataSetPayloadEvent (event);  break;
         default: break;
     }
 

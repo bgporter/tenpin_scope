@@ -93,6 +93,8 @@ private:
     virtual Result onSysex8StartEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onSysex8ContinueEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onSysex8EndEvent (const UmpEvent&) { return defaultResult; }
+    virtual Result onMixedDataSetHeaderEvent  (const UmpEvent&) { return defaultResult; }
+    virtual Result onMixedDataSetPayloadEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**

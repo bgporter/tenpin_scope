@@ -751,6 +751,47 @@ UmpHandler::Result EventListViewHandler::onSysex8Event (const UmpEvent& event)
     return addSysex8DataValues (e);
 }
 
+UmpHandler::Result EventListViewHandler::onMixedDataSetHeaderEvent (const UmpEvent& event)
+{
+    MixedDataSetHeaderEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp",  juce::String ((int) e.userGroup));
+    eventView->addValue ("mds",  juce::String ((int) e.mdsId));
+    eventView->addValue ("bytes", juce::String ((int) e.numValidBytes));
+    eventView->addValue ("chunks", juce::String ((int) e.numChunks));
+    eventView->addValue ("chunk", juce::String ((int) e.chunkNumber));
+    eventView->addValue ("mfr", juce::String::toHexString ((int) e.manufacturerId).paddedLeft ('0', 4).toUpperCase ());
+    eventView->addValue ("dev", juce::String::toHexString ((int) e.deviceId).paddedLeft ('0', 4).toUpperCase ());
+    eventView->addValue ("sub1", juce::String::toHexString ((int) e.subId1).paddedLeft ('0', 4).toUpperCase ());
+    eventView->addValue ("sub2", juce::String::toHexString ((int) e.subId2).paddedLeft ('0', 4).toUpperCase ());
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onMixedDataSetPayloadEvent (const UmpEvent& event)
+{
+    MixedDataSetPayloadEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("mds", juce::String ((int) e.mdsId));
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    juce::String bytesStr;
+    for (int i = 0; i < 14; ++i)
+    {
+        if (i > 0)
+            bytesStr += " ";
+        const int b = e[i];
+        bytesStr += isInteger
+            ? juce::String (b)
+            : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
+    }
+    eventView->addValue ("data", bytesStr);
+    return UmpHandler::Result::ok;
+}
+
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)
 {
     eventView->setEvent (event.eventName);

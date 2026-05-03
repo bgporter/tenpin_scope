@@ -198,3 +198,188 @@ public:
 };
 
 static Test_Sysex8 testSysex8;
+
+class Test_MixedDataSet : public TestSuite
+{
+public:
+    Test_MixedDataSet ()
+    : TestSuite ("MixedDataSet", "!!! category !!!")
+    {
+    }
+
+    void runTest () override
+    {
+        using namespace midi_literals;
+
+        test ("header construction",
+              [&] ()
+              {
+                  MixedDataSetHeaderEvent e (2_gr, 3, 100, 4, 1, 0x0041, 0x0010, 0x01, 0x02);
+                  expect (e.userGroup    == 2);
+                  expect (e.mdsId        == 3);
+                  expect (e.numValidBytes == 100);
+                  expect (e.numChunks    == 4);
+                  expect (e.chunkNumber  == 1);
+                  expect (e.manufacturerId == 0x0041);
+                  expect (e.deviceId      == 0x0010);
+                  expect (e.subId1        == 0x01);
+                  expect (e.subId2        == 0x02);
+                  expect (e.status        == SysexStatus::mdsHeader);
+              });
+
+        test ("header ValueTree roundtrip",
+              [&] ()
+              {
+                  MixedDataSetHeaderEvent e (1_gr, 5, 28, 2, 1, 0x1234, 0x5678, 0xAB, 0xCD);
+                  juce::ValueTree vt = e;
+                  expect (vt.isValid ());
+                  UmpEvent ump (vt);
+                  MixedDataSetHeaderEvent e2 (ump);
+                  expect (e2.userGroup     == 1);
+                  expect (e2.mdsId         == 5);
+                  expect (e2.numValidBytes == 28);
+                  expect (e2.numChunks     == 2);
+                  expect (e2.chunkNumber   == 1);
+                  expect (e2.manufacturerId == 0x1234);
+                  expect (e2.deviceId      == 0x5678);
+                  expect (e2.subId1        == 0xAB);
+                  expect (e2.subId2        == 0xCD);
+              });
+
+        test ("payload span construction",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 0x01, 0x02, 0x03, 0x04 };
+                  MixedDataSetPayloadEvent e (1_gr, 7, std::span (buf));
+                  expect (e.userGroup == 1);
+                  expect (e.mdsId    == 7);
+                  expect (e.status   == SysexStatus::mdsPayload);
+                  expect (e[0] == 0x01);
+                  expect (e[1] == 0x02);
+                  expect (e[2] == 0x03);
+                  expect (e[3] == 0x04);
+                  expect (e[4] == 0);
+              });
+
+        test ("payload empty span → all data zero",
+              [&] ()
+              {
+                  MixedDataSetPayloadEvent e (1_gr, 1, std::span<const uint8_t> {});
+                  for (int i = 0; i < 14; ++i)
+                      expect (e[i] == 0);
+              });
+
+        test ("payload 14-byte span fills all slots",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
+                  MixedDataSetPayloadEvent e (1_gr, 1, std::span (buf));
+                  for (int i = 0; i < 14; ++i)
+                      expect (e[i] == i + 1);
+              });
+
+        test ("payload full 8-bit data preserved",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 0xFF, 0x80, 0xC0 };
+                  MixedDataSetPayloadEvent e (1_gr, 1, std::span (buf));
+                  expect (e[0] == 0xFF);
+                  expect (e[1] == 0x80);
+                  expect (e[2] == 0xC0);
+              });
+
+        test ("factory: null handlers → no crash",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3 };
+                  MixedDataSetFactory factory (nullptr, nullptr);
+                  factory.createEvents (1_gr, 1, 0x0041, 0x10, 0x01, 0x02, std::span (buf));
+                  expect (true);
+              });
+
+        test ("factory: ≤14 bytes → 1 header + 1 payload",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 0x41, 0x10, 0x42 };
+                  int headers = 0, payloads = 0;
+                  MixedDataSetFactory factory (
+                      [&] (const MixedDataSetHeaderEvent& h)
+                      {
+                          ++headers;
+                          expect (h.numValidBytes == 3);
+                          expect (h.numChunks     == 1);
+                          expect (h.chunkNumber   == 1);
+                          expect (h.manufacturerId == 0x0041);
+                      },
+                      [&] (const MixedDataSetPayloadEvent& p)
+                      {
+                          ++payloads;
+                          expect (p[0] == 0x41);
+                          expect (p[1] == 0x10);
+                          expect (p[2] == 0x42);
+                      });
+                  factory.createEvents (1_gr, 2, 0x0041, 0x10, 0x01, 0x02, std::span (buf));
+                  expect (headers  == 1);
+                  expect (payloads == 1);
+              });
+
+        test ("factory: 15-byte span → 1 header + 2 payloads",
+              [&] ()
+              {
+                  const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+                  int headers = 0, payloads = 0;
+                  MixedDataSetFactory factory (
+                      [&] (const MixedDataSetHeaderEvent& h)
+                      {
+                          ++headers;
+                          expect (h.numValidBytes == 15);
+                          expect (h.numChunks     == 2);
+                      },
+                      [&] (const MixedDataSetPayloadEvent& p)
+                      {
+                          if (payloads == 0)
+                          {
+                              expect (p[0] == 1);
+                              expect (p[13] == 14);
+                          }
+                          else
+                          {
+                              expect (p[0] == 15);
+                              expect (p[1] == 0);
+                          }
+                          ++payloads;
+                      });
+                  factory.createEvents (1_gr, 1, 0, 0, 0, 0, std::span (buf));
+                  expect (headers  == 1);
+                  expect (payloads == 2);
+              });
+
+        test ("factory: 28-byte span → 1 header + 2 full payloads",
+              [&] ()
+              {
+                  uint8_t buf[28];
+                  for (int i = 0; i < 28; ++i) buf[i] = (uint8_t) (i + 1);
+                  int headers = 0, payloads = 0;
+                  MixedDataSetFactory factory (
+                      [&] (const MixedDataSetHeaderEvent& h)
+                      {
+                          ++headers;
+                          expect (h.numValidBytes == 28);
+                          expect (h.numChunks     == 2);
+                      },
+                      [&] (const MixedDataSetPayloadEvent& p)
+                      {
+                          if (payloads == 0)
+                              expect (p[0] == 1);
+                          else
+                              expect (p[0] == 15);
+                          ++payloads;
+                      });
+                  factory.createEvents (1_gr, 1, 0, 0, 0, 0, std::span (buf));
+                  expect (headers  == 1);
+                  expect (payloads == 2);
+              });
+    }
+};
+
+static Test_MixedDataSet testMixedDataSet;

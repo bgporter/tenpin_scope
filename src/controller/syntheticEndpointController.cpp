@@ -96,6 +96,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addSystemCommonEvents ();
     addSysex7Events ();
     addSysex8Events ();
+    addMixedDataSetEvents ();
     addMidi1Events ();
     addMidi2Events ();
 }
@@ -196,4 +197,27 @@ void SyntheticEndpointController::addMidi2Events ()
 {
     eventList.addEvent (1000, Midi2NoteOnEvent  (1, 1, 62, MidiUnipolarFloat (0.8f)));
     eventList.addEvent (250,  Midi2NoteOffEvent (1, 1, 62, MidiUnipolarFloat (0.25f)));
+}
+
+void SyntheticEndpointController::addMixedDataSetEvents ()
+{
+    // Hand-constructed: header + 2 payloads (20 bytes total, MDS ID 1)
+    const uint8_t p1[] = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                            0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E };
+    const uint8_t p2[] = { 0x0F, 0x10, 0x11, 0x12, 0x13 };
+    // totalBytes = 14 + 5 = 19, 2 payload packets
+    eventList.addEvent (100, MixedDataSetHeaderEvent  (1, 1, 19, 2, 1, 0x0041, 0x0010, 0x01, 0x01));
+    eventList.addEvent (100, MixedDataSetPayloadEvent (1, 1, std::span (p1)));
+    eventList.addEvent (100, MixedDataSetPayloadEvent (1, 1, std::span (p2)));
+
+    // Factory: 30-byte payload → 1 header + 3 payloads (last has 2 bytes), MDS ID 2
+    const uint8_t payload[] = {
+        0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41, 0xFF, 0xFE, 0xFD, 0xFC, 0xFB,
+        0xFA, 0xF9, 0xF8, 0xF7, 0xF6, 0xF5, 0xF4, 0xF3, 0xF2, 0xF1, 0xF0, 0xEF, 0xEE, 0xED,
+        0xEC, 0xEB
+    };
+    MixedDataSetFactory factory (
+        [this] (const MixedDataSetHeaderEvent& h)  { eventList.addEvent (100, h); },
+        [this] (const MixedDataSetPayloadEvent& p) { eventList.addEvent (100, p); });
+    factory.createEvents (1, 2, 0x0041, 0x0010, 0x02, 0x03, std::span (payload));
 }

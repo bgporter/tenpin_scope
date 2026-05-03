@@ -117,10 +117,12 @@ enum class MtcMessageType
 
 enum class SysexStatus
 {
-    complete  = 0,
-    start     = 1,
-    continue_ = 2,
-    end       = 3,
+    complete   = 0,
+    start      = 1,
+    continue_  = 2,
+    end        = 3,
+    mdsHeader  = 8,
+    mdsPayload = 9,
 };
 
 namespace juce

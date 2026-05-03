@@ -62,6 +62,7 @@ private:
     void addSystemCommonEvents ();
     void addSysex7Events ();
     void addSysex8Events ();
+    void addMixedDataSetEvents ();
     void addMidi1Events ();
     void addMidi2Events ();
     void startPlayback ();
