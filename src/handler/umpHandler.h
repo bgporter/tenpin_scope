@@ -51,6 +51,7 @@ private:
     Result handleSystemCommonEvent (const UmpEvent& event);
     Result handleSysex7Event (const UmpEvent& event);
     Result handleSysex8Event (const UmpEvent& event);
+    Result handleFlexDataEvent (const UmpEvent& event);
     Result handleMidi1ChannelVoiceEvent (const UmpEvent& event);
     Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
 
@@ -95,6 +96,14 @@ private:
     virtual Result onSysex8EndEvent (const UmpEvent&) { return defaultResult; }
     virtual Result onMixedDataSetHeaderEvent  (const UmpEvent&) { return defaultResult; }
     virtual Result onMixedDataSetPayloadEvent (const UmpEvent&) { return defaultResult; }
+    ///@}
+
+    /**
+     * @name Flex Data Message Handlers
+     */
+    ///@{
+    virtual Result onFlexDataEvent  (const UmpEvent&) { return defaultResult; }
+    virtual Result onSetTempoEvent  (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**

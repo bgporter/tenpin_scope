@@ -26,6 +26,7 @@
 
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
+#include "model/ump/flexData.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
 #include "model/ump/sysex8.h"
@@ -59,6 +60,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
                 break;
             case MessageTypes::midi2ChannelVoice:
                 result = handleMidi2ChannelVoiceEvent (event);
+                break;
+            case MessageTypes::flexData:
+                result = handleFlexDataEvent (event);
                 break;
             default:
                 result = onUmpEvent (event);
@@ -333,6 +337,33 @@ UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& eve
 
     if (result == Result::notHandled)
         result = onMidi2ChannelVoiceEvent (event);
+
+    if (result == Result::notHandled)
+        result = onUmpEvent (event);
+
+    return result;
+}
+
+UmpHandler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
+{
+    Result result { defaultResult };
+    FlexDataEvent e (event);
+
+    switch (e.statusBank.get ())
+    {
+        case static_cast<int> (FlexDataStatusBank::setupAndPerformance):
+            switch (e.status.get ())
+            {
+                case 0x00: result = onSetTempoEvent (event); break;
+                default:   break;
+            }
+            break;
+
+        default: break;
+    }
+
+    if (result == Result::notHandled)
+        result = onFlexDataEvent (event);
 
     if (result == Result::notHandled)
         result = onUmpEvent (event);

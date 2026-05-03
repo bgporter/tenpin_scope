@@ -28,6 +28,7 @@
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
+#include "model/ump/flexData.h"
 #include "model/ump/sysex8.h"
 #include "model/ump/utility.h"
 
@@ -97,6 +98,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addSysex7Events ();
     addSysex8Events ();
     addMixedDataSetEvents ();
+    addFlexDataEvents ();
     addMidi1Events ();
     addMidi2Events ();
 }
@@ -191,6 +193,12 @@ void SyntheticEndpointController::addMidi1Events ()
     eventList.addEvent (150, Midi1PolyPressureEvent    (1, 1, 60, 64));
     eventList.addEvent (150, Midi1ChannelPressureEvent (1, 1, 80));
     eventList.addEvent (150, Midi1ProgramChangeEvent   (1, 1, 42));
+}
+
+void SyntheticEndpointController::addFlexDataEvents ()
+{
+    eventList.addEvent (100, SetTempoEvent (1, 120.0));
+    eventList.addEvent (100, SetTempoEvent (1, 93.5));
 }
 
 void SyntheticEndpointController::addMidi2Events ()

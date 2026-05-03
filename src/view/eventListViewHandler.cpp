@@ -26,6 +26,7 @@
 
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
+#include "model/ump/flexData.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
 #include "model/ump/sysex8.h"
@@ -789,6 +790,19 @@ UmpHandler::Result EventListViewHandler::onMixedDataSetPayloadEvent (const UmpEv
             : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
     }
     eventView->addValue ("data", bytesStr);
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSetTempoEvent (const UmpEvent& event)
+{
+    SetTempoEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    const uint32_t tenNs = e.tenNsPerQuarterNote;
+    const double bpm = tenNsToBpm (tenNs);
+    eventView->addValue ("tempo", juce::String (tenNs) + " (" + juce::String (bpm, 3) + " bpm)");
     return UmpHandler::Result::ok;
 }
 

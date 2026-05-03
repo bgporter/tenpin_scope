@@ -105,6 +105,8 @@ set (SOURCES_MODEL
     src/model/ump/sysex7.cpp
     src/model/ump/sysex8.h
     src/model/ump/sysex8.cpp
+    src/model/ump/flexData.h
+    src/model/ump/flexData.cpp
     src/model/ump/utility.h
     src/model/ump/utility.cpp)
 

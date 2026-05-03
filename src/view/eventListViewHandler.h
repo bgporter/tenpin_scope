@@ -35,6 +35,7 @@ struct Sysex7Event;
 struct Sysex8Event;
 struct MixedDataSetHeaderEvent;
 struct MixedDataSetPayloadEvent;
+struct SetTempoEvent;
 struct SystemCommonEvent;
 struct UtilityEvent16T;
 struct DeltaTicksSinceLastEvent;
@@ -77,6 +78,7 @@ private:
     UmpHandler::Result onSysex8Event         (const UmpEvent& event) override;
     UmpHandler::Result onMixedDataSetHeaderEvent  (const UmpEvent& event) override;
     UmpHandler::Result onMixedDataSetPayloadEvent (const UmpEvent& event) override;
+    UmpHandler::Result onSetTempoEvent            (const UmpEvent& event) override;
     ///@}
 
     /**
