@@ -35,6 +35,7 @@ struct Sysex7Event;
 struct Sysex8Event;
 struct MixedDataSetHeaderEvent;
 struct MixedDataSetPayloadEvent;
+struct SetChordEvent;
 struct SetKeySignatureEvent;
 struct SetMetronomeEvent;
 struct SetTempoEvent;
@@ -85,6 +86,7 @@ private:
     UmpHandler::Result onSetTimeSignatureEvent    (const UmpEvent& event) override;
     UmpHandler::Result onSetMetronomeEvent        (const UmpEvent& event) override;
     UmpHandler::Result onSetKeySignatureEvent     (const UmpEvent& event) override;
+    UmpHandler::Result onSetChordEvent            (const UmpEvent& event) override;
     ///@}
 
     /**

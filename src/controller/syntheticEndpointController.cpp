@@ -207,6 +207,25 @@ void SyntheticEndpointController::addFlexDataEvents ()
     eventList.addEvent (100, SetKeySignatureEvent (1,  1, TonicNote::g));  // G major (1 sharp)
     eventList.addEvent (100, SetKeySignatureEvent (1, -1, TonicNote::f));  // F major (1 flat)
     eventList.addEvent (100, SetKeySignatureEvent (1, -8, TonicNote::unknown));  // unknown key
+
+    // No chord (clear)
+    eventList.addEvent (100, SetChordEvent (1, 0, TonicNote::unknown, ChordType::noChord));
+    // Bb Minor (spec example)
+    eventList.addEvent (100, SetChordEvent (1, -1, TonicNote::b, ChordType::minor));
+    // D Major / F# bass (spec example)
+    {
+        SetChordEvent e (1, 0, TonicNote::d, ChordType::major);
+        e.bassSharpsFlats = 1;
+        e.bassNote        = TonicNote::f;
+        eventList.addEvent (100, e);
+    }
+    // C Major 7th with raised 11th (spec example CMaj7#11)
+    {
+        SetChordEvent e (1, 0, TonicNote::c, ChordType::major7th);
+        e.alter1Type   = AlterationType::raise;
+        e.alter1Degree = 11;
+        eventList.addEvent (100, e);
+    }
 }
 
 void SyntheticEndpointController::addMidi2Events ()

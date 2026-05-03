@@ -108,6 +108,7 @@ private:
     virtual Result onSetTimeSignatureEvent     (const UmpEvent&) { return defaultResult; }
     virtual Result onSetMetronomeEvent         (const UmpEvent&) { return defaultResult; }
     virtual Result onSetKeySignatureEvent      (const UmpEvent&) { return defaultResult; }
+    virtual Result onSetChordEvent             (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**

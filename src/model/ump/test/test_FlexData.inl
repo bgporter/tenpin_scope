@@ -241,6 +241,89 @@ public:
                   expect (e2.numSubdivisionClicks1    == 3);
                   expect (e2.numSubdivisionClicks2    == 2);
               });
+
+        test ("SetChordEvent: no chord",
+              [&] ()
+              {
+                  SetChordEvent e (1_gr, 0, TonicNote::unknown, ChordType::noChord);
+                  expect (e.chordType.get ()  == ChordType::noChord);
+                  expect (e.chordTonic.get () == TonicNote::unknown);
+                  expect (e.messageType       == MessageTypes::flexData);
+              });
+
+        test ("SetChordEvent: BbMin construction",
+              [&] ()
+              {
+                  SetChordEvent e (1_gr, -1, TonicNote::b, ChordType::minor);
+                  expect (e.chordSharpsFlats  == -1);
+                  expect (e.chordTonic.get () == TonicNote::b);
+                  expect (e.chordType.get ()  == ChordType::minor);
+                  expect (e.statusBank.get () == FlexDataStatusBank::setupAndPerformance);
+                  expect (e.status            == static_cast<int> (SetupAndPerformanceStatus::setChord));
+                  expect (e.messageType       == MessageTypes::flexData);
+              });
+
+        test ("SetChordEvent: chordSharpsFlats sign extension",
+              [&] ()
+              {
+                  expect (SetChordEvent (1_gr,  0, TonicNote::c, ChordType::major).chordSharpsFlats ==  0);
+                  expect (SetChordEvent (1_gr,  2, TonicNote::c, ChordType::major).chordSharpsFlats ==  2);
+                  expect (SetChordEvent (1_gr, -1, TonicNote::b, ChordType::minor).chordSharpsFlats == -1);
+                  expect (SetChordEvent (1_gr, -2, TonicNote::b, ChordType::minor).chordSharpsFlats == -2);
+              });
+
+        test ("SetChordEvent: bassSharpsFlats sentinel and sign extension",
+              [&] ()
+              {
+                  SetChordEvent e (1_gr, 0, TonicNote::c, ChordType::major);
+                  expect (e.bassSharpsFlats == -8);  // default: same as chord tonic
+
+                  e.bassSharpsFlats = 1;
+                  expect (e.bassSharpsFlats == 1);
+
+                  e.bassSharpsFlats = -2;
+                  expect (e.bassSharpsFlats == -2);
+              });
+
+        test ("SetChordEvent: alterations",
+              [&] ()
+              {
+                  SetChordEvent e (1_gr, 0, TonicNote::c, ChordType::major7th);
+                  e.alter1Type   = AlterationType::raise;
+                  e.alter1Degree = 11;
+                  expect (e.alter1Type.get () == AlterationType::raise);
+                  expect (e.alter1Degree      == 11);
+                  expect (e.alter2Type.get () == AlterationType::none);
+              });
+
+        test ("SetChordEvent: bass fields",
+              [&] ()
+              {
+                  SetChordEvent e (1_gr, 0, TonicNote::d, ChordType::major);
+                  e.bassSharpsFlats = 1;
+                  e.bassNote        = TonicNote::f;
+                  expect (e.bassSharpsFlats    == 1);
+                  expect (e.bassNote.get ()    == TonicNote::f);
+                  expect (e.bassChordType.get () == ChordType::noChord);
+              });
+
+        test ("SetChordEvent: ValueTree roundtrip (DMaj/F#)",
+              [&] ()
+              {
+                  SetChordEvent src (1_gr, 0, TonicNote::d, ChordType::major);
+                  src.bassSharpsFlats = 1;
+                  src.bassNote        = TonicNote::f;
+                  juce::ValueTree vt  = src;
+                  UmpEvent ump (vt);
+                  SetChordEvent e2 (ump);
+                  expect (e2.chordSharpsFlats    == 0);
+                  expect (e2.chordTonic.get ()   == TonicNote::d);
+                  expect (e2.chordType.get ()    == ChordType::major);
+                  expect (e2.bassSharpsFlats     == 1);
+                  expect (e2.bassNote.get ()     == TonicNote::f);
+                  expect (e2.bassChordType.get () == ChordType::noChord);
+                  expect (e2.alter1Type.get ()   == AlterationType::none);
+              });
     }
 };
 

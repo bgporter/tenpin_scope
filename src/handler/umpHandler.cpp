@@ -376,6 +376,7 @@ UmpHandler::Result UmpHandler::handleSetupAndPerformanceEvent (const UmpEvent& e
         case SetupAndPerformanceStatus::setTimeSignature: return onSetTimeSignatureEvent (event);
         case SetupAndPerformanceStatus::setMetronome:     return onSetMetronomeEvent     (event);
         case SetupAndPerformanceStatus::setKeySignature:  return onSetKeySignatureEvent  (event);
+        case SetupAndPerformanceStatus::setChord:         return onSetChordEvent          (event);
         default:                                          return defaultResult;
     }
 }

@@ -874,6 +874,104 @@ UmpHandler::Result EventListViewHandler::onSetKeySignatureEvent (const UmpEvent&
     return UmpHandler::Result::ok;
 }
 
+UmpHandler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
+{
+    SetChordEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+
+    static constexpr const char* noteNames[] = { "unknown", "A", "B", "C", "D", "E", "F", "G" };
+
+    auto accStr = [] (int sf) -> const char*
+    {
+        switch (sf)
+        {
+            case -2: return "bb";
+            case -1: return "b";
+            case  1: return "#";
+            case  2: return "x";
+            default: return "";
+        }
+    };
+
+    auto chordName = [] (ChordType ct) -> const char*
+    {
+        switch (ct)
+        {
+            case ChordType::noChord:           return "No Chord";
+            case ChordType::major:             return "Major";
+            case ChordType::major6th:          return "Major 6th";
+            case ChordType::major7th:          return "Major 7th";
+            case ChordType::major9th:          return "Major 9th";
+            case ChordType::major11th:         return "Major 11th";
+            case ChordType::major13th:         return "Major 13th";
+            case ChordType::minor:             return "Minor";
+            case ChordType::minor6th:          return "Minor 6th";
+            case ChordType::minor7th:          return "Minor 7th";
+            case ChordType::minor9th:          return "Minor 9th";
+            case ChordType::minor11th:         return "Minor 11th";
+            case ChordType::minor13th:         return "Minor 13th";
+            case ChordType::dominant:          return "Dominant";
+            case ChordType::dominant9th:       return "Dominant 9th";
+            case ChordType::dominant11th:      return "Dominant 11th";
+            case ChordType::dominant13th:      return "Dominant 13th";
+            case ChordType::augmented:         return "Augmented";
+            case ChordType::augmented7th:      return "Augmented 7th";
+            case ChordType::diminished:        return "Diminished";
+            case ChordType::diminished7th:     return "Diminished 7th";
+            case ChordType::halfDiminished:    return "Half Dim.";
+            case ChordType::majorMinor:        return "Major-Minor";
+            case ChordType::pedal:             return "Pedal";
+            case ChordType::power:             return "Power";
+            case ChordType::suspended2nd:      return "Sus2";
+            case ChordType::suspended4th:      return "Sus4";
+            case ChordType::sevenSuspended4th: return "7Sus4";
+            default:                           return "reserved";
+        }
+    };
+
+    auto alterStr = [] (AlterationType t) -> const char*
+    {
+        switch (t)
+        {
+            case AlterationType::add:      return "add";
+            case AlterationType::subtract: return "sub";
+            case AlterationType::raise:    return "raise";
+            case AlterationType::lower:    return "lower";
+            default:                       return "";
+        }
+    };
+
+    const int tn = static_cast<int> (e.chordTonic.get ());
+    const juce::String tonicStr =
+        juce::String (noteNames[tn >= 0 && tn <= 7 ? tn : 0]) + accStr (e.chordSharpsFlats);
+    eventView->addValue ("chord", tonicStr + " " + chordName (e.chordType.get ()));
+
+    auto showAlter = [&] (AlterationType t, int deg, const juce::String& label)
+    {
+        if (t != AlterationType::none)
+            eventView->addValue (label, juce::String (alterStr (t)) + " " + juce::String (deg));
+    };
+    showAlter (e.alter1Type.get (), e.alter1Degree.get (), "alt1");
+    showAlter (e.alter2Type.get (), e.alter2Degree.get (), "alt2");
+    showAlter (e.alter3Type.get (), e.alter3Degree.get (), "alt3");
+    showAlter (e.alter4Type.get (), e.alter4Degree.get (), "alt4");
+
+    if (e.bassSharpsFlats != -8)
+    {
+        const int bn = static_cast<int> (e.bassNote.get ());
+        juce::String bassStr =
+            juce::String (noteNames[bn >= 0 && bn <= 7 ? bn : 0]) + accStr (e.bassSharpsFlats);
+        if (e.bassChordType.get () != ChordType::noChord)
+            bassStr += juce::String (" / ") + chordName (e.bassChordType.get ());
+        eventView->addValue ("bass", bassStr);
+    }
+
+    return UmpHandler::Result::ok;
+}
+
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)
 {
     eventView->setEvent (event.eventName);
