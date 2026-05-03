@@ -383,3 +383,59 @@ public:
 };
 
 static Test_MixedDataSet testMixedDataSet;
+
+class Test_MfrId : public TestSuite
+{
+public:
+    Test_MfrId ()
+    : TestSuite ("MfrId", "!!! category !!!")
+    {
+    }
+
+    void runTest () override
+    {
+        auto roundtrip = [&] (MidiByte id1, MidiByte id2, MidiByte id3)
+        {
+            const int mds = MfrIdToMdsFormat (id1, id2, id3);
+            const auto [r1, r2, r3] = MdsFormatToMfrId (mds);
+            expect (r1 == id1);
+            expect (r2 == id2);
+            expect (r3 == id3);
+        };
+
+        test ("1-byte IDs roundtrip",
+              [&] ()
+              {
+                  roundtrip (0x01, 0, 0);   // Roland
+                  roundtrip (0x07, 0, 0);   // Kurzweil
+                  roundtrip (0x41, 0, 0);   // Roland (extended range)
+                  roundtrip (0x7F, 0, 0);   // max 1-byte value
+              });
+
+        test ("3-byte IDs roundtrip",
+              [&] ()
+              {
+                  roundtrip (0x00, 0x00, 0x01);  // Sequential / Dave Smith
+                  roundtrip (0x00, 0x01, 0x0B);  // Korg
+                  roundtrip (0x00, 0x20, 0x29);  // Focusrite
+                  roundtrip (0x00, 0x7F, 0x7F);  // max 3-byte values
+              });
+
+        test ("1-byte: high bit of mds word clear",
+              [&] ()
+              {
+                  const int mds = MfrIdToMdsFormat (0x41);
+                  expect ((mds & 0x8000) == 0);
+                  expect (mds == 0x41);
+              });
+
+        test ("3-byte: high bit of mds word set",
+              [&] ()
+              {
+                  const int mds = MfrIdToMdsFormat (0x00, 0x20, 0x29);
+                  expect ((mds & 0x8000) != 0);
+              });
+    }
+};
+
+static Test_MfrId testMfrId;
