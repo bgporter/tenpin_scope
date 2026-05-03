@@ -50,6 +50,13 @@ enum class FlexDataStatusBank
     performanceText     = 0x02,
 };
 
+enum class SetupAndPerformanceStatus
+{
+    setTempo         = 0x00,
+    setTimeSignature = 0x01,
+    setMetronome     = 0x02,
+};
+
 namespace juce
 {
 template <> struct VariantConverter<FlexDataFormat>
@@ -69,6 +76,15 @@ template <> struct VariantConverter<FlexDataAddress>
     }
     static juce::var toVar (FlexDataAddress val) { return static_cast<int> (val); }
 };
+
+template <> struct VariantConverter<FlexDataStatusBank>
+{
+    static FlexDataStatusBank fromVar (const juce::var& v)
+    {
+        return static_cast<FlexDataStatusBank> (static_cast<int> (v));
+    }
+    static juce::var toVar (FlexDataStatusBank val) { return static_cast<int> (val); }
+};
 } // namespace juce
 
 struct FlexDataEvent : public UmpEvent
@@ -79,12 +95,12 @@ struct FlexDataEvent : public UmpEvent
     }
 
     // Word 0
-    MAKE_BITFIELD (int,             group,      0, 4, 24);
-    MAKE_BITFIELD (FlexDataFormat,  format,     0, 2, 22);
-    MAKE_BITFIELD (FlexDataAddress, address,    0, 2, 20);
-    MAKE_BITFIELD (int,             channel,    0, 4, 16);
-    MAKE_BITFIELD (int,             statusBank, 0, 8,  8);
-    MAKE_BITFIELD (int,             status,     0, 8,  0);
+    MAKE_BITFIELD (int,              group,      0, 4, 24);
+    MAKE_BITFIELD (FlexDataFormat,   format,     0, 2, 22);
+    MAKE_BITFIELD (FlexDataAddress,  address,    0, 2, 20);
+    MAKE_BITFIELD (int,              channel,    0, 4, 16);
+    MAKE_BITFIELD (FlexDataStatusBank, statusBank, 0, 8, 8);
+    MAKE_BITFIELD (int,              status,     0, 8,  0);
 
     MAKE_COMPUTED_VALUE_MEMBER (
         int, userGroup,
@@ -97,8 +113,9 @@ struct FlexDataEvent : public UmpEvent
         [this] (const int& val) { channel = val - 1; });
 
 protected:
+    template <typename StatusEnum>
     FlexDataEvent (MidiGroup theGroup, FlexDataFormat theFormat, FlexDataAddress theAddress,
-                   int theChannel, int theStatusBank, int theStatus)
+                   int theChannel, FlexDataStatusBank theStatusBank, StatusEnum theStatus)
     : UmpEvent ()
     {
         setattr<uint32_t> (UmpWords::data0Id, 0);
@@ -111,7 +128,7 @@ protected:
         address     = theAddress;
         channel     = theChannel;
         statusBank  = theStatusBank;
-        status      = theStatus;
+        status      = static_cast<int> (theStatus);
     }
 };
 
@@ -142,8 +159,8 @@ struct SetTempoEvent : public FlexDataEvent
                      FlexDataFormat::complete,
                      FlexDataAddress::group,
                      0,
-                     static_cast<int> (FlexDataStatusBank::setupAndPerformance),
-                     0x00)
+                     FlexDataStatusBank::setupAndPerformance,
+                     SetupAndPerformanceStatus::setTempo)
     {
         init ();
         tenNsPerQuarterNote = bpmToTenNs (bpm);
@@ -154,4 +171,84 @@ struct SetTempoEvent : public FlexDataEvent
 
 private:
     void init () { eventName = "Flex Data: Set Tempo"; }
+};
+
+// ---------------------------------------------------------------------------
+
+struct SetTimeSignatureEvent : public FlexDataEvent
+{
+    SetTimeSignatureEvent (const UmpEvent& event)
+    : FlexDataEvent (event)
+    {
+        init ();
+    }
+
+    // Construct from musical time signature values.
+    // denominatorPower: the power-of-2 exponent (2=quarter, 3=eighth, etc.; 0=non-standard)
+    // num32ndNotes: number of 1/32 notes per 24 MIDI clocks (typically 8)
+    SetTimeSignatureEvent (MidiGroup theGroup, int theNumerator, int theDenominatorPower,
+                           int theNum32ndNotes)
+    : FlexDataEvent (theGroup,
+                     FlexDataFormat::complete,
+                     FlexDataAddress::group,
+                     0,
+                     FlexDataStatusBank::setupAndPerformance,
+                     SetupAndPerformanceStatus::setTimeSignature)
+    {
+        init ();
+        numerator        = theNumerator;
+        denominatorPower = theDenominatorPower;
+        num32ndNotes     = theNum32ndNotes;
+    }
+
+    // Word 1
+    MAKE_BITFIELD (int, numerator,        1, 8, 24);
+    MAKE_BITFIELD (int, denominatorPower, 1, 8, 16);
+    MAKE_BITFIELD (int, num32ndNotes,     1, 8,  8);
+
+private:
+    void init () { eventName = "Flex Data: Set Time Signature"; }
+};
+
+// ---------------------------------------------------------------------------
+
+struct SetMetronomeEvent : public FlexDataEvent
+{
+    SetMetronomeEvent (const UmpEvent& event)
+    : FlexDataEvent (event)
+    {
+        init ();
+    }
+
+    SetMetronomeEvent (MidiGroup theGroup, int theNumClocksPerPrimaryClick,
+                       int theBarAccentPart1, int theBarAccentPart2, int theBarAccentPart3,
+                       int theNumSubdivisionClicks1, int theNumSubdivisionClicks2)
+    : FlexDataEvent (theGroup,
+                     FlexDataFormat::complete,
+                     FlexDataAddress::group,
+                     0,
+                     FlexDataStatusBank::setupAndPerformance,
+                     SetupAndPerformanceStatus::setMetronome)
+    {
+        init ();
+        numClocksPerPrimaryClick = theNumClocksPerPrimaryClick;
+        barAccentPart1           = theBarAccentPart1;
+        barAccentPart2           = theBarAccentPart2;
+        barAccentPart3           = theBarAccentPart3;
+        numSubdivisionClicks1    = theNumSubdivisionClicks1;
+        numSubdivisionClicks2    = theNumSubdivisionClicks2;
+    }
+
+    // Word 1
+    MAKE_BITFIELD (int, numClocksPerPrimaryClick, 1, 8, 24);
+    MAKE_BITFIELD (int, barAccentPart1,           1, 8, 16);
+    MAKE_BITFIELD (int, barAccentPart2,           1, 8,  8);
+    MAKE_BITFIELD (int, barAccentPart3,           1, 8,  0);
+
+    // Word 2
+    MAKE_BITFIELD (int, numSubdivisionClicks1, 2, 8, 24);
+    MAKE_BITFIELD (int, numSubdivisionClicks2, 2, 8, 16);
+
+private:
+    void init () { eventName = "Flex Data: Set Metronome"; }
 };

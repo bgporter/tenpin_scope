@@ -199,6 +199,10 @@ void SyntheticEndpointController::addFlexDataEvents ()
 {
     eventList.addEvent (100, SetTempoEvent (1, 120.0));
     eventList.addEvent (100, SetTempoEvent (1, 93.5));
+    eventList.addEvent (100, SetTimeSignatureEvent (1, 4, 2, 8));    // 4/4, 8 x 1/32nd notes
+    eventList.addEvent (100, SetTimeSignatureEvent (1, 6, 3, 8));    // 6/8, 8 x 1/32nd notes
+    eventList.addEvent (100, SetMetronomeEvent (1, 24, 4, 0, 0, 2, 0));  // 4/4: 24 clocks/click, 4-beat accent, 2 subdivisions
+    eventList.addEvent (100, SetMetronomeEvent (1, 12, 3, 2, 0, 3, 0));  // 5/4 (3+2), 12 clocks/click, 3 subdivisions
 }
 
 void SyntheticEndpointController::addMidi2Events ()

@@ -47,8 +47,8 @@ public:
                   expect (e.format            == FlexDataFormat::complete);
                   expect (e.address           == FlexDataAddress::group);
                   expect (e.channel           == 0);
-                  expect (e.statusBank        == 0);
-                  expect (e.status            == 0);
+                  expect (e.statusBank        == FlexDataStatusBank::setupAndPerformance);
+                  expect (e.status            == static_cast<int> (SetupAndPerformanceStatus::setTempo));
                   expect (e.tenNsPerQuarterNote == 50'000'000u);
               });
 
@@ -77,8 +77,8 @@ public:
                   expect (e2.userGroup           == 3);
                   expect (e2.format              == FlexDataFormat::complete);
                   expect (e2.address             == FlexDataAddress::group);
-                  expect (e2.statusBank          == 0);
-                  expect (e2.status              == 0);
+                  expect (e2.statusBank          == FlexDataStatusBank::setupAndPerformance);
+                  expect (e2.status              == static_cast<int> (SetupAndPerformanceStatus::setTempo));
                   expect (e2.tenNsPerQuarterNote == 50'000'000u);
               });
 
@@ -93,8 +93,90 @@ public:
                   expect (e.format     == FlexDataFormat::complete);
                   expect (e.address    == FlexDataAddress::group);
                   expect (e.channel    == 0);
-                  expect (e.statusBank == 0);
-                  expect (e.status     == 0);
+                  expect (e.statusBank == FlexDataStatusBank::setupAndPerformance);
+                  expect (e.status     == static_cast<int> (SetupAndPerformanceStatus::setTempo));
+              });
+
+        test ("SetTimeSignatureEvent construction",
+              [&] ()
+              {
+                  SetTimeSignatureEvent e (2_gr, 4, 2, 8);
+                  expect (e.userGroup        == 2);
+                  expect (e.format           == FlexDataFormat::complete);
+                  expect (e.address          == FlexDataAddress::group);
+                  expect (e.statusBank       == FlexDataStatusBank::setupAndPerformance);
+                  expect (e.status           == static_cast<int> (SetupAndPerformanceStatus::setTimeSignature));
+                  expect (e.numerator        == 4);
+                  expect (e.denominatorPower == 2);
+                  expect (e.num32ndNotes     == 8);
+              });
+
+        test ("SetTimeSignatureEvent: 6/8",
+              [&] ()
+              {
+                  SetTimeSignatureEvent e (1_gr, 6, 3, 8);
+                  expect (e.numerator        == 6);
+                  expect (e.denominatorPower == 3);
+                  expect (e.num32ndNotes     == 8);
+              });
+
+        test ("SetTimeSignatureEvent ValueTree roundtrip",
+              [&] ()
+              {
+                  SetTimeSignatureEvent e (1_gr, 4, 2, 8);
+                  juce::ValueTree vt = e;
+                  UmpEvent ump (vt);
+                  SetTimeSignatureEvent e2 (ump);
+                  expect (e2.userGroup        == 1);
+                  expect (e2.numerator        == 4);
+                  expect (e2.denominatorPower == 2);
+                  expect (e2.num32ndNotes     == 8);
+                  expect (e2.status           == static_cast<int> (SetupAndPerformanceStatus::setTimeSignature));
+              });
+
+        test ("SetMetronomeEvent construction",
+              [&] ()
+              {
+                  SetMetronomeEvent e (1_gr, 24, 4, 0, 0, 2, 0);
+                  expect (e.userGroup                == 1);
+                  expect (e.format                   == FlexDataFormat::complete);
+                  expect (e.address                  == FlexDataAddress::group);
+                  expect (e.statusBank               == FlexDataStatusBank::setupAndPerformance);
+                  expect (e.status                   == static_cast<int> (SetupAndPerformanceStatus::setMetronome));
+                  expect (e.numClocksPerPrimaryClick == 24);
+                  expect (e.barAccentPart1           == 4);
+                  expect (e.barAccentPart2           == 0);
+                  expect (e.barAccentPart3           == 0);
+                  expect (e.numSubdivisionClicks1    == 2);
+                  expect (e.numSubdivisionClicks2    == 0);
+              });
+
+        test ("SetMetronomeEvent: 5/4 (3+2) with subdivisions",
+              [&] ()
+              {
+                  SetMetronomeEvent e (1_gr, 12, 3, 2, 0, 3, 2);
+                  expect (e.numClocksPerPrimaryClick == 12);
+                  expect (e.barAccentPart1           == 3);
+                  expect (e.barAccentPart2           == 2);
+                  expect (e.barAccentPart3           == 0);
+                  expect (e.numSubdivisionClicks1    == 3);
+                  expect (e.numSubdivisionClicks2    == 2);
+              });
+
+        test ("SetMetronomeEvent ValueTree roundtrip",
+              [&] ()
+              {
+                  SetMetronomeEvent e (2_gr, 12, 3, 2, 0, 3, 2);
+                  juce::ValueTree vt = e;
+                  UmpEvent ump (vt);
+                  SetMetronomeEvent e2 (ump);
+                  expect (e2.userGroup                == 2);
+                  expect (e2.numClocksPerPrimaryClick == 12);
+                  expect (e2.barAccentPart1           == 3);
+                  expect (e2.barAccentPart2           == 2);
+                  expect (e2.barAccentPart3           == 0);
+                  expect (e2.numSubdivisionClicks1    == 3);
+                  expect (e2.numSubdivisionClicks2    == 2);
               });
     }
 };

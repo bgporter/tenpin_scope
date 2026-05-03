@@ -351,12 +351,8 @@ UmpHandler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
 
     switch (e.statusBank.get ())
     {
-        case static_cast<int> (FlexDataStatusBank::setupAndPerformance):
-            switch (e.status.get ())
-            {
-                case 0x00: result = onSetTempoEvent (event); break;
-                default:   break;
-            }
+        case FlexDataStatusBank::setupAndPerformance:
+            result = handleSetupAndPerformanceEvent (event);
             break;
 
         default: break;
@@ -369,4 +365,16 @@ UmpHandler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
         result = onUmpEvent (event);
 
     return result;
+}
+
+UmpHandler::Result UmpHandler::handleSetupAndPerformanceEvent (const UmpEvent& event)
+{
+    FlexDataEvent e (event);
+    switch (static_cast<SetupAndPerformanceStatus> (e.status.get ()))
+    {
+        case SetupAndPerformanceStatus::setTempo:         return onSetTempoEvent         (event);
+        case SetupAndPerformanceStatus::setTimeSignature: return onSetTimeSignatureEvent (event);
+        case SetupAndPerformanceStatus::setMetronome:     return onSetMetronomeEvent     (event);
+        default:                                          return defaultResult;
+    }
 }

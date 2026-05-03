@@ -806,6 +806,47 @@ UmpHandler::Result EventListViewHandler::onSetTempoEvent (const UmpEvent& event)
     return UmpHandler::Result::ok;
 }
 
+UmpHandler::Result EventListViewHandler::onSetTimeSignatureEvent (const UmpEvent& event)
+{
+    SetTimeSignatureEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("num", juce::String ((int) e.numerator));
+    const int dp = e.denominatorPower;
+    const juce::String denomStr = (dp == 0) ? "non-standard" : juce::String (1 << dp);
+    eventView->addValue ("denom", denomStr);
+    eventView->addValue ("32nds", juce::String ((int) e.num32ndNotes));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onSetMetronomeEvent (const UmpEvent& event)
+{
+    SetMetronomeEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("clocks", juce::String ((int) e.numClocksPerPrimaryClick));
+
+    juce::String accentStr = juce::String ((int) e.barAccentPart1);
+    if (const int p2 = e.barAccentPart2; p2 != 0)
+    {
+        accentStr += "+" + juce::String (p2);
+        if (const int p3 = e.barAccentPart3; p3 != 0)
+            accentStr += "+" + juce::String (p3);
+    }
+    eventView->addValue ("acc", accentStr);
+
+    if (const int s1 = e.numSubdivisionClicks1; s1 != 0)
+        eventView->addValue ("sub1", juce::String (s1));
+    if (const int s2 = e.numSubdivisionClicks2; s2 != 0)
+        eventView->addValue ("sub2", juce::String (s2));
+
+    return UmpHandler::Result::ok;
+}
+
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)
 {
     eventView->setEvent (event.eventName);
