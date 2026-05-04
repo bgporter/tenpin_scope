@@ -874,6 +874,51 @@ UmpHandler::Result EventListViewHandler::onSetKeySignatureEvent (const UmpEvent&
     return UmpHandler::Result::ok;
 }
 
+UmpHandler::Result EventListViewHandler::onMetadataTextEvent (const UmpEvent& event)
+{
+    return handleTextEvent (event);
+}
+
+UmpHandler::Result EventListViewHandler::onPerformanceTextEvent (const UmpEvent& event)
+{
+    return handleTextEvent (event);
+}
+
+UmpHandler::Result EventListViewHandler::handleTextEvent (const UmpEvent& event)
+{
+    FlexDataTextEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+
+    static constexpr const char* fmtNames[] = { "complete", "start", "continue", "end" };
+    const int fi = static_cast<int> (e.format.get ());
+    eventView->addValue ("fmt", (fi >= 0 && fi <= 3) ? fmtNames[fi] : "?");
+
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    juce::String bytesStr;
+    for (int i = 0; i < FlexDataTextEvent::maxBytes; ++i)
+    {
+        const uint8_t b = e[i];
+        if (b == 0)
+            break;
+        if (i > 0)
+            bytesStr += " ";
+        if (b >= 0x20 && b <= 0x7E)
+            bytesStr += juce::String ("'") + juce::String::charToString ((juce::juce_wchar) b) + "'";
+        else
+            bytesStr += isInteger
+                ? juce::String ((int) b)
+                : juce::String::toHexString ((int) b).paddedLeft ('0', 2).toUpperCase ();
+    }
+    if (bytesStr.isNotEmpty ())
+        eventView->addValue ("data", bytesStr);
+
+    return UmpHandler::Result::ok;
+}
+
 UmpHandler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
 {
     SetChordEvent e (event);

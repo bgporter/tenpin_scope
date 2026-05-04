@@ -354,6 +354,12 @@ UmpHandler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
         case FlexDataStatusBank::setupAndPerformance:
             result = handleSetupAndPerformanceEvent (event);
             break;
+        case FlexDataStatusBank::metadataText:
+            result = onMetadataTextEvent (event);
+            break;
+        case FlexDataStatusBank::performanceText:
+            result = onPerformanceTextEvent (event);
+            break;
 
         default: break;
     }

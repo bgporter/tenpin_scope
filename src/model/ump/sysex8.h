@@ -61,7 +61,7 @@ struct Sysex8Event : public UmpEvent
     {
         const int n = std::min ((int) bytes.size (), 13);
         for (int i = 0; i < n; ++i)
-            (*this)[i] = bytes[static_cast<size_t> (i)];
+            setDataByte (i, bytes[static_cast<size_t> (i)]);
         numBytes = n + 1;
     }
 
@@ -98,39 +98,24 @@ struct Sysex8Event : public UmpEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
 
-    cello::ComputedValue<int>& operator[] (int index)
+    void setDataByte (int index, int val)
     {
         switch (index)
         {
-            case 0:
-                return data0;
-            case 1:
-                return data1;
-            case 2:
-                return data2;
-            case 3:
-                return data3;
-            case 4:
-                return data4;
-            case 5:
-                return data5;
-            case 6:
-                return data6;
-            case 7:
-                return data7;
-            case 8:
-                return data8;
-            case 9:
-                return data9;
-            case 10:
-                return data10;
-            case 11:
-                return data11;
-            default:
-                jassertfalse;
-                [[fallthrough]];
-            case 12:
-                return data12;
+            case 0:  data0  = val; break;
+            case 1:  data1  = val; break;
+            case 2:  data2  = val; break;
+            case 3:  data3  = val; break;
+            case 4:  data4  = val; break;
+            case 5:  data5  = val; break;
+            case 6:  data6  = val; break;
+            case 7:  data7  = val; break;
+            case 8:  data8  = val; break;
+            case 9:  data9  = val; break;
+            case 10: data10 = val; break;
+            case 11: data11 = val; break;
+            default: jassertfalse; [[fallthrough]];
+            case 12: data12 = val; break;
         }
     }
 
@@ -190,7 +175,7 @@ private:
     void init () { eventName = "SysEx 8"; }
 };
 
-using Sysex8EventHandler = std::function<void (const Sysex8Event&)>;
+using Sysex8EventHandler = std::function<void (Sysex8Event)>;
 
 class Sysex8EventFactory
 {
@@ -338,7 +323,7 @@ struct MixedDataSetPayloadEvent : public UmpEvent
     {
         const int n = std::min ((int) bytes.size (), 14);
         for (int i = 0; i < n; ++i)
-            (*this)[i] = bytes[static_cast<size_t> (i)];
+            setDataByte (i, bytes[static_cast<size_t> (i)]);
     }
 
     // Word 0
@@ -366,41 +351,25 @@ struct MixedDataSetPayloadEvent : public UmpEvent
     MAKE_COMPUTED_VALUE_MEMBER (
         int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
 
-    cello::ComputedValue<int>& operator[] (int index)
+    void setDataByte (int index, int val)
     {
         switch (index)
         {
-            case 0:
-                return data0;
-            case 1:
-                return data1;
-            case 2:
-                return data2;
-            case 3:
-                return data3;
-            case 4:
-                return data4;
-            case 5:
-                return data5;
-            case 6:
-                return data6;
-            case 7:
-                return data7;
-            case 8:
-                return data8;
-            case 9:
-                return data9;
-            case 10:
-                return data10;
-            case 11:
-                return data11;
-            case 12:
-                return data12;
-            default:
-                jassertfalse;
-                [[fallthrough]];
-            case 13:
-                return data13;
+            case 0:  data0  = val; break;
+            case 1:  data1  = val; break;
+            case 2:  data2  = val; break;
+            case 3:  data3  = val; break;
+            case 4:  data4  = val; break;
+            case 5:  data5  = val; break;
+            case 6:  data6  = val; break;
+            case 7:  data7  = val; break;
+            case 8:  data8  = val; break;
+            case 9:  data9  = val; break;
+            case 10: data10 = val; break;
+            case 11: data11 = val; break;
+            case 12: data12 = val; break;
+            default: jassertfalse; [[fallthrough]];
+            case 13: data13 = val; break;
         }
     }
 
@@ -462,8 +431,8 @@ private:
 
 // ---------------------------------------------------------------------------
 
-using MixedDataSetHeaderHandler  = std::function<void (const MixedDataSetHeaderEvent&)>;
-using MixedDataSetPayloadHandler = std::function<void (const MixedDataSetPayloadEvent&)>;
+using MixedDataSetHeaderHandler  = std::function<void (MixedDataSetHeaderEvent)>;
+using MixedDataSetPayloadHandler = std::function<void (MixedDataSetPayloadEvent)>;
 
 class MixedDataSetFactory
 {

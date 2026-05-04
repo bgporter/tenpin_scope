@@ -117,7 +117,7 @@ public:
               {
                   const uint8_t buf[] = { 0x41, 0x10, 0x42 };
                   int count = 0;
-                  Sysex8EventFactory factory ([&] (const Sysex8Event& e)
+                  Sysex8EventFactory factory ([&] (Sysex8Event e)
                   {
                       ++count;
                       expect (e.status == SysexStatus::complete);
@@ -134,7 +134,7 @@ public:
               {
                   const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
                   int count = 0;
-                  Sysex8EventFactory factory ([&] (const Sysex8Event& e)
+                  Sysex8EventFactory factory ([&] (Sysex8Event e)
                   {
                       if (count == 0)
                       {
@@ -162,7 +162,7 @@ public:
                       27
                   };
                   int count = 0;
-                  Sysex8EventFactory factory ([&] (const Sysex8Event& e)
+                  Sysex8EventFactory factory ([&] (Sysex8Event e)
                   {
                       if (count == 0)
                       {
@@ -303,7 +303,7 @@ public:
                   const uint8_t buf[] = { 0x41, 0x10, 0x42 };
                   int headers = 0, payloads = 0;
                   MixedDataSetFactory factory (
-                      [&] (const MixedDataSetHeaderEvent& h)
+                      [&] (MixedDataSetHeaderEvent h)
                       {
                           ++headers;
                           expect (h.numValidBytes == 3);
@@ -311,7 +311,7 @@ public:
                           expect (h.chunkNumber   == 1);
                           expect (h.manufacturerId == 0x0041);
                       },
-                      [&] (const MixedDataSetPayloadEvent& p)
+                      [&] (MixedDataSetPayloadEvent p)
                       {
                           ++payloads;
                           expect (p[0] == 0x41);
@@ -329,13 +329,13 @@ public:
                   const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
                   int headers = 0, payloads = 0;
                   MixedDataSetFactory factory (
-                      [&] (const MixedDataSetHeaderEvent& h)
+                      [&] (MixedDataSetHeaderEvent h)
                       {
                           ++headers;
                           expect (h.numValidBytes == 15);
                           expect (h.numChunks     == 2);
                       },
-                      [&] (const MixedDataSetPayloadEvent& p)
+                      [&] (MixedDataSetPayloadEvent p)
                       {
                           if (payloads == 0)
                           {
@@ -361,13 +361,13 @@ public:
                   for (int i = 0; i < 28; ++i) buf[i] = (uint8_t) (i + 1);
                   int headers = 0, payloads = 0;
                   MixedDataSetFactory factory (
-                      [&] (const MixedDataSetHeaderEvent& h)
+                      [&] (MixedDataSetHeaderEvent h)
                       {
                           ++headers;
                           expect (h.numValidBytes == 28);
                           expect (h.numChunks     == 2);
                       },
-                      [&] (const MixedDataSetPayloadEvent& p)
+                      [&] (MixedDataSetPayloadEvent p)
                       {
                           if (payloads == 0)
                               expect (p[0] == 1);

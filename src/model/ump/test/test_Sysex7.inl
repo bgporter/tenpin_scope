@@ -63,11 +63,11 @@ public:
                   expect (event[1] == 0x00);
               });
 
-        test ("operator[] write via non-const ref",
+        test ("setDataByte write",
               [&] ()
               {
                   Sysex7Event event (1_gr, SysexStatus::complete, 3, 10, 20, 30);
-                  event[1] = 99;
+                  event.setDataByte (1, 99);
                   expect (event[1] == 99);
                   expect (event[0] == 10);
                   expect (event[2] == 30);
@@ -87,7 +87,7 @@ public:
               {
                   const uint8_t buf[] = { 0x7E, 0x7F, 0x06 };
                   int count = 0;
-                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  Sysex7EventFactory factory ([&] (Sysex7Event e)
                   {
                       ++count;
                       expect (e.status == SysexStatus::complete);
@@ -104,7 +104,7 @@ public:
               {
                   const uint8_t buf[] = { 1, 2, 3, 4, 5, 6 };
                   int count = 0;
-                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  Sysex7EventFactory factory ([&] (Sysex7Event e)
                   {
                       ++count;
                       expect (e.status == SysexStatus::complete);
@@ -119,7 +119,7 @@ public:
               {
                   const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7 };
                   int count = 0;
-                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  Sysex7EventFactory factory ([&] (Sysex7Event e)
                   {
                       if (count == 0)
                       {
@@ -143,7 +143,7 @@ public:
               {
                   const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
                   int count = 0;
-                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  Sysex7EventFactory factory ([&] (Sysex7Event e)
                   {
                       if (count == 0)
                       {
@@ -166,7 +166,7 @@ public:
               {
                   const uint8_t buf[] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13 };
                   int count = 0;
-                  Sysex7EventFactory factory ([&] (const Sysex7Event& e)
+                  Sysex7EventFactory factory ([&] (Sysex7Event e)
                   {
                       if (count == 0)
                       {

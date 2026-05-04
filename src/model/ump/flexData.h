@@ -100,6 +100,32 @@ enum class AlterationType : uint8_t
     lower    = 4,
 };
 
+enum class MetadataTextStatus : uint8_t
+{
+    unknown               = 0x00,
+    projectName           = 0x01,
+    compositionName       = 0x02,
+    midiClipName          = 0x03,
+    copyrightNotice       = 0x04,
+    composerName          = 0x05,
+    lyricistName          = 0x06,
+    arrangerName          = 0x07,
+    publisherName         = 0x08,
+    primaryPerformer      = 0x09,
+    accompanyingPerformer = 0x0A,
+    recordingDate         = 0x0B,
+    recordingLocation     = 0x0C,
+};
+
+enum class PerformanceTextStatus : uint8_t
+{
+    unknown        = 0x00,
+    lyrics         = 0x01,
+    lyricsLanguage = 0x02,
+    ruby           = 0x03,
+    rubyLanguage   = 0x04,
+};
+
 enum class TonicNote
 {
     unknown = 0x0,
@@ -420,4 +446,128 @@ private:
     MAKE_BITFIELD (int, chordSharpsFlatsRaw_, 1, 4, 28);
     MAKE_BITFIELD (int, bassSharpsFlatsRaw_,  3, 4, 28);
     void init () { eventName = "Flex Data: Set Chord"; }
+};
+
+// ---------------------------------------------------------------------------
+
+class FlexDataTextEventFactory;
+
+struct FlexDataTextEvent : public FlexDataEvent
+{
+    // Deserialization constructor
+    FlexDataTextEvent (const UmpEvent& event)
+    : FlexDataEvent (event)
+    {
+        eventName = nameForStatus ();
+    }
+
+    // Byte accessor: index 0-11 across Words 1-3, big-endian within each word
+    uint8_t operator[] (int i) const
+    {
+        const juce::Identifier& id = (i < 4) ? UmpWords::data1Id
+                                   : (i < 8) ? UmpWords::data2Id
+                                             : UmpWords::data3Id;
+        const uint32_t word = getattr<uint32_t> (id, 0);
+        return static_cast<uint8_t> ((word >> (24 - (i % 4) * 8)) & 0xFF);
+    }
+
+    static constexpr int maxBytes = 12;
+
+private:
+    friend class FlexDataTextEventFactory;
+
+    // Construction constructor — used only by factory
+    FlexDataTextEvent (MidiGroup group, FlexDataFormat fmt, FlexDataStatusBank bank,
+                       int theStatus, const uint8_t* data, int count)
+    : FlexDataEvent (group, fmt, FlexDataAddress::group, 0, bank, theStatus)
+    {
+        const juce::Identifier wordIds[3] = { UmpWords::data1Id, UmpWords::data2Id, UmpWords::data3Id };
+        for (int w = 0; w < 3; ++w)
+        {
+            uint32_t word = 0;
+            for (int b = 0; b < 4; ++b)
+            {
+                const int idx = w * 4 + b;
+                if (idx < count)
+                    word |= static_cast<uint32_t> (data[idx]) << (24 - b * 8);
+            }
+            setattr<uint32_t> (wordIds[w], word);
+        }
+        eventName = nameForStatus ();
+    }
+
+    juce::String nameForStatus () const
+    {
+        if (statusBank.get () == FlexDataStatusBank::metadataText)
+        {
+            switch (static_cast<MetadataTextStatus> (status.get ()))
+            {
+                case MetadataTextStatus::projectName:           return "Flex Data: Project Name";
+                case MetadataTextStatus::compositionName:       return "Flex Data: Composition Name";
+                case MetadataTextStatus::midiClipName:          return "Flex Data: MIDI Clip Name";
+                case MetadataTextStatus::copyrightNotice:       return "Flex Data: Copyright Notice";
+                case MetadataTextStatus::composerName:          return "Flex Data: Composer Name";
+                case MetadataTextStatus::lyricistName:          return "Flex Data: Lyricist Name";
+                case MetadataTextStatus::arrangerName:          return "Flex Data: Arranger Name";
+                case MetadataTextStatus::publisherName:         return "Flex Data: Publisher Name";
+                case MetadataTextStatus::primaryPerformer:      return "Flex Data: Primary Performer";
+                case MetadataTextStatus::accompanyingPerformer: return "Flex Data: Accompanying Performer";
+                case MetadataTextStatus::recordingDate:         return "Flex Data: Recording/Concert Date";
+                case MetadataTextStatus::recordingLocation:     return "Flex Data: Recording/Concert Location";
+                default:                                        return "Flex Data: Unknown Metadata Text";
+            }
+        }
+        if (statusBank.get () == FlexDataStatusBank::performanceText)
+        {
+            switch (static_cast<PerformanceTextStatus> (status.get ()))
+            {
+                case PerformanceTextStatus::lyrics:         return "Flex Data: Lyrics";
+                case PerformanceTextStatus::lyricsLanguage: return "Flex Data: Lyrics Language";
+                case PerformanceTextStatus::ruby:           return "Flex Data: Ruby";
+                case PerformanceTextStatus::rubyLanguage:   return "Flex Data: Ruby Language";
+                default:                                    return "Flex Data: Unknown Performance Text";
+            }
+        }
+        return "Flex Data: Text";
+    }
+};
+
+// ---------------------------------------------------------------------------
+
+class FlexDataTextEventFactory
+{
+public:
+    using Callback = std::function<void (FlexDataTextEvent)>;
+
+    FlexDataTextEventFactory (Callback cb) : callback (std::move (cb)) {}
+
+    void createEvents (MidiGroup group, FlexDataStatusBank bank, int theStatus,
+                       std::string_view utf8Text)
+    {
+        const auto* data   = reinterpret_cast<const uint8_t*> (utf8Text.data ());
+        const int   total  = static_cast<int> (utf8Text.size ());
+
+        if (total == 0)
+        {
+            callback (FlexDataTextEvent (group, FlexDataFormat::complete, bank, theStatus, nullptr, 0));
+            return;
+        }
+
+        const int numPackets = (total + 11) / 12;
+        for (int p = 0; p < numPackets; ++p)
+        {
+            FlexDataFormat fmt;
+            if      (numPackets == 1)     fmt = FlexDataFormat::complete;
+            else if (p == 0)              fmt = FlexDataFormat::start;
+            else if (p == numPackets - 1) fmt = FlexDataFormat::end;
+            else                          fmt = FlexDataFormat::continue_;
+
+            const int offset = p * 12;
+            const int count  = std::min (12, total - offset);
+            callback (FlexDataTextEvent (group, fmt, bank, theStatus, data + offset, count));
+        }
+    }
+
+private:
+    Callback callback;
 };

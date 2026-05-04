@@ -46,7 +46,7 @@ struct Sysex7Event : public UmpEvent
     {
         const int n = std::min ((int) bytes.size (), 6);
         for (int i = 0; i < n; ++i)
-            (*this)[i] = bytes[static_cast<size_t> (i)] & 0x7F;
+            setDataByte (i, bytes[static_cast<size_t> (i)] & 0x7F);
         numBytes = n;
     }
 
@@ -80,17 +80,17 @@ struct Sysex7Event : public UmpEvent
         [this] () -> int { return group.get () + 1; },
         [this] (const int& val) { group = val - 1; });
 
-    cello::ComputedValue<int>& operator[] (int index)
+    void setDataByte (int index, int val)
     {
         switch (index)
         {
-            case 0:  return data0;
-            case 1:  return data1;
-            case 2:  return data2;
-            case 3:  return data3;
-            case 4:  return data4;
+            case 0:  data0 = val; break;
+            case 1:  data1 = val; break;
+            case 2:  data2 = val; break;
+            case 3:  data3 = val; break;
+            case 4:  data4 = val; break;
             default: jassertfalse; [[fallthrough]];
-            case 5:  return data5;
+            case 5:  data5 = val; break;
         }
     }
 
@@ -125,7 +125,7 @@ private:
     void init () { eventName = "SysEx 7"; }
 };
 
-using Sysex7EventHandler = std::function<void(const Sysex7Event&)>;
+using Sysex7EventHandler = std::function<void(Sysex7Event)>;
 
 class Sysex7EventFactory
 {

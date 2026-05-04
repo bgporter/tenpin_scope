@@ -35,6 +35,7 @@ struct Sysex7Event;
 struct Sysex8Event;
 struct MixedDataSetHeaderEvent;
 struct MixedDataSetPayloadEvent;
+struct FlexDataTextEvent;
 struct SetChordEvent;
 struct SetKeySignatureEvent;
 struct SetMetronomeEvent;
@@ -87,6 +88,8 @@ private:
     UmpHandler::Result onSetMetronomeEvent        (const UmpEvent& event) override;
     UmpHandler::Result onSetKeySignatureEvent     (const UmpEvent& event) override;
     UmpHandler::Result onSetChordEvent            (const UmpEvent& event) override;
+    UmpHandler::Result onMetadataTextEvent        (const UmpEvent& event) override;
+    UmpHandler::Result onPerformanceTextEvent     (const UmpEvent& event) override;
     ///@}
 
     /**
@@ -159,6 +162,7 @@ private:
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
     ///@}
 
+    UmpHandler::Result handleTextEvent (const UmpEvent& event);
     UmpHandler::Result addSysex7DataValues (const Sysex7Event& e);
     UmpHandler::Result addSysex8DataValues (const Sysex8Event& e);
     UmpHandler::Result addSystemCommonNoDataValues (const SystemCommonEvent& e);

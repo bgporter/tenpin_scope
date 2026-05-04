@@ -36,39 +36,52 @@ const juce::Identifier data3Id { "data3" };
 
 /**
  * @class BitField
- * @brief A class that represents a bit field within a larger value.
+ * @brief A bit-field accessor backed by a juce::ValueTree stored by value.
+ *
+ * Storing the tree by value (a ref-counted handle sharing the parent's
+ * SharedObject) means copies and moves of the containing event object are
+ * safe: each BitField holds its own reference to the same underlying data,
+ * with no dangling pointers to a parent object or captured `this`.
  */
-template <typename T, int wordIndex, int dataWidth, int shiftBits> class BitField : public cello::ComputedValue<T>
+template <typename T, int wordIndex, int dataWidth, int shiftBits> class BitField
 {
 public:
-    using cello::ComputedValue<T>::operator=;
-    constexpr static uint32_t mask         = (dataWidth == 32) ? 0xFFFFFFFF : (1u << dataWidth) - 1;
+    constexpr static uint32_t mask = (dataWidth == 32) ? 0xFFFFFFFF : (1u << dataWidth) - 1;
 
-    BitField (cello::Object& object, const juce::Identifier& id)
-    : cello::ComputedValue<T> { object, id }
+    static_assert (wordIndex >= 0 && wordIndex < 4,    "Word index must be between 0 and 3");
+    static_assert (dataWidth > 0 && dataWidth <= 32,   "Data width must be between 1 and 32");
+    static_assert (shiftBits >= 0 && shiftBits < 32,   "Shift bits must be between 0 and 31");
+    static_assert (shiftBits + dataWidth <= 32,        "Shift bits + data width must be ≤ 32");
+
+    BitField (cello::Object& object, const juce::Identifier& /*id*/)
+    : tree { static_cast<juce::ValueTree> (object) }
     {
-        static_assert (wordIndex >= 0 && wordIndex < 4, "Word index must be between 0 and 3");
-        static_assert (dataWidth > 0 && dataWidth <= 32, "Data width must be between 1 and 32");
-        static_assert (shiftBits >= 0 && shiftBits < 32, "Shift bits must be between 0 and 31");
-        static_assert (shiftBits + dataWidth <= 32, "Shift bits + data width must be less than or equal to 32");
-        this->getImpl = [this] () -> T
-        {
-            const auto raw = getRawWord ();
-            return static_cast<T> ((raw >> shiftBits) & mask);
-        };
+    }
 
-        this->setImpl = [this] (const T& val)
-        {
-            const auto raw    = getRawWord ();
-            const auto newRaw = (raw & ~(mask << shiftBits)) | (static_cast<uint32_t> (val) << shiftBits);
-            setRawWord (newRaw);
-        };
+    // Default copy/move: juce::ValueTree is a ref-counted handle, so copies
+    // share the same underlying SharedObject — safe and cheap.
+    BitField (const BitField&)            = default;
+    BitField& operator= (const BitField&) = default;
+    BitField (BitField&&)                 = default;
+    BitField& operator= (BitField&&)      = default;
+
+    T get () const
+    {
+        return static_cast<T> ((getRawWord () >> shiftBits) & mask);
+    }
+
+    operator T () const { return get (); }
+
+    BitField& operator= (const T& val)
+    {
+        const auto raw    = getRawWord ();
+        const auto newRaw = (raw & ~(mask << shiftBits)) | (static_cast<uint32_t> (val) << shiftBits);
+        setRawWord (newRaw);
+        return *this;
     }
 
     /**
      * @brief Get the identifier of the data word for this bit field.
-     *
-     * @return juce::Identifier
      */
     static juce::Identifier getDataId ()
     {
@@ -84,19 +97,18 @@ public:
         // clang-format on
     }
 
-    /**
-     * @brief Get the raw word value for this bit field.
-     *
-     * @return uint32_t
-     */
-    uint32_t getRawWord () const { return this->object.template getattr<uint32_t> (getDataId (), 0); }
+    uint32_t getRawWord () const
+    {
+        return static_cast<uint32_t> (static_cast<int64_t> (tree.getProperty (getDataId (), 0)));
+    }
 
-    /**
-     * @brief Set the raw word value for this bit field.
-     *
-     * @param raw
-     */
-    void setRawWord (uint32_t raw) { this->object.template setattr<uint32_t> (getDataId (), raw); }
+    void setRawWord (uint32_t raw)
+    {
+        tree.setProperty (getDataId (), static_cast<int64_t> (raw), nullptr);
+    }
+
+private:
+    juce::ValueTree tree;
 };
 
 // clang-format off

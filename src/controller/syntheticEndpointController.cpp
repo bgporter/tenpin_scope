@@ -99,6 +99,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addSysex8Events ();
     addMixedDataSetEvents ();
     addFlexDataEvents ();
+    addFlexDataTextEvents ();
     addMidi1Events ();
     addMidi2Events ();
 }
@@ -146,7 +147,7 @@ void SyntheticEndpointController::addSysex7Events ()
         0x00, 0x7F, 0x00, 0x00, 0x41, 0x00,  // GS parameter data
         0x01, 0x02, 0x03, 0x00               // trailing bytes
     };
-    Sysex7EventFactory factory ([this] (const Sysex7Event& e)
+    Sysex7EventFactory factory ([this] (Sysex7Event e)
                                 { eventList.addEvent (100, e); });
     factory.createEvents (1, std::span (payload));
 }
@@ -178,9 +179,32 @@ void SyntheticEndpointController::addSysex8Events ()
         0xFF, 0xEE, 0xDD, 0xCC, 0xBB, 0xAA, 0x99, 0x88, 0x77, 0x66, 0x55, 0x44, 0x33,
         0x22, 0x11, 0x00, 0xAB
     };
-    Sysex8EventFactory factory ([this] (const Sysex8Event& e)
+    Sysex8EventFactory factory ([this] (Sysex8Event e)
                                 { eventList.addEvent (100, e); });
     factory.createEvents (1, 0x04, std::span (payload));
+}
+
+void SyntheticEndpointController::addFlexDataTextEvents ()
+{
+    auto addText = [this] (FlexDataTextEvent e) { eventList.addEvent (100, e); };
+    FlexDataTextEventFactory factory (addText);
+
+    // Short — fits in one complete packet
+    factory.createEvents (1, FlexDataStatusBank::metadataText,
+                          static_cast<int> (MetadataTextStatus::composerName), "J.S. Bach");
+
+    // Longer — spans three packets (start / continue / end); 26 chars = 12+12+2
+    factory.createEvents (1, FlexDataStatusBank::metadataText,
+                          static_cast<int> (MetadataTextStatus::compositionName),
+                          "Brandenburg Concerto No. 3");
+
+    // Arranger — single packet
+    factory.createEvents (1, FlexDataStatusBank::metadataText,
+                          static_cast<int> (MetadataTextStatus::arrangerName), "Ravel");
+
+    // Performance text — single packet
+    factory.createEvents (1, FlexDataStatusBank::performanceText,
+                          static_cast<int> (PerformanceTextStatus::lyrics), "Twinkle");
 }
 
 void SyntheticEndpointController::addMidi1Events ()
@@ -252,7 +276,7 @@ void SyntheticEndpointController::addMixedDataSetEvents ()
         0xEC, 0xEB
     };
     MixedDataSetFactory factory (
-        [this] (const MixedDataSetHeaderEvent& h)  { eventList.addEvent (100, h); },
-        [this] (const MixedDataSetPayloadEvent& p) { eventList.addEvent (100, p); });
+        [this] (MixedDataSetHeaderEvent h)  { eventList.addEvent (100, h); },
+        [this] (MixedDataSetPayloadEvent p) { eventList.addEvent (100, p); });
     factory.createEvents (1, 2, 0x0041, 0x0010, 0x02, 0x03, std::span (payload));
 }
