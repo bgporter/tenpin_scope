@@ -49,6 +49,7 @@ struct Midi2NoteEvent;
 struct Midi2PerNoteEvent;
 struct Midi2ControllerEvent;
 struct Midi2RelativeControllerEvent;
+struct StreamTextEvent;
 
 class EventListViewHandler : public UmpHandler
 {
@@ -162,6 +163,24 @@ private:
     UmpHandler::Result onUmpEvent (const UmpEvent& event) override;
     ///@}
 
+    /**
+     * @name UMP Stream Message Handlers
+     */
+    ///@{
+    UmpHandler::Result onEndpointDiscoveryEvent             (const UmpEvent& event) override;
+    UmpHandler::Result onEndpointInfoNotificationEvent      (const UmpEvent& event) override;
+    UmpHandler::Result onDeviceIdentityNotificationEvent    (const UmpEvent& event) override;
+    UmpHandler::Result onEndpointNameNotificationEvent      (const UmpEvent& event) override;
+    UmpHandler::Result onProductInstanceIdEvent             (const UmpEvent& event) override;
+    UmpHandler::Result onStreamConfigRequestEvent           (const UmpEvent& event) override;
+    UmpHandler::Result onStreamConfigNotificationEvent      (const UmpEvent& event) override;
+    UmpHandler::Result onFunctionBlockDiscoveryEvent        (const UmpEvent& event) override;
+    UmpHandler::Result onFunctionBlockInfoNotificationEvent (const UmpEvent& event) override;
+    UmpHandler::Result onFunctionBlockNameNotificationEvent (const UmpEvent& event) override;
+    UmpHandler::Result onStartOfClipEvent                   (const UmpEvent& event) override;
+    UmpHandler::Result onEndOfClipEvent                     (const UmpEvent& event) override;
+    ///@}
+
     UmpHandler::Result handleTextEvent (const UmpEvent& event);
     UmpHandler::Result addSysex7DataValues (const Sysex7Event& e);
     UmpHandler::Result addSysex8DataValues (const Sysex8Event& e);
@@ -173,6 +192,8 @@ private:
     UmpHandler::Result addMidi2PerNoteValues (const Midi2PerNoteEvent& e);
     UmpHandler::Result addMidi2ControllerValues (const Midi2ControllerEvent& e);
     UmpHandler::Result addMidi2RelativeControllerValues (const Midi2RelativeControllerEvent& e);
+    UmpHandler::Result addStreamTextValues (const StreamTextEvent& e);
+    UmpHandler::Result addStreamConfigValues (const UmpEvent& event, int theStatus);
 
     AppContext appContext;
     PersistentContext pc;

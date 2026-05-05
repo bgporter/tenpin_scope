@@ -424,6 +424,7 @@ struct StreamTextEvent : public StreamEvent
     StreamTextEvent (const UmpEvent& event)
     : StreamEvent (event)
     {
+        init ();
     }
 
     // Word 0, bits 15:8 — function block number for FunctionBlockNameNotification,
@@ -443,9 +444,24 @@ struct StreamTextEvent : public StreamEvent
 private:
     friend class StreamTextEventFactory;
 
+    void init ()
+    {
+        switch (status.get ())
+        {
+            case StreamStatus::endpointNameNotification:
+                eventName = "Stream: Endpoint Name Notification"; break;
+            case StreamStatus::productInstanceId:
+                eventName = "Stream: Product Instance Id"; break;
+            case StreamStatus::functionBlockNameNotification:
+                eventName = "Stream: Function Block Name Notification"; break;
+            default: break;
+        }
+    }
+
     StreamTextEvent (StreamFormat theFmt, int theStatus, int theFunctionBlockNumber, const uint8_t* data, int count)
     : StreamEvent (theFmt, theStatus)
     {
+        init ();
         functionBlockNumber               = theFunctionBlockNumber;
         const juce::Identifier wordIds[3] = { UmpWords::data1Id, UmpWords::data2Id, UmpWords::data3Id };
         for (int w = 0; w < 3; ++w)

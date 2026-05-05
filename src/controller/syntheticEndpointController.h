@@ -67,6 +67,7 @@ private:
     void addFlexDataTextEvents ();
     void addMidi1Events ();
     void addMidi2Events ();
+    void addStreamEvents ();
     void startPlayback ();
 
     MidiProperties         midiProperties;

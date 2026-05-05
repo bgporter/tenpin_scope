@@ -27,6 +27,7 @@
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/flexData.h"
+#include "model/ump/stream.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
 #include "model/ump/sysex8.h"
@@ -1016,6 +1017,181 @@ UmpHandler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
 
     return UmpHandler::Result::ok;
 }
+
+// ---------------------------------------------------------------------------
+// Stream event handlers
+
+UmpHandler::Result EventListViewHandler::onEndpointDiscoveryEvent (const UmpEvent& event)
+{
+    EndpointDiscoveryEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("ver", juce::String ((int) e.umpVersionMajor) + "." + juce::String ((int) e.umpVersionMinor));
+    eventView->addValue ("e", (bool) e.requestEndpointInfo      ? "Y" : "N");
+    eventView->addValue ("d", (bool) e.requestDeviceIdentity    ? "Y" : "N");
+    eventView->addValue ("n", (bool) e.requestEndpointName      ? "Y" : "N");
+    eventView->addValue ("i", (bool) e.requestProductInstanceId ? "Y" : "N");
+    eventView->addValue ("s", (bool) e.requestStreamConfig      ? "Y" : "N");
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onEndpointInfoNotificationEvent (const UmpEvent& event)
+{
+    EndpointInfoNotificationEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("ver",    juce::String ((int) e.umpVersionMajor) + "." + juce::String ((int) e.umpVersionMinor));
+    eventView->addValue ("static", (bool) e.staticFunctionBlocks ? "Y" : "N");
+    eventView->addValue ("fb",     juce::String ((int) e.numFunctionBlocks));
+    eventView->addValue ("m2",     (bool) e.midi2Protocol ? "Y" : "N");
+    eventView->addValue ("m1",     (bool) e.midi1Protocol ? "Y" : "N");
+    eventView->addValue ("rxJR",   (bool) e.rxJrTimestamp ? "Y" : "N");
+    eventView->addValue ("txJR",   (bool) e.txJrTimestamp ? "Y" : "N");
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onDeviceIdentityNotificationEvent (const UmpEvent& event)
+{
+    DeviceIdentityNotificationEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    auto hex2 = [] (int v) { return juce::String::toHexString (v).paddedLeft ('0', 2).toUpperCase (); };
+    const juce::String mfrStr = hex2 (e.mfrId1) + " " + hex2 (e.mfrId2) + " " + hex2 (e.mfrId3);
+    eventView->addValue ("mfr",    mfrStr);
+    eventView->addValue ("family", juce::String ((int) e.deviceFamily));
+    eventView->addValue ("model",  juce::String ((int) e.modelNumber));
+    eventView->addValue ("rev",    hex2 (e.swRev1) + " " + hex2 (e.swRev2) + " " + hex2 (e.swRev3) + " " + hex2 (e.swRev4));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::addStreamTextValues (const StreamTextEvent& e)
+{
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    if (e.status == StreamStatus::functionBlockNameNotification)
+        eventView->addValue ("fb", juce::String ((int) e.functionBlockNumber));
+    static constexpr const char* fmtNames[] = { "complete", "start", "continue", "end" };
+    const int fi = static_cast<int> (e.format.get ());
+    eventView->addValue ("fmt", (fi >= 0 && fi <= 3) ? fmtNames[fi] : "?");
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    juce::String bytesStr;
+    for (int i = 0; i < StreamTextEvent::maxBytes; ++i)
+    {
+        const uint8_t b = e[i];
+        if (b == 0)
+            break;
+        if (i > 0)
+            bytesStr += " ";
+        if (b >= 0x20 && b <= 0x7E)
+            bytesStr += juce::String ("'") + juce::String::charToString ((juce::juce_wchar) b) + "'";
+        else
+            bytesStr += isInteger ? juce::String ((int) b)
+                                  : juce::String::toHexString ((int) b).paddedLeft ('0', 2).toUpperCase ();
+    }
+    if (bytesStr.isNotEmpty ())
+        eventView->addValue ("data", bytesStr);
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onEndpointNameNotificationEvent (const UmpEvent& event)
+{
+    StreamTextEvent e (event);
+    return addStreamTextValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onProductInstanceIdEvent (const UmpEvent& event)
+{
+    StreamTextEvent e (event);
+    return addStreamTextValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::addStreamConfigValues (const UmpEvent& event, int theStatus)
+{
+    StreamConfigurationRequestEvent e (event);
+    eventView->setEvent (theStatus == StreamStatus::streamConfigRequest
+                             ? juce::String (e.eventName)
+                             : juce::String ("Stream: Stream Configuration Notification"));
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    const int proto = e.protocol;
+    const juce::String protoStr = (proto == 1) ? "MIDI 1.0" : (proto == 2) ? "MIDI 2.0" : juce::String (proto);
+    eventView->addValue ("proto", protoStr);
+    eventView->addValue ("rxJR", (bool) e.rxJrTimestamp ? "Y" : "N");
+    eventView->addValue ("txJR", (bool) e.txJrTimestamp ? "Y" : "N");
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onStreamConfigRequestEvent (const UmpEvent& event)
+{
+    return addStreamConfigValues (event, StreamStatus::streamConfigRequest);
+}
+
+UmpHandler::Result EventListViewHandler::onStreamConfigNotificationEvent (const UmpEvent& event)
+{
+    return addStreamConfigValues (event, StreamStatus::streamConfigNotification);
+}
+
+UmpHandler::Result EventListViewHandler::onFunctionBlockDiscoveryEvent (const UmpEvent& event)
+{
+    FunctionBlockDiscoveryEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    const int fb = e.functionBlockNumber;
+    eventView->addValue ("fb", fb == 0xFF ? "all" : juce::String (fb));
+    eventView->addValue ("i",  (bool) e.requestInfo ? "Y" : "N");
+    eventView->addValue ("n",  (bool) e.requestName ? "Y" : "N");
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onFunctionBlockInfoNotificationEvent (const UmpEvent& event)
+{
+    FunctionBlockInfoNotificationEvent e (event);
+    eventView->setEvent (e.eventName);
+    if (!pc.eventViewContext.umpShowParsedData)
+        return UmpHandler::Result::ok;
+    eventView->addValue ("active", (bool) e.active ? "Y" : "N");
+    eventView->addValue ("fb",     juce::String ((int) e.functionBlockNumber));
+    static constexpr const char* dirNames[] = { "reserved", "input", "output", "bidir" };
+    eventView->addValue ("dir", dirNames[(int) e.direction & 0x3]);
+    eventView->addValue ("ui",  juce::String ((int) e.uiHint));
+    eventView->addValue ("m1",  juce::String ((int) e.midi1));
+    const int fg = e.firstGroup;
+    const int ng = e.numGroups;
+    juce::String grpStr = juce::String (fg + 1);
+    if (ng > 1)
+        grpStr += "-" + juce::String (fg + ng);
+    eventView->addValue ("grp",  grpStr);
+    eventView->addValue ("m1ch", juce::String ((int) e.numMidi1Channels));
+    eventView->addValue ("sx8",  juce::String ((int) e.maxSysex8Streams));
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onFunctionBlockNameNotificationEvent (const UmpEvent& event)
+{
+    StreamTextEvent e (event);
+    return addStreamTextValues (e);
+}
+
+UmpHandler::Result EventListViewHandler::onStartOfClipEvent (const UmpEvent& event)
+{
+    StartOfClipEvent e (event);
+    eventView->setEvent (e.eventName);
+    return UmpHandler::Result::ok;
+}
+
+UmpHandler::Result EventListViewHandler::onEndOfClipEvent (const UmpEvent& event)
+{
+    EndOfClipEvent e (event);
+    eventView->setEvent (e.eventName);
+    return UmpHandler::Result::ok;
+}
+
+// ---------------------------------------------------------------------------
 
 UmpHandler::Result EventListViewHandler::onUmpEvent (const UmpEvent& event)
 {

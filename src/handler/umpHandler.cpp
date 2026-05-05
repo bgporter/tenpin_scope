@@ -27,6 +27,7 @@
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/flexData.h"
+#include "model/ump/stream.h"
 #include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
 #include "model/ump/sysex8.h"
@@ -63,6 +64,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
                 break;
             case MessageTypes::flexData:
                 result = handleFlexDataEvent (event);
+                break;
+            case MessageTypes::stream:
+                result = handleStreamEvent (event);
                 break;
             default:
                 result = onUmpEvent (event);
@@ -337,6 +341,36 @@ UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& eve
 
     if (result == Result::notHandled)
         result = onMidi2ChannelVoiceEvent (event);
+
+    if (result == Result::notHandled)
+        result = onUmpEvent (event);
+
+    return result;
+}
+
+UmpHandler::Result UmpHandler::handleStreamEvent (const UmpEvent& event)
+{
+    Result result { defaultResult };
+    StreamEvent e (event);
+    switch (e.status)
+    {
+        case StreamStatus::endpointDiscovery:             result = onEndpointDiscoveryEvent             (event); break;
+        case StreamStatus::endpointInfoNotification:      result = onEndpointInfoNotificationEvent      (event); break;
+        case StreamStatus::deviceIdentityNotification:    result = onDeviceIdentityNotificationEvent    (event); break;
+        case StreamStatus::endpointNameNotification:      result = onEndpointNameNotificationEvent      (event); break;
+        case StreamStatus::productInstanceId:             result = onProductInstanceIdEvent             (event); break;
+        case StreamStatus::streamConfigRequest:           result = onStreamConfigRequestEvent           (event); break;
+        case StreamStatus::streamConfigNotification:      result = onStreamConfigNotificationEvent      (event); break;
+        case StreamStatus::functionBlockDiscovery:        result = onFunctionBlockDiscoveryEvent        (event); break;
+        case StreamStatus::functionBlockInfoNotification: result = onFunctionBlockInfoNotificationEvent (event); break;
+        case StreamStatus::functionBlockNameNotification: result = onFunctionBlockNameNotificationEvent (event); break;
+        case StreamStatus::startOfClip:                   result = onStartOfClipEvent                  (event); break;
+        case StreamStatus::endOfClip:                     result = onEndOfClipEvent                    (event); break;
+        default: break;
+    }
+
+    if (result == Result::notHandled)
+        result = onStreamEvent (event);
 
     if (result == Result::notHandled)
         result = onUmpEvent (event);

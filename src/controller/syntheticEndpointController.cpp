@@ -30,6 +30,7 @@
 #include "model/ump/sysex7.h"
 #include "model/ump/flexData.h"
 #include "model/ump/sysex8.h"
+#include "model/ump/stream.h"
 #include "model/ump/utility.h"
 
 SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& mp,
@@ -102,6 +103,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addFlexDataTextEvents ();
     addMidi1Events ();
     addMidi2Events ();
+    addStreamEvents ();
 }
 
 void SyntheticEndpointController::addUtilityEvents ()
@@ -256,6 +258,55 @@ void SyntheticEndpointController::addMidi2Events ()
 {
     eventList.addEvent (1000, Midi2NoteOnEvent  (1, 1, 62, MidiUnipolarFloat (0.8f)));
     eventList.addEvent (250,  Midi2NoteOffEvent (1, 1, 62, MidiUnipolarFloat (0.25f)));
+}
+
+void SyntheticEndpointController::addStreamEvents ()
+{
+    // Endpoint Discovery — request all notification types
+    eventList.addEvent (100, EndpointDiscoveryEvent (1, 1, true, true, true, true, true));
+
+    // Endpoint Info — 2 static function blocks, supports both MIDI 1.0 and 2.0
+    eventList.addEvent (100, EndpointInfoNotificationEvent (1, 1, true, 2, true, true, false, false));
+
+    // Device Identity — Yamaha (0x43), family 5, model 3, revision 1.0.0.0
+    eventList.addEvent (100, DeviceIdentityNotificationEvent (0x43, 0, 0,
+                                                               MidiWord (5), MidiWord (3),
+                                                               1, 0, 0, 0));
+
+    // Endpoint name (fits one packet) and product instance ID
+    {
+        auto add = [this] (StreamTextEvent e) { eventList.addEvent (100, e); };
+        StreamTextEventFactory factory (add);
+        factory.createEvents (StreamStatus::endpointNameNotification, 0, "Synth Piano");
+        factory.createEvents (StreamStatus::productInstanceId,        0, "SN20250401");
+    }
+
+    // Stream configuration — request MIDI 2.0, no JR timestamps; device confirms
+    eventList.addEvent (100, StreamConfigurationRequestEvent      (2, false, false));
+    eventList.addEvent (100, StreamConfigurationNotificationEvent (2, false, false));
+
+    // Function Block Discovery — all blocks, request info and name for each
+    eventList.addEvent (100, FunctionBlockDiscoveryEvent (0xFF, true, true));
+
+    // Function Block 0: Keys — bidirectional, MIDI 2.0, group 0, 16 SysEx8 streams
+    //   uiHint=3 (sender+receiver), midi1=0 (no restriction), direction=3 (bidirectional)
+    eventList.addEvent (100, FunctionBlockInfoNotificationEvent (true, 0, 3, 0, 3, 0, 1, 16, 16));
+
+    // Function Block 1: Pads — input only, MIDI 2.0, group 1, 8 SysEx8 streams
+    //   uiHint=2 (sender), midi1=0, direction=1 (input to MIDI device)
+    eventList.addEvent (100, FunctionBlockInfoNotificationEvent (true, 1, 2, 0, 1, 1, 1, 16, 8));
+
+    // Function block names
+    {
+        auto add = [this] (StreamTextEvent e) { eventList.addEvent (100, e); };
+        StreamTextEventFactory factory (add);
+        factory.createEvents (StreamStatus::functionBlockNameNotification, 0, "Keys");
+        factory.createEvents (StreamStatus::functionBlockNameNotification, 1, "Pads");
+    }
+
+    // Clip markers
+    eventList.addEvent (100, StartOfClipEvent ());
+    eventList.addEvent (100, EndOfClipEvent   ());
 }
 
 void SyntheticEndpointController::addMixedDataSetEvents ()
