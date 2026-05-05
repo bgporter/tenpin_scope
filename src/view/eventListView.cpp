@@ -242,6 +242,11 @@ void EventListView::forceRebuild ()
     const int newWidth = getWidth ();
     DBG ("EventListView::forceRebuild at width: " << newWidth);
 
+    // Save scroll position before clear(): setting content height to 0 forces the
+    // viewport back to the top, losing where the user was.
+    const int savedViewY = (viewport != nullptr) ? viewport->getViewPositionY () : 0;
+    const int oldHeight  = getHeight ();
+
     isRecalculating = true;
     int newHeight { 0 };
     clear ();
@@ -257,9 +262,26 @@ void EventListView::forceRebuild ()
         eventViewPool.returnEventView (std::move (eventView));
     }
 
-    isRecalculating = false;
-    visibleArea     = {}; // force visibleAreaChanged to re-evaluate after rebuild
+    // Keep isRecalculating = true through setSize so the scrollBarMoved notification
+    // that fires when content grows back from 0 doesn't trigger visibleAreaChanged
+    // prematurely at the wrong (top) position.
+    visibleArea = {};
     setSize (newWidth, newHeight);
+    isRecalculating = false;
+
+    if (viewport != nullptr)
+    {
+        // Restore proportional scroll position. Event heights may differ after a
+        // settings change (e.g. number format), so map proportionally rather than
+        // using the raw pixel offset.
+        if (oldHeight > 0 && newHeight > 0)
+            viewport->setViewPosition (0, juce::roundToInt ((double) savedViewY / oldHeight * newHeight));
+
+        // Unconditionally populate the visible views for whatever position we're at now.
+        // setViewPosition may or may not fire scrollBarMoved depending on whether the
+        // position actually changed; this call guarantees the deque is filled.
+        visibleAreaChanged (viewport->getViewArea ());
+    }
 }
 
 void EventListView::refreshVisibleViews ()

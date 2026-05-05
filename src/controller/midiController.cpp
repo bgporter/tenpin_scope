@@ -250,7 +250,7 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     int i { 0 };
     for (; i < currentEvents.getNumChildren (); ++i)
     {
-        juce::ValueTree ev = currentEvents[i];
+        juce::ValueTree ev = currentEvents[i].createCopy ();
         jassert (ev.isValid ());
         UmpEvent evCopy (ev);
         midiProperties.midiEvents.addEvent (evCopy);
