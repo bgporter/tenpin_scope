@@ -80,11 +80,17 @@ set (SOURCES_CONTROLLER
     src/controller/syntheticEndpointController.cpp)
 
 set (SOURCES_HANDLER
+    src/handler/handlerResult.h
+    src/handler/msgHandler.h
+    src/handler/msgHandler.cpp
+    src/handler/eventDispatcher.h
+    src/handler/eventDispatcher.cpp
     src/handler/umpHandler.h
     src/handler/umpHandler.cpp)
 
 set (SOURCES_MODEL
     src/model/appContext.h
+    src/model/event.h
     src/model/eventList.h
     src/model/eventList.cpp
     src/model/midiProperties.h
@@ -141,8 +147,11 @@ set(SOURCES_VIEW
     src/view/eventListView.cpp
     src/view/eventListSettingsView.h
     src/view/eventListSettingsView.cpp
+    src/view/dispatchContext.h
     src/view/eventListViewHandler.h
     src/view/eventListViewHandler.cpp
+    src/view/eventListViewMsgHandler.h
+    src/view/eventListViewMsgHandler.cpp
     src/view/labeledValue.h
     src/view/labeledValue.cpp
     src/view/palette.h

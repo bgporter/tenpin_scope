@@ -27,6 +27,7 @@
 #include <JuceHeader.h>
 
 #include "bitField.h"
+#include "model/event.h"
 #include "utility/variantConverters.h"
 
 namespace MessageTypes
@@ -146,11 +147,11 @@ template <> struct VariantConverter<MtcMessageType>
 };
 } // namespace juce
 
-struct UmpEvent : public cello::Object
+struct UmpEvent : public Event
 {
     static const inline juce::Identifier type { "UmpEvent" };
     UmpEvent (const juce::ump::View& view, double timestamp, int endpointIndex)
-    : cello::Object { type.toString (), nullptr }
+    : Event { type.toString () }
     {
         // is this too clever?
         switch (view.size ())
@@ -175,7 +176,7 @@ struct UmpEvent : public cello::Object
     }
 
     UmpEvent (const uint32_t* data, size_t size, double timestamp, int endpointIndex)
-    : cello::Object { type.toString (), nullptr }
+    : Event { type.toString () }
     {
         // Constructor taking raw packet data directly (for thread-safe queueing)
         switch (size)
@@ -198,12 +199,12 @@ struct UmpEvent : public cello::Object
     }
 
     UmpEvent ()
-    : cello::Object { type.toString (), nullptr }
+    : Event { type.toString () }
     {
     }
 
     UmpEvent (juce::ValueTree valueTree)
-    : cello::Object { type.toString (), valueTree }
+    : Event { type.toString (), valueTree }
     {
         if (valueTree.getType () != type)
         {
@@ -212,10 +213,6 @@ struct UmpEvent : public cello::Object
         }
     }
 
-    MAKE_VALUE_MEMBER (double, timestamp, 0.0);
-    MAKE_VALUE_MEMBER (int, endpointIndex, 0);
-    MAKE_VALUE_MEMBER (juce::String, endpointName, "");
-    MAKE_VALUE_MEMBER (bool, isReceived, false);
     MAKE_VALUE_MEMBER (juce::String, eventName, "UMP Event");
 
     MAKE_BITFIELD (int, messageType, 0, 4, 28);

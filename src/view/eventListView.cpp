@@ -26,9 +26,12 @@
 
 #include <algorithm>
 
+#include "eventListViewHandler.h"
+#include "eventListViewMsgHandler.h"
 #include "model/ump/umpEvent.h"
 #include "palette.h"
 #include "utility/logger.h"
+#include "view/dispatchContext.h"
 
 EventListView::EventListView (AppContext& theAppContext)
 : appContext { theAppContext }
@@ -36,7 +39,8 @@ EventListView::EventListView (AppContext& theAppContext)
 , persistentContext { appContext }
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
-, handler { std::make_unique<EventListViewHandler> (appContext) }
+, dispatcher { std::make_unique<EventDispatcher> (std::make_unique<EventListViewHandler> (appContext),
+                                                   std::make_unique<EventListViewMsgHandler> ()) }
 , eventViewPool { appContext }
 {
     eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };
@@ -95,8 +99,9 @@ std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, i
 {
     UmpEvent event (vt);
     auto eventView { eventViewPool.getEventView () };
-    const auto result { handler->handle (event, index, eventView.get (), width) };
-    if (result != UmpHandler::Result::ok)
+    DispatchContext ctx { index, eventView.get (), width };
+    const auto result { dispatcher->dispatch (event, &ctx) };
+    if (result != Handler::Result::ok)
     {
         const auto fmt { juce::XmlElement::TextFormat ().singleLine ().withoutHeader () };
         WARN_ ({

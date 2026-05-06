@@ -37,10 +37,15 @@ UmpHandler::UmpHandler () {}
 
 UmpHandler::~UmpHandler () {}
 
-UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
+Handler::Result UmpHandler::handle (const UmpEvent& event, void* /*ctx*/)
 {
-    Result result { preDispatch (event) };
-    if (result == Result::ok)
+    return handle (event);
+}
+
+Handler::Result UmpHandler::handle (const UmpEvent& event)
+{
+    Handler::Result result { preDispatch (event) };
+    if (result == Handler::Result::ok)
     {
         switch (event.messageType)
         {
@@ -76,9 +81,9 @@ UmpHandler::Result UmpHandler::handle (const UmpEvent& event)
     return postDispatch (event, result);
 }
 
-UmpHandler::Result UmpHandler::handleSysex7Event (const UmpEvent& event)
+Handler::Result UmpHandler::handleSysex7Event (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     Sysex7Event e (event);
     switch (e.status)
     {
@@ -89,18 +94,18 @@ UmpHandler::Result UmpHandler::handleSysex7Event (const UmpEvent& event)
         default: break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onSysex7Event (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleSysex8Event (const UmpEvent& event)
+Handler::Result UmpHandler::handleSysex8Event (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     Sysex8Event e (event);
     switch (e.status)
     {
@@ -113,18 +118,18 @@ UmpHandler::Result UmpHandler::handleSysex8Event (const UmpEvent& event)
         default: break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onSysex8Event (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleSystemCommonEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleSystemCommonEvent (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     SystemCommonEvent systemCommonEvent (event);
     switch (systemCommonEvent.status)
     {
@@ -162,18 +167,18 @@ UmpHandler::Result UmpHandler::handleSystemCommonEvent (const UmpEvent& event)
             break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onSystemCommonEvent (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleUtilityEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleUtilityEvent (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     UtilityEvent utilityEvent (event);
     switch (utilityEvent.status)
     {
@@ -196,27 +201,27 @@ UmpHandler::Result UmpHandler::handleUtilityEvent (const UmpEvent& event)
             break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleMidi1ChannelVoiceEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleMidi1ChannelVoiceEvent (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     Midi1ChannelVoiceEvent midi1ChannelVoiceEvent (event);
     switch (midi1ChannelVoiceEvent.status)
     {
         case UmpValues::ChannelVoice::noteOff:
             result = onMidi1NoteOffEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi1NoteEvent (event);
             break;
 
         case UmpValues::ChannelVoice::noteOn:
             result = onMidi1NoteOnEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi1NoteEvent (event);
             break;
 
@@ -244,54 +249,54 @@ UmpHandler::Result UmpHandler::handleMidi1ChannelVoiceEvent (const UmpEvent& eve
             break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onMidi1ChannelVoiceEvent (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     Midi2ChannelVoiceEvent midi2ChannelVoiceEvent (event);
     switch (midi2ChannelVoiceEvent.status)
     {
         case UmpValues::ChannelVoice::registeredPerNoteController:
             result = onMidi2RegisteredPerNoteControllerEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2PerNoteEvent (event);
             break;
 
         case UmpValues::ChannelVoice::assignablePerNoteController:
             result = onMidi2AssignablePerNoteControllerEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2PerNoteEvent (event);
             break;
 
         case UmpValues::ChannelVoice::registeredController:
             result = onMidi2RegisteredControllerEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2ControllerEvent (event);
             break;
 
         case UmpValues::ChannelVoice::assignableController:
             result = onMidi2AssignableControllerEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2ControllerEvent (event);
             break;
 
         case UmpValues::ChannelVoice::relativeRegisteredController:
             result = onMidi2RelativeRegisteredControllerEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2RelativeControllerEvent (event);
             break;
 
         case UmpValues::ChannelVoice::relativeAssignableController:
             result = onMidi2RelativeAssignableControllerEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2RelativeControllerEvent (event);
             break;
 
@@ -301,13 +306,13 @@ UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& eve
 
         case UmpValues::ChannelVoice::noteOff:
             result = onMidi2NoteOffEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2NoteEvent (event);
             break;
 
         case UmpValues::ChannelVoice::noteOn:
             result = onMidi2NoteOnEvent (event);
-            if (result == Result::notHandled)
+            if (result == Handler::Result::notHandled)
                 result = onMidi2NoteEvent (event);
             break;
 
@@ -339,18 +344,18 @@ UmpHandler::Result UmpHandler::handleMidi2ChannelVoiceEvent (const UmpEvent& eve
             break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onMidi2ChannelVoiceEvent (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleStreamEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleStreamEvent (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     StreamEvent e (event);
     switch (e.status)
     {
@@ -369,18 +374,18 @@ UmpHandler::Result UmpHandler::handleStreamEvent (const UmpEvent& event)
         default: break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onStreamEvent (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
 {
-    Result result { defaultResult };
+    Handler::Result result { defaultResult };
     FlexDataEvent e (event);
 
     switch (e.statusBank.get ())
@@ -398,16 +403,16 @@ UmpHandler::Result UmpHandler::handleFlexDataEvent (const UmpEvent& event)
         default: break;
     }
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onFlexDataEvent (event);
 
-    if (result == Result::notHandled)
+    if (result == Handler::Result::notHandled)
         result = onUmpEvent (event);
 
     return result;
 }
 
-UmpHandler::Result UmpHandler::handleSetupAndPerformanceEvent (const UmpEvent& event)
+Handler::Result UmpHandler::handleSetupAndPerformanceEvent (const UmpEvent& event)
 {
     FlexDataEvent e (event);
     switch (static_cast<SetupAndPerformanceStatus> (e.status.get ()))

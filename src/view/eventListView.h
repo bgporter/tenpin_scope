@@ -26,8 +26,8 @@
 
 #include <JuceHeader.h>
 
-#include "eventListViewHandler.h"
 #include "eventView.h"
+#include "handler/eventDispatcher.h"
 #include "model/appContext.h"
 #include "model/eventList.h"
 #include "model/midiProperties.h"
@@ -156,7 +156,7 @@ private:
     EventList eventList;
 
     juce::Viewport* viewport { nullptr };
-    std::unique_ptr<class EventListViewHandler> handler;
+    std::unique_ptr<EventDispatcher> dispatcher;
     EventViewPool eventViewPool;
     std::deque<std::unique_ptr<EventView>> visibleEventViews;
     juce::Range<int> visibleEventRange;

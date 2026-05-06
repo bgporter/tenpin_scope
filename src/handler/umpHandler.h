@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "handler/handlerResult.h"
 #include "model/ump/umpEvent.h"
 
 class UmpHandler
@@ -34,28 +35,22 @@ public:
     UmpHandler ();
     virtual ~UmpHandler ();
 
-    enum class Result
-    {
-        ok,
-        notHandled,
-        ignore
-    };
-
-    Result handle (const UmpEvent& event);
+    Handler::Result handle (const UmpEvent& event);
+    virtual Handler::Result handle (const UmpEvent& event, void* ctx);
 
 protected:
-    Result defaultResult { Result::notHandled };
+    Handler::Result defaultResult { Handler::Result::notHandled };
 
 private:
-    Result handleUtilityEvent (const UmpEvent& event);
-    Result handleSystemCommonEvent (const UmpEvent& event);
-    Result handleSysex7Event (const UmpEvent& event);
-    Result handleSysex8Event (const UmpEvent& event);
-    Result handleFlexDataEvent (const UmpEvent& event);
-    Result handleSetupAndPerformanceEvent (const UmpEvent& event);
-    Result handleStreamEvent (const UmpEvent& event);
-    Result handleMidi1ChannelVoiceEvent (const UmpEvent& event);
-    Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
+    Handler::Result handleUtilityEvent (const UmpEvent& event);
+    Handler::Result handleSystemCommonEvent (const UmpEvent& event);
+    Handler::Result handleSysex7Event (const UmpEvent& event);
+    Handler::Result handleSysex8Event (const UmpEvent& event);
+    Handler::Result handleFlexDataEvent (const UmpEvent& event);
+    Handler::Result handleSetupAndPerformanceEvent (const UmpEvent& event);
+    Handler::Result handleStreamEvent (const UmpEvent& event);
+    Handler::Result handleMidi1ChannelVoiceEvent (const UmpEvent& event);
+    Handler::Result handleMidi2ChannelVoiceEvent (const UmpEvent& event);
 
     /**
      * @brief A place to do any per-handler preparation for handing an event. This is called before the event is
@@ -64,7 +59,7 @@ private:
      * @param event
      * @return Result
      */
-    virtual Result preDispatch (const UmpEvent& event) { return Result::ok; }
+    virtual Handler::Result preDispatch (const UmpEvent& event) { return Handler::Result::ok; }
 
     /**
      * @brief A place to do any per-handler post-processing for handing an event. This is called after the event is
@@ -72,133 +67,133 @@ private:
      * @param pendingResult Result of having handled the event.
      * @return Result
      */
-    virtual Result postDispatch (const UmpEvent& event, Result pendingResult) { return pendingResult; }
+    virtual Handler::Result postDispatch (const UmpEvent& event, Handler::Result pendingResult) { return pendingResult; }
 
-    virtual Result onUmpEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onUmpEvent (const UmpEvent&) { return defaultResult; }
 
     /**
      * @name SysEx 7 Message Handlers
      */
     ///@{
-    virtual Result onSysex7Event (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex7CompleteEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex7StartEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex7ContinueEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex7EndEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex7Event (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex7CompleteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex7StartEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex7ContinueEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex7EndEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name SysEx 8 Message Handlers
      */
     ///@{
-    virtual Result onSysex8Event (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex8CompleteEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex8StartEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex8ContinueEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSysex8EndEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMixedDataSetHeaderEvent  (const UmpEvent&) { return defaultResult; }
-    virtual Result onMixedDataSetPayloadEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex8Event (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex8CompleteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex8StartEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex8ContinueEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSysex8EndEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMixedDataSetHeaderEvent  (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMixedDataSetPayloadEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name UMP Stream Message Handlers
      */
     ///@{
-    virtual Result onStreamEvent                          (const UmpEvent&) { return defaultResult; }
-    virtual Result onEndpointDiscoveryEvent               (const UmpEvent&) { return defaultResult; }
-    virtual Result onEndpointInfoNotificationEvent        (const UmpEvent&) { return defaultResult; }
-    virtual Result onDeviceIdentityNotificationEvent      (const UmpEvent&) { return defaultResult; }
-    virtual Result onEndpointNameNotificationEvent        (const UmpEvent&) { return defaultResult; }
-    virtual Result onProductInstanceIdEvent               (const UmpEvent&) { return defaultResult; }
-    virtual Result onStreamConfigRequestEvent             (const UmpEvent&) { return defaultResult; }
-    virtual Result onStreamConfigNotificationEvent        (const UmpEvent&) { return defaultResult; }
-    virtual Result onFunctionBlockDiscoveryEvent          (const UmpEvent&) { return defaultResult; }
-    virtual Result onFunctionBlockInfoNotificationEvent   (const UmpEvent&) { return defaultResult; }
-    virtual Result onFunctionBlockNameNotificationEvent   (const UmpEvent&) { return defaultResult; }
-    virtual Result onStartOfClipEvent                     (const UmpEvent&) { return defaultResult; }
-    virtual Result onEndOfClipEvent                       (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onStreamEvent                          (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onEndpointDiscoveryEvent               (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onEndpointInfoNotificationEvent        (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onDeviceIdentityNotificationEvent      (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onEndpointNameNotificationEvent        (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onProductInstanceIdEvent               (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onStreamConfigRequestEvent             (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onStreamConfigNotificationEvent        (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onFunctionBlockDiscoveryEvent          (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onFunctionBlockInfoNotificationEvent   (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onFunctionBlockNameNotificationEvent   (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onStartOfClipEvent                     (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onEndOfClipEvent                       (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name Flex Data Message Handlers
      */
     ///@{
-    virtual Result onFlexDataEvent             (const UmpEvent&) { return defaultResult; }
-    virtual Result onSetTempoEvent             (const UmpEvent&) { return defaultResult; }
-    virtual Result onSetTimeSignatureEvent     (const UmpEvent&) { return defaultResult; }
-    virtual Result onSetMetronomeEvent         (const UmpEvent&) { return defaultResult; }
-    virtual Result onSetKeySignatureEvent      (const UmpEvent&) { return defaultResult; }
-    virtual Result onSetChordEvent             (const UmpEvent&) { return defaultResult; }
-    virtual Result onMetadataTextEvent         (const UmpEvent&) { return defaultResult; }
-    virtual Result onPerformanceTextEvent      (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onFlexDataEvent             (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSetTempoEvent             (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSetTimeSignatureEvent     (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSetMetronomeEvent         (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSetKeySignatureEvent      (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSetChordEvent             (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMetadataTextEvent         (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onPerformanceTextEvent      (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name System Common Message Handlers
      */
     ///@{
-    virtual Result onSystemCommonEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidiTimeCodeEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSongPositionPointerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSongSelectEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onTuneRequestEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onTimingClockEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onStartEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onContinueEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onStopEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onActiveSensingEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onSystemResetEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSystemCommonEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidiTimeCodeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSongPositionPointerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSongSelectEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onTuneRequestEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onTimingClockEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onStartEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onContinueEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onStopEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onActiveSensingEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onSystemResetEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name Utility Message Handlers
      */
     ///@{
-    virtual Result onNoOpEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onJrClockEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onJrTimestampEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onDeltaTicksPerQuarterEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onDeltaTicksSinceLastEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onNoOpEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onJrClockEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onJrTimestampEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onDeltaTicksPerQuarterEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onDeltaTicksSinceLastEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name MIDI 1.0 Channel Voice Message Handlers
      */
     ///@{
-    virtual Result onMidi1ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1NoteEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1NoteOffEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1NoteOnEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1PolyPressureEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1ControlChangeEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1ProgramChangeEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1ChannelPressureEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi1PitchBendEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1NoteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1NoteOffEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1NoteOnEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1PolyPressureEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1ControlChangeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1ProgramChangeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1ChannelPressureEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi1PitchBendEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 
     /**
      * @name MIDI 2.0 Channel Voice Message Handlers
      */
     ///@{
-    virtual Result onMidi2ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2NoteOffEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2NoteOnEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2NoteEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2PerNoteEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2PerNotePitchBendEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2ControlChangeEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2ProgramChangeEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2PerNoteManagementEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2PolyPressureEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2ChannelPressureEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2PitchBendEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2RegisteredPerNoteControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2AssignablePerNoteControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2ControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2RegisteredControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2AssignableControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2RelativeControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2RelativeRegisteredControllerEvent (const UmpEvent&) { return defaultResult; }
-    virtual Result onMidi2RelativeAssignableControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2ChannelVoiceEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2NoteOffEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2NoteOnEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2NoteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2PerNoteEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2PerNotePitchBendEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2ControlChangeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2ProgramChangeEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2PerNoteManagementEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2PolyPressureEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2ChannelPressureEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2PitchBendEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2RegisteredPerNoteControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2AssignablePerNoteControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2ControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2RegisteredControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2AssignableControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2RelativeControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2RelativeRegisteredControllerEvent (const UmpEvent&) { return defaultResult; }
+    virtual Handler::Result onMidi2RelativeAssignableControllerEvent (const UmpEvent&) { return defaultResult; }
     ///@}
 };
