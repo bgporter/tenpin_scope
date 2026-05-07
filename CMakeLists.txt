@@ -124,6 +124,8 @@ set(SOURCES_UTILITY
     src/utility/logger.cpp
     src/utility/propertyList.h
     src/utility/variantConverters.h
+    src/utility/buffer.h
+    src/utility/buffer.cpp
     src/utility/paletteColor.h
     src/utility/paletteColor.cpp
     src/utility/versionNumber.h
