@@ -25,42 +25,31 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include <map>
 
-#include "model/appContext.h"
-#include "model/persistentContext.h"
+#include "handler/umpHandler.h"
+#include "model/eventList.h"
+#include "model/sysex/sysex7Message.h"
+#include "model/ump/sysex7.h"
 
-struct Event;
-
-class EventFilter
+class Sysex7Builder : public UmpHandler
 {
 public:
-    EventFilter (AppContext& appContext);
-
-    /**
-     * @brief Decide whether this UMP event should be displayed in the event
-     * list view, based on the filter settings in the current context.
-     *
-     * @param event
-     * @return bool
-     */
-    bool filterMidiEvent (const UmpEvent& event);
-
-    /**
-     * @brief Decide whether this assembled Msg* event should be displayed.
-     * Returns true unconditionally for now; provides a hook for future filtering.
-     */
-    bool filterMessage (const Event& e);
+    Sysex7Builder (EventList theEventList);
 
 private:
-    bool filterUtility (const UmpEvent& event);
-    bool filterSystemCommon (const UmpEvent& event);
-    bool filterChannelVoice (const UmpEvent& event);
-    bool filterData7 (const UmpEvent& event);
-    bool filterData8 (const UmpEvent& event);
-    bool filterFlexData (const UmpEvent& event);
-    bool filterStream (const UmpEvent& event);
-    bool filterUndefined (const UmpEvent& event);
+    Handler::Result onSysex7CompleteEvent (const UmpEvent& e) override;
+    Handler::Result onSysex7StartEvent    (const UmpEvent& e) override;
+    Handler::Result onSysex7ContinueEvent (const UmpEvent& e) override;
+    Handler::Result onSysex7EndEvent      (const UmpEvent& e) override;
 
-private:
-    EventViewContext context;
+    // Step 3: start a new buffer for e's group, discarding any incomplete prior one
+    void createBuffer   (const Sysex7Event& e);
+    // Step 4: append e's data bytes to the in-progress buffer; returns false if none found
+    bool appendData     (const Sysex7Event& e);
+    // Step 5: assemble a Sysex7Message and add it to the event list
+    void completeMessage (const Sysex7Event& e);
+
+    EventList                  eventList;
+    std::map<int, Buffer::Ptr> inProgressBuffers;
 };

@@ -71,6 +71,12 @@ public:
         count++;
     }
 
+    void addMessage (Event& msg)
+    {
+        append (&msg);
+        count++;
+    }
+
     void clear ()
     {
         data.removeAllChildren (getUndoManager ());

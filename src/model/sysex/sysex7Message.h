@@ -26,41 +26,23 @@
 
 #include <JuceHeader.h>
 
-#include "model/appContext.h"
-#include "model/persistentContext.h"
+#include "model/event.h"
+#include "model/midiTypes.h"
+#include "utility/buffer.h"
 
-struct Event;
-
-class EventFilter
+struct Sysex7Message : public Event
 {
-public:
-    EventFilter (AppContext& appContext);
+    static const inline juce::Identifier type { "MsgSysex7" };
 
-    /**
-     * @brief Decide whether this UMP event should be displayed in the event
-     * list view, based on the filter settings in the current context.
-     *
-     * @param event
-     * @return bool
-     */
-    bool filterMidiEvent (const UmpEvent& event);
+    // Re-wrap an existing Event whose ValueTree is already a MsgSysex7
+    Sysex7Message (const Event& e);
 
-    /**
-     * @brief Decide whether this assembled Msg* event should be displayed.
-     * Returns true unconditionally for now; provides a hook for future filtering.
-     */
-    bool filterMessage (const Event& e);
+    // Reconstruct directly from a stored ValueTree (e.g. when reading back from an EventList)
+    Sysex7Message (juce::ValueTree vt);
 
-private:
-    bool filterUtility (const UmpEvent& event);
-    bool filterSystemCommon (const UmpEvent& event);
-    bool filterChannelVoice (const UmpEvent& event);
-    bool filterData7 (const UmpEvent& event);
-    bool filterData8 (const UmpEvent& event);
-    bool filterFlexData (const UmpEvent& event);
-    bool filterStream (const UmpEvent& event);
-    bool filterUndefined (const UmpEvent& event);
+    // Build a fresh message from accumulated buffer data
+    Sysex7Message (MidiNibble group, Buffer::Ptr data);
 
-private:
-    EventViewContext context;
+    MAKE_VALUE_MEMBER (int,         group, {});
+    MAKE_VALUE_MEMBER (Buffer::Ptr, data,  {});
 };

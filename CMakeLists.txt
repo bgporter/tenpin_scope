@@ -119,6 +119,13 @@ set (SOURCES_MODEL
     src/model/ump/utility.cpp)
 
 
+set(SOURCES_SYSEX
+    src/model/sysex/sysex7Message.h
+    src/model/sysex/sysex7Message.cpp
+    src/model/sysex/sysex7Builder.h
+    src/model/sysex/sysex7Builder.cpp
+)
+
 set(SOURCES_UTILITY
     src/utility/logger.h
     src/utility/logger.cpp
@@ -173,6 +180,7 @@ set(APP_SOURCES
     ${SOURCES_CONTROLLER}
     ${SOURCES_HANDLER}
     ${SOURCES_MODEL}
+    ${SOURCES_SYSEX}
     ${SOURCES_UTILITY}
     ${SOURCES_VIEW}
 )

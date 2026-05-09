@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <JuceHeader.h>
 #include <vector>
 
 /**
@@ -35,6 +36,8 @@ class Buffer : public juce::ReferenceCountedObject
 {
 public:
     using Ptr = juce::ReferenceCountedObjectPtr<Buffer>;
+
+    Buffer () = default;
 
     void append (uint8_t byte) { data_.push_back (byte); }
 

@@ -64,12 +64,16 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
 
         thisEndpointProperties->received.onChildAdded = [this, propIndex] (juce::ValueTree& vt, int, int)
         {
-            UmpEvent event (vt.createCopy ());
-
-            // const auto endpointProps { endpointProperties[propIndex].get () };
-            // event.endpointName = endpointProps->name.get ();
-            // event.isReceived   = true;
-            addMidiEvent (event);
+            const auto typeName { vt.getType ().toString () };
+            if (typeName.startsWith ("Ump"))
+            {
+                UmpEvent event (vt.createCopy ());
+                addMidiEvent (event);
+            }
+            else if (typeName.startsWith ("Msg"))
+            {
+                addMidiMessage (vt.createCopy ());
+            }
         };
         thisEndpointProperties->received.onChildRemoved = [this, propIndex] (juce::ValueTree& vt, int, int)
         { DBG ("REMOVING EVENT FROM " << endpointProperties[propIndex]->name); };
@@ -212,6 +216,13 @@ void MidiController::addMidiEvent (UmpEvent& event)
         midiProperties.midiEvents.addEvent (event);
 }
 
+void MidiController::addMidiMessage (const juce::ValueTree& vt)
+{
+    Event msg (vt.getType ().toString (), vt);
+    if (eventFilter.filterMessage (msg))
+        midiProperties.midiEvents.addMessage (msg);
+}
+
 void MidiController::rebuildMidiEventsFromEndpoints ()
 {
     midiProperties.midiEvents.isRebuilding = true;
@@ -223,18 +234,38 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
         int i { 0 };
         for (; i < ep->received.getNumChildren (); ++i)
         {
-            // auto ev = ep->received[i].createCopy ();
-            // DBG (ev.toXmlString ());
-            UmpEvent evCopy (ep->received[i].createCopy ());
-            if (eventFilter.filterMidiEvent (evCopy))
-                currentEvents.addEvent (evCopy);
+            const auto child { ep->received[i].createCopy () };
+            const auto typeName { child.getType ().toString () };
+            if (typeName.startsWith ("Ump"))
+            {
+                UmpEvent evCopy (child);
+                if (eventFilter.filterMidiEvent (evCopy))
+                    currentEvents.addEvent (evCopy);
+            }
+            else if (typeName.startsWith ("Msg"))
+            {
+                Event evCopy (typeName, child);
+                if (eventFilter.filterMessage (evCopy))
+                    currentEvents.addMessage (evCopy);
+            }
         }
         DBG ("Added " << i << " RX events from  " << ep->name);
         for (i = 0; i < ep->transmitted.getNumChildren (); ++i)
         {
-            UmpEvent evCopy (ep->transmitted[i].createCopy ());
-            if (eventFilter.filterMidiEvent (evCopy))
-                currentEvents.addEvent (evCopy);
+            const auto child { ep->transmitted[i].createCopy () };
+            const auto typeName { child.getType ().toString () };
+            if (typeName.startsWith ("Ump"))
+            {
+                UmpEvent evCopy (child);
+                if (eventFilter.filterMidiEvent (evCopy))
+                    currentEvents.addEvent (evCopy);
+            }
+            else if (typeName.startsWith ("Msg"))
+            {
+                Event evCopy (typeName, child);
+                if (eventFilter.filterMessage (evCopy))
+                    currentEvents.addMessage (evCopy);
+            }
         }
         DBG ("Added " << ep->transmitted.count.get () << " TX events from  " << ep->name);
     }
@@ -250,10 +281,19 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     int i { 0 };
     for (; i < currentEvents.getNumChildren (); ++i)
     {
-        juce::ValueTree ev = currentEvents[i].createCopy ();
+        const auto ev { currentEvents[i].createCopy () };
         jassert (ev.isValid ());
-        UmpEvent evCopy (ev);
-        midiProperties.midiEvents.addEvent (evCopy);
+        const auto typeName { ev.getType ().toString () };
+        if (typeName.startsWith ("Ump"))
+        {
+            UmpEvent evCopy (ev);
+            midiProperties.midiEvents.addEvent (evCopy);
+        }
+        else if (typeName.startsWith ("Msg"))
+        {
+            Event evCopy (typeName, ev);
+            midiProperties.midiEvents.addMessage (evCopy);
+        }
     }
     DBG ("rebuilt midiEvents from endpoints: " << i << " events");
     midiProperties.midiEvents.isRebuilding = false;

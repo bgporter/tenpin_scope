@@ -97,10 +97,20 @@ void EventListView::clear ()
 
 std::unique_ptr<EventView> EventListView::createEventView (juce::ValueTree vt, int index, int width)
 {
-    UmpEvent event (vt);
     auto eventView { eventViewPool.getEventView () };
     DispatchContext ctx { index, eventView.get (), width };
-    const auto result { dispatcher->dispatch (event, &ctx) };
+    const auto typeName { vt.getType ().toString () };
+    Handler::Result result;
+    if (typeName.startsWith ("Ump"))
+    {
+        UmpEvent event (vt);
+        result = dispatcher->dispatch (event, &ctx);
+    }
+    else
+    {
+        Event event (typeName, vt);
+        result = dispatcher->dispatch (event, &ctx);
+    }
     if (result != Handler::Result::ok)
     {
         const auto fmt { juce::XmlElement::TextFormat ().singleLine ().withoutHeader () };

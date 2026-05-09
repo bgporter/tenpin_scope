@@ -24,6 +24,7 @@
 
 #include "eventFilter.h"
 
+#include "model/event.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/umpEvent.h"
 
@@ -73,6 +74,11 @@ bool EventFilter::filterMidiEvent (const UmpEvent& event)
             jassertfalse; // this should never happen, but if it does, we want to know about it.
             break;
     }
+    return true;
+}
+
+bool EventFilter::filterMessage (const Event& /*e*/)
+{
     return true;
 }
 

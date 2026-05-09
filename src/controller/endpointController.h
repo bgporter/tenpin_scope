@@ -31,6 +31,7 @@
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/ump/umpEvent.h"
+#include "model/sysex/sysex7Builder.h"
 
 /// @brief Raw packet data to queue from MIDI thread for processing on message thread
 struct RawPacketData
@@ -87,6 +88,7 @@ private:
     juce::ump::Output output;
     MidiProperties midiProperties;
     MidiEndpointProperties midiEndpointProperties;
+    std::optional<Sysex7Builder> sysex7Builder;
     /// @brief The time when the first packet was received from any endpoint.
     static inline double startTime { -1 };
     std::queue<RawPacketData> eventQueue;

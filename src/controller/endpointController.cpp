@@ -67,6 +67,7 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id, con
 , midiEndpointProperties { id }
 {
     midiProperties.endpoints.append (&midiEndpointProperties);
+    sysex7Builder.emplace (midiEndpointProperties.received);
 }
 
 EndpointController::~EndpointController ()

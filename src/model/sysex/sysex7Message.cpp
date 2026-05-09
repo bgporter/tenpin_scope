@@ -22,18 +22,25 @@
  SOFTWARE.
  */
 
-#pragma once
+#include "sysex7Message.h"
 
-#include "handler/msgHandler.h"
-#include "model/sysex/sysex7Message.h"
-#include "view/dispatchContext.h"
-
-class EventListViewMsgHandler : public MessageHandler
+Sysex7Message::Sysex7Message (const Event& e)
+: Event (type.toString (), juce::ValueTree { e })
 {
-public:
-    EventListViewMsgHandler ();
-    ~EventListViewMsgHandler () override;
+}
 
-    Handler::Result handle (const Event& e) override;
-    Handler::Result handle (const Event& e, void* ctx) override;
-};
+Sysex7Message::Sysex7Message (juce::ValueTree vt)
+: Event (type.toString (), vt)
+{
+}
+
+Sysex7Message::Sysex7Message (MidiNibble theGroup, Buffer::Ptr theData)
+: Event (type.toString ())
+{
+    group = theGroup.get ();
+    data  = theData;
+}
+
+#if RUN_UNIT_TESTS
+#include "test/test_Sysex7Message.inl"
+#endif

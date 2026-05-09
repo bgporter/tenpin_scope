@@ -36,7 +36,7 @@ EventView::EventView (AppContext& theAppContext)
 void EventView::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };
-    g.fillAll (palette.umpBackground.get ());
+    g.fillAll (bgColor.isTransparent () ? palette.umpBackground.get () : bgColor);
 
     RuntimeContext rc { appContext };
     const float h       = static_cast<float> (getHeight ());

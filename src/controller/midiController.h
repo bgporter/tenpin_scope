@@ -69,6 +69,7 @@ private:
      * @param event
      */
     void addMidiEvent (UmpEvent& event);
+    void addMidiMessage (const juce::ValueTree& vt);
 
     /**
      * @brief Rebuild the top-level midiEvents list from all per-endpoint

@@ -24,16 +24,35 @@
 
 #include "eventListViewMsgHandler.h"
 
+#include "view/eventView.h"
+
 EventListViewMsgHandler::EventListViewMsgHandler () {}
 
 EventListViewMsgHandler::~EventListViewMsgHandler () {}
 
-Handler::Result EventListViewMsgHandler::handle (const Event& /*e*/)
+Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
 {
+    if (e.getTypeName () == Sysex7Message::type.toString ())
+    {
+        Sysex7Message msg (e);
+        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
+        auto* eventView = dispCtx->view;
+        const int width = dispCtx->width;
+
+        eventView->setColors (juce::Colours::darkgrey, juce::Colours::white, juce::Colours::white, juce::Colours::grey);
+        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
+        eventView->setEndpoint (endpointStr);
+        eventView->setEvent ("Sysex7 Message");
+        if (auto buf = msg.data.get ())
+            eventView->addValue ("bytes", juce::String (buf->size ()));
+        eventView->sizeToWidth (width);
+        return Handler::Result::ok;
+    }
     return Handler::Result::notHandled;
 }
 
-Handler::Result EventListViewMsgHandler::handle (const Event& e, void* /*ctx*/)
+Handler::Result EventListViewMsgHandler::handle (const Event& e)
 {
-    return handle (e);
+    return handle (e, nullptr);
 }
