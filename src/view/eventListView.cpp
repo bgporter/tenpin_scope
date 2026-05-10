@@ -40,7 +40,7 @@ EventListView::EventListView (AppContext& theAppContext)
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
 , dispatcher { std::make_unique<EventDispatcher> (std::make_unique<EventListViewHandler> (appContext),
-                                                   std::make_unique<EventListViewMsgHandler> ()) }
+                                                   std::make_unique<EventListViewMsgHandler> (appContext)) }
 , eventViewPool { appContext }
 {
     eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };

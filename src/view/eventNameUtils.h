@@ -114,7 +114,8 @@ inline juce::String getNoteAttributeName (int attributeNumber)
 }
 
 juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType, int precision = 2,
-                          float formattedMin = 0.f, float formattedMax = 1.f);
+                          float formattedMin = 0.f, float formattedMax = 1.f,
+                          bool suppressPrefix = false);
 
 /**
  * @brief Formats a time value in seconds as a compact string, expanding

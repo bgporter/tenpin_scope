@@ -43,7 +43,7 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
     juce::AttributedString aString;
     auto& lnf = dynamic_cast<TenpinLookAndFeel&> (getLookAndFeel ());
 
-    if (label.isNotEmpty ())
+    if (label.pwdisNotEmpty ())
     {
         auto labelFont = lnf.getTenpinLabelFont ();
         aString.append (juce::String (label), labelFont, labelColor);

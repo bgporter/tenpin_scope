@@ -59,6 +59,9 @@ struct EventViewContext : public cello::Object
     MAKE_VALUE_MEMBER (bool, umpShowParsedData, true);
     MAKE_VALUE_MEMBER (bool, umpShowRawData, true);
 
+    /// @brief Maximum number of data bytes to display for assembled messages (e.g. Sysex7Message).
+    MAKE_VALUE_MEMBER (int, maxDataBytes, 32);
+
     // filter settings for the event list view.
     MAKE_VALUE_MEMBER (bool, showChannelVoice, true);
     MAKE_VALUE_MEMBER (bool, showNoteOnOff, true);

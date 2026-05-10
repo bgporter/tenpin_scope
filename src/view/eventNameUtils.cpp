@@ -239,7 +239,7 @@ juce::String getOctaveTypeName (OctaveType octaveType)
 }
 
 juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatType, int precision, float formattedMin,
-                          float formattedMax)
+                          float formattedMax, bool suppressPrefix)
 {
     jassert (bitWidth >= 1 && bitWidth <= 32);
     const uint32_t maxVal = (bitWidth == 32) ? 0xFFFFFFFFu : (1u << bitWidth) - 1u;
@@ -252,8 +252,8 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
         case ValueFormatType::Hex:
         {
             const int hexWidth = (bitWidth + 3) / 4;
-            return juce::String ("0x") +
-                   juce::String::toHexString (static_cast<int> (value)).paddedLeft ('0', hexWidth);
+            const auto digits  = juce::String::toHexString (static_cast<int> (value)).paddedLeft ('0', hexWidth);
+            return suppressPrefix ? digits : juce::String ("0x") + digits;
         }
 
         case ValueFormatType::Float:

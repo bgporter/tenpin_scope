@@ -25,15 +25,19 @@
 #pragma once
 
 #include "handler/msgHandler.h"
+#include "model/appContext.h"
 #include "model/sysex/sysex7Message.h"
 #include "view/dispatchContext.h"
 
 class EventListViewMsgHandler : public MessageHandler
 {
 public:
-    EventListViewMsgHandler ();
+    EventListViewMsgHandler (AppContext& theAppContext);
     ~EventListViewMsgHandler () override;
 
     Handler::Result handle (const Event& e) override;
     Handler::Result handle (const Event& e, void* ctx) override;
+
+private:
+    AppContext appContext;
 };
