@@ -22,32 +22,26 @@
  SOFTWARE.
  */
 
-#pragma once
+#include "sysex8Message.h"
 
-#include <JuceHeader.h>
-
-#include "model/appContext.h"
-#include "model/persistentContext.h"
-#include "model/runtimeContext.h"
-
-class HeaderView : public juce::Component
+Sysex8Message::Sysex8Message (const Event& e)
+: Event (type.toString (), juce::ValueTree { e })
 {
-public:
-    HeaderView (AppContext& context);
+}
 
-    std::function<void (bool)> onSettingsToggled;
+Sysex8Message::Sysex8Message (juce::ValueTree vt)
+: Event (type.toString (), vt)
+{
+}
 
-    void dismissSettings ();
+Sysex8Message::Sysex8Message (MidiNibble theGroup, int theStreamId, Buffer::Ptr theData)
+: Event (type.toString ())
+{
+    group    = theGroup.get ();
+    streamId = theStreamId;
+    data     = theData;
+}
 
-    void paint (juce::Graphics& g) override;
-    void resized () override;
-
-    static constexpr int kHeight { 32 };
-
-private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (HeaderView)
-    AppContext appContext;
-    PersistentContext persistentContext;
-    RuntimeContext runtimeContext;
-    juce::ImageButton filterButton;
-};
+#if RUN_UNIT_TESTS
+#include "test/test_Sysex8Message.inl"
+#endif

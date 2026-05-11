@@ -29,6 +29,7 @@
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/sysex/sysex7Builder.h"
+#include "model/sysex/sysex8Builder.h"
 #include "model/ump/umpEvent.h"
 
 struct TestEvent
@@ -74,6 +75,7 @@ private:
     MidiProperties         midiProperties;
     MidiEndpointProperties midiEndpointProperties;
     std::optional<Sysex7Builder> sysex7Builder;
+    std::optional<Sysex8Builder> sysex8Builder;
     TestEventList          eventList;
 
     size_t      nextEventIndex { 0 };

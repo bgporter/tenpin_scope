@@ -43,8 +43,13 @@ public:
 
     void resized () override;
 
+    std::function<void ()> onDismissSettings;
+
     // ScrollBar::Listener
     void scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart) override;
+
+    // MouseListener (registered on viewport to catch event-list clicks)
+    void mouseDown (const juce::MouseEvent&) override;
 
 private:
     AppContext appContext;

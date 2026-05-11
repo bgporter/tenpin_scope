@@ -9,7 +9,6 @@ public:
     {
     }
 
-    // Count children of the EventList whose ValueTree type is MsgSysex7
     int messageCount (EventList& list)
     {
         int count = 0;
@@ -20,7 +19,6 @@ public:
         return count;
     }
 
-    // Return the nth Sysex7Message child from the list (0-based)
     Sysex7Message nthMessage (EventList& list, int n)
     {
         juce::ValueTree vt { list };
@@ -46,14 +44,15 @@ public:
               {
                   using namespace midi_literals;
                   EventList list;
-                  Sysex7Builder builder { list };
+                  EventList assembled;
+                  Sysex7Builder builder { list, [&assembled] (Event& msg) { assembled.addMessage (msg); } };
 
                   const uint8_t bytes[] = { 0x41, 0x10, 0x42, 0x12 };
                   Sysex7Event e { 1_gr, SysexStatus::complete, std::span (bytes) };
                   list.addEvent (e);
 
-                  expectEquals (messageCount (list), 1);
-                  Sysex7Message msg { nthMessage (list, 0) };
+                  expectEquals (messageCount (assembled), 1);
+                  Sysex7Message msg { nthMessage (assembled, 0) };
                   expectEquals (static_cast<int> (msg.group), 0); // group is 0-based nibble
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
@@ -67,7 +66,8 @@ public:
               {
                   using namespace midi_literals;
                   EventList list;
-                  Sysex7Builder builder { list };
+                  EventList assembled;
+                  Sysex7Builder builder { list, [&assembled] (Event& msg) { assembled.addMessage (msg); } };
 
                   const uint8_t start[]    = { 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 };
                   const uint8_t continue_[] = { 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C };
@@ -80,8 +80,8 @@ public:
                   list.addEvent (continueEvent);
                   list.addEvent (endEvent);
 
-                  expectEquals (messageCount (list), 1);
-                  auto buf = nthMessage (list, 0).data.get ();
+                  expectEquals (messageCount (assembled), 1);
+                  auto buf = nthMessage (assembled, 0).data.get ();
                   expect (buf != nullptr);
                   expectEquals (static_cast<int> (buf->size ()), 14);
                   expectEquals (static_cast<int> ((*buf)[0]),  static_cast<int> (0x01));
@@ -92,12 +92,13 @@ public:
               [this] ()
               {
                   EventList list;
-                  Sysex7Builder builder { list };
+                  EventList assembled;
+                  Sysex7Builder builder { list, [&assembled] (Event& msg) { assembled.addMessage (msg); } };
 
                   UmpEvent other;
                   list.addEvent (other);
 
-                  expectEquals (messageCount (list), 0);
+                  expectEquals (messageCount (assembled), 0);
               });
 
         test ("provenance copied from final packet",
@@ -105,7 +106,8 @@ public:
               {
                   using namespace midi_literals;
                   EventList list;
-                  Sysex7Builder builder { list };
+                  EventList assembled;
+                  Sysex7Builder builder { list, [&assembled] (Event& msg) { assembled.addMessage (msg); } };
 
                   const uint8_t bytes[] = { 0x7E };
                   Sysex7Event e { 1_gr, SysexStatus::complete, std::span (bytes) };
@@ -116,7 +118,7 @@ public:
                   e.isReceived    = true;
                   list.addEvent (e);
 
-                  Sysex7Message msg { nthMessage (list, 0) };
+                  Sysex7Message msg { nthMessage (assembled, 0) };
                   expectEquals (static_cast<double> (msg.timestamp), 3.14);
                   expectEquals (static_cast<int> (msg.endpointIndex), 7);
                   expect (static_cast<juce::String> (msg.endpointName) == "Port1");

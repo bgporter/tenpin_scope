@@ -43,6 +43,7 @@ DataView::DataView (AppContext& theAppContext)
     settingsViewport.setScrollBarsShown (true, false);
 
     viewport.getVerticalScrollBar ().addListener (this);
+    viewport.addMouseListener (this, true);
 
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
@@ -52,6 +53,7 @@ DataView::DataView (AppContext& theAppContext)
 
 DataView::~DataView ()
 {
+    viewport.removeMouseListener (this);
     viewport.getVerticalScrollBar ().removeListener (this);
 }
 
@@ -106,4 +108,10 @@ void DataView::resized ()
 void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)
 {
     eventListView.visibleAreaChanged (viewport.getViewArea ());
+}
+
+void DataView::mouseDown (const juce::MouseEvent&)
+{
+    if (runtimeContext.settingsPos.get () > 0.f && onDismissSettings)
+        onDismissSettings ();
 }

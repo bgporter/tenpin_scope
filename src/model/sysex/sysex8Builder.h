@@ -26,33 +26,31 @@
 
 #include <JuceHeader.h>
 #include <map>
+#include <utility>
 
 #include "handler/umpHandler.h"
 #include "model/eventList.h"
-#include "model/sysex/sysex7Message.h"
-#include "model/ump/sysex7.h"
+#include "model/sysex/sysex8Message.h"
+#include "model/ump/sysex8.h"
 
-class Sysex7Builder : public UmpHandler
+class Sysex8Builder : public UmpHandler
 {
 public:
     using DeferFn = std::function<void (Event&)>;
 
-    Sysex7Builder (EventList theEventList, DeferFn deferFn);
+    Sysex8Builder (EventList theEventList, DeferFn deferFn);
 
 private:
-    Handler::Result onSysex7CompleteEvent (const UmpEvent& e) override;
-    Handler::Result onSysex7StartEvent    (const UmpEvent& e) override;
-    Handler::Result onSysex7ContinueEvent (const UmpEvent& e) override;
-    Handler::Result onSysex7EndEvent      (const UmpEvent& e) override;
+    Handler::Result onSysex8CompleteEvent (const UmpEvent& e) override;
+    Handler::Result onSysex8StartEvent    (const UmpEvent& e) override;
+    Handler::Result onSysex8ContinueEvent (const UmpEvent& e) override;
+    Handler::Result onSysex8EndEvent      (const UmpEvent& e) override;
 
-    // Step 3: start a new buffer for e's group, discarding any incomplete prior one
-    void createBuffer   (const Sysex7Event& e);
-    // Step 4: append e's data bytes to the in-progress buffer; returns false if none found
-    bool appendData     (const Sysex7Event& e);
-    // Step 5: assemble a Sysex7Message and add it to the event list
-    void completeMessage (const Sysex7Event& e);
+    void createBuffer    (const Sysex8Event& e);
+    bool appendData      (const Sysex8Event& e);
+    void completeMessage (const Sysex8Event& e);
 
-    EventList                  eventList;
-    DeferFn                    deferFn;
-    std::map<int, Buffer::Ptr> inProgressBuffers;
+    EventList                                   eventList;
+    DeferFn                                     deferFn;
+    std::map<std::pair<int, int>, Buffer::Ptr>  inProgressBuffers;
 };

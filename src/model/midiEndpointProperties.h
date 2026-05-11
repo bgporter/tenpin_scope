@@ -87,6 +87,20 @@ public:
     /// TEMPORARY DEBUG: UUID string for debugging purposes.
     MAKE_VALUE_MEMBER (juce::String, debugUuid, juce::Uuid ().toString ());
 
-    EventList received { "received", *this };
-    EventList transmitted { "transmitted", *this };
+    EventList received          { "received",          *this };
+    EventList transmitted       { "transmitted",       *this };
+    EventList deferredMessages  { "deferredMessages",  *this };
+
+    void deferMessage (Event& msg) { deferredMessages.addMessage (msg); }
+
+    void drainDeferredMessages ()
+    {
+        while (deferredMessages.getNumChildren () > 0)
+        {
+            auto child = deferredMessages[0].createCopy ();
+            deferredMessages.remove (0);
+            Event msg { child.getType ().toString (), child };
+            received.addMessage (msg);
+        }
+    }
 };

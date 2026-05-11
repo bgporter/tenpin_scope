@@ -70,6 +70,12 @@ HeaderView::HeaderView (AppContext& context)
     addAndMakeVisible (filterButton);
 }
 
+void HeaderView::dismissSettings ()
+{
+    if (filterButton.getToggleState ())
+        filterButton.setToggleState (false, juce::sendNotification);
+}
+
 void HeaderView::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };

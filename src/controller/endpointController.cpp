@@ -67,7 +67,9 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id, con
 , midiEndpointProperties { id }
 {
     midiProperties.endpoints.append (&midiEndpointProperties);
-    sysex7Builder.emplace (midiEndpointProperties.received);
+    auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
+    sysex7Builder.emplace (midiEndpointProperties.received, defer);
+    sysex8Builder.emplace (midiEndpointProperties.received, defer);
 }
 
 EndpointController::~EndpointController ()
@@ -187,6 +189,7 @@ void EndpointController::processUmpEvents ()
         umpEvent.endpointName = midiEndpointProperties.name.get ();
         umpEvent.isReceived   = true;
         midiEndpointProperties.received.addEvent (umpEvent);
+        midiEndpointProperties.drainDeferredMessages ();
 
         //        TRACE_ ({
         //            {        "msg",                       "MIDI message processed"},

@@ -42,7 +42,9 @@ SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& 
     midiEndpointProperties.isInputAlive = true;
     midiEndpointProperties.isSynthetic  = true;
     midiProperties.endpoints.append (&midiEndpointProperties);
-    sysex7Builder.emplace (midiEndpointProperties.received);
+    auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
+    sysex7Builder.emplace (midiEndpointProperties.received, defer);
+    sysex8Builder.emplace (midiEndpointProperties.received, defer);
 
     midiEndpointProperties.playRequested.onPropertyChange (
         [this] (const juce::Identifier&)
@@ -82,6 +84,7 @@ void SyntheticEndpointController::processUmpEvents ()
         copy.endpointName = midiEndpointProperties.name.get ();
         copy.isReceived   = true;
         midiEndpointProperties.received.addEvent (copy);
+        midiEndpointProperties.drainDeferredMessages ();
 
         ++nextEventIndex;
         if (nextEventIndex >= eventList.eventList.size ())

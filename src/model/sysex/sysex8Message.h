@@ -25,34 +25,25 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <map>
 
-#include "handler/umpHandler.h"
-#include "model/eventList.h"
-#include "model/sysex/sysex7Message.h"
-#include "model/ump/sysex7.h"
+#include "model/event.h"
+#include "model/midiTypes.h"
+#include "utility/buffer.h"
 
-class Sysex7Builder : public UmpHandler
+struct Sysex8Message : public Event
 {
-public:
-    using DeferFn = std::function<void (Event&)>;
+    static const inline juce::Identifier type { "MsgSysex8" };
 
-    Sysex7Builder (EventList theEventList, DeferFn deferFn);
+    // Re-wrap an existing Event whose ValueTree is already a MsgSysex8
+    Sysex8Message (const Event& e);
 
-private:
-    Handler::Result onSysex7CompleteEvent (const UmpEvent& e) override;
-    Handler::Result onSysex7StartEvent    (const UmpEvent& e) override;
-    Handler::Result onSysex7ContinueEvent (const UmpEvent& e) override;
-    Handler::Result onSysex7EndEvent      (const UmpEvent& e) override;
+    // Reconstruct directly from a stored ValueTree (e.g. when reading back from an EventList)
+    Sysex8Message (juce::ValueTree vt);
 
-    // Step 3: start a new buffer for e's group, discarding any incomplete prior one
-    void createBuffer   (const Sysex7Event& e);
-    // Step 4: append e's data bytes to the in-progress buffer; returns false if none found
-    bool appendData     (const Sysex7Event& e);
-    // Step 5: assemble a Sysex7Message and add it to the event list
-    void completeMessage (const Sysex7Event& e);
+    // Build a fresh message from accumulated buffer data
+    Sysex8Message (MidiNibble group, int streamId, Buffer::Ptr data);
 
-    EventList                  eventList;
-    DeferFn                    deferFn;
-    std::map<int, Buffer::Ptr> inProgressBuffers;
+    MAKE_VALUE_MEMBER (int,         group,    {});
+    MAKE_VALUE_MEMBER (int,         streamId, {});
+    MAKE_VALUE_MEMBER (Buffer::Ptr, data,     {});
 };

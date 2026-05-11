@@ -22,9 +22,9 @@
  SOFTWARE.
  */
 
-#include "sysex7Builder.h"
+#include "sysex8Builder.h"
 
-Sysex7Builder::Sysex7Builder (EventList theEventList, DeferFn deferFn_)
+Sysex8Builder::Sysex8Builder (EventList theEventList, DeferFn deferFn_)
 : eventList { theEventList }
 , deferFn { std::move (deferFn_) }
 {
@@ -38,72 +38,70 @@ Sysex7Builder::Sysex7Builder (EventList theEventList, DeferFn deferFn_)
     };
 }
 
-Handler::Result Sysex7Builder::onSysex7StartEvent (const UmpEvent& e)
+Handler::Result Sysex8Builder::onSysex8StartEvent (const UmpEvent& e)
 {
-    Sysex7Event sysex { e };
+    Sysex8Event sysex { e };
     createBuffer (sysex);
     appendData (sysex);
     return Handler::Result::ok;
 }
 
-Handler::Result Sysex7Builder::onSysex7ContinueEvent (const UmpEvent& e)
+Handler::Result Sysex8Builder::onSysex8ContinueEvent (const UmpEvent& e)
 {
-    Sysex7Event sysex { e };
+    Sysex8Event sysex { e };
     if (!appendData (sysex))
         return Handler::Result::notHandled;
     return Handler::Result::ok;
 }
 
-Handler::Result Sysex7Builder::onSysex7EndEvent (const UmpEvent& e)
+Handler::Result Sysex8Builder::onSysex8EndEvent (const UmpEvent& e)
 {
-    Sysex7Event sysex { e };
+    Sysex8Event sysex { e };
     if (!appendData (sysex))
         return Handler::Result::notHandled;
     completeMessage (sysex);
     return Handler::Result::ok;
 }
 
-Handler::Result Sysex7Builder::onSysex7CompleteEvent (const UmpEvent& e)
+Handler::Result Sysex8Builder::onSysex8CompleteEvent (const UmpEvent& e)
 {
-    Sysex7Event sysex { e };
+    Sysex8Event sysex { e };
     createBuffer (sysex);
     appendData (sysex);
     completeMessage (sysex);
     return Handler::Result::ok;
 }
 
-void Sysex7Builder::createBuffer (const Sysex7Event& e)
+void Sysex8Builder::createBuffer (const Sysex8Event& e)
 {
-    const int groupKey = e.group.get ();
-    if (inProgressBuffers.contains (groupKey))
-    {
-        // TODO: handle incomplete buffer (start without a matching end)
-        inProgressBuffers.erase (groupKey);
-    }
-    inProgressBuffers[groupKey] = new Buffer ();
+    const auto key = std::make_pair (e.group.get (), e.streamId.get ());
+    if (inProgressBuffers.contains (key))
+        inProgressBuffers.erase (key);
+    inProgressBuffers[key] = new Buffer ();
 }
 
-bool Sysex7Builder::appendData (const Sysex7Event& e)
+bool Sysex8Builder::appendData (const Sysex8Event& e)
 {
-    const int groupKey = e.group.get ();
-    auto it            = inProgressBuffers.find (groupKey);
+    const auto key = std::make_pair (e.group.get (), e.streamId.get ());
+    auto it        = inProgressBuffers.find (key);
     if (it == inProgressBuffers.end ())
         return false;
 
-    const int n = e.numBytes.get ();
+    // numBytes includes the streamId byte in its count, so actual data = numBytes - 1
+    const int n = e.numBytes.get () - 1;
     for (int i = 0; i < n; ++i)
         it->second->append (static_cast<uint8_t> (e[i]));
     return true;
 }
 
-void Sysex7Builder::completeMessage (const Sysex7Event& e)
+void Sysex8Builder::completeMessage (const Sysex8Event& e)
 {
-    const int groupKey = e.group.get ();
-    auto it            = inProgressBuffers.find (groupKey);
+    const auto key = std::make_pair (e.group.get (), e.streamId.get ());
+    auto it        = inProgressBuffers.find (key);
     if (it == inProgressBuffers.end ())
         return;
 
-    Sysex7Message msg { MidiNibble { groupKey }, it->second };
+    Sysex8Message msg { MidiNibble { e.group.get () }, e.streamId.get (), it->second };
     msg.timestamp     = e.timestamp.get ();
     msg.endpointIndex = e.endpointIndex.get ();
     msg.endpointName  = e.endpointName.get ();
@@ -114,5 +112,5 @@ void Sysex7Builder::completeMessage (const Sysex7Event& e)
 }
 
 #if RUN_UNIT_TESTS
-#include "test/test_Sysex7Builder.inl"
+#include "test/test_Sysex8Builder.inl"
 #endif

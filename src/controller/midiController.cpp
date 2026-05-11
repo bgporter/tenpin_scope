@@ -273,7 +273,17 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
     cello::Query sorter { currentEvents.getType () };
     sorter.addComparison (
         [] (const juce::ValueTree& a, const juce::ValueTree& b)
-        { return a.getProperty (UmpEvent::timestampId, 0.0) < b.getProperty (UmpEvent::timestampId, 0.0) ? -1 : 1; });
+        {
+            const auto ta = static_cast<double> (a.getProperty (UmpEvent::timestampId, 0.0));
+            const auto tb = static_cast<double> (b.getProperty (UmpEvent::timestampId, 0.0));
+            if (ta < tb) return -1;
+            if (ta > tb) return  1;
+            const auto aIsUmp = a.getType ().toString ().startsWith ("Ump");
+            const auto bIsUmp = b.getType ().toString ().startsWith ("Ump");
+            if (aIsUmp && !bIsUmp) return -1;
+            if (!aIsUmp && bIsUmp) return  1;
+            return 0;
+        });
     sorter.sort (currentEvents);
 
     // add the events to the midiProperties.midiEvents list

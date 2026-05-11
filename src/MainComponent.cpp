@@ -37,6 +37,8 @@ MainComponent::MainComponent (AppContext& theAppContext)
         animator.addAnimation (std::move (anim));
     };
 
+    dataView.onDismissSettings = [this] () { headerView.dismissSettings (); };
+
     addAndMakeVisible (headerView);
     addAndMakeVisible (dataView);
     addAndMakeVisible (deviceView);
