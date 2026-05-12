@@ -70,6 +70,7 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id, con
     auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
     sysex7Builder.emplace (midiEndpointProperties.received, defer);
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
+    mdsBuilder.emplace    (midiEndpointProperties.received, defer);
 }
 
 EndpointController::~EndpointController ()

@@ -28,6 +28,7 @@
 
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
+#include "model/sysex/mdsBuilder.h"
 #include "model/sysex/sysex7Builder.h"
 #include "model/sysex/sysex8Builder.h"
 #include "model/ump/umpEvent.h"
@@ -76,6 +77,7 @@ private:
     MidiEndpointProperties midiEndpointProperties;
     std::optional<Sysex7Builder> sysex7Builder;
     std::optional<Sysex8Builder> sysex8Builder;
+    std::optional<MdsBuilder>    mdsBuilder;
     TestEventList          eventList;
 
     size_t      nextEventIndex { 0 };

@@ -128,6 +128,10 @@ set(SOURCES_SYSEX
     src/model/sysex/sysex8Message.cpp
     src/model/sysex/sysex8Builder.h
     src/model/sysex/sysex8Builder.cpp
+    src/model/sysex/mdsMessage.h
+    src/model/sysex/mdsMessage.cpp
+    src/model/sysex/mdsBuilder.h
+    src/model/sysex/mdsBuilder.cpp
 )
 
 set(SOURCES_UTILITY

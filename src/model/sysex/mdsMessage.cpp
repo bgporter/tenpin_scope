@@ -22,24 +22,32 @@
  SOFTWARE.
  */
 
-#pragma once
+#include "mdsMessage.h"
 
-#include "handler/msgHandler.h"
-#include "model/appContext.h"
-#include "model/sysex/mdsMessage.h"
-#include "model/sysex/sysex7Message.h"
-#include "model/sysex/sysex8Message.h"
-#include "view/dispatchContext.h"
-
-class EventListViewMsgHandler : public MessageHandler
+MdsMessage::MdsMessage (const Event& e)
+: Event (type.toString (), juce::ValueTree { e })
 {
-public:
-    EventListViewMsgHandler (AppContext& theAppContext);
-    ~EventListViewMsgHandler () override;
+}
 
-    Handler::Result handle (const Event& e) override;
-    Handler::Result handle (const Event& e, void* ctx) override;
+MdsMessage::MdsMessage (juce::ValueTree vt)
+: Event (type.toString (), vt)
+{
+}
 
-private:
-    AppContext appContext;
-};
+MdsMessage::MdsMessage (MidiNibble theGroup, int theMdsId, int theManufacturerId, int theDeviceId,
+                        int theSubId1, int theSubId2, int theNumChunks, Buffer::Ptr theData)
+: Event (type.toString ())
+{
+    group          = theGroup.get ();
+    mdsId          = theMdsId;
+    manufacturerId = theManufacturerId;
+    deviceId       = theDeviceId;
+    subId1         = theSubId1;
+    subId2         = theSubId2;
+    numChunks      = theNumChunks;
+    data           = theData;
+}
+
+#if RUN_UNIT_TESTS
+#include "test/test_MdsMessage.inl"
+#endif

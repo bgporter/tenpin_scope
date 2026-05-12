@@ -24,22 +24,41 @@
 
 #pragma once
 
-#include "handler/msgHandler.h"
-#include "model/appContext.h"
-#include "model/sysex/mdsMessage.h"
-#include "model/sysex/sysex7Message.h"
-#include "model/sysex/sysex8Message.h"
-#include "view/dispatchContext.h"
+#include <JuceHeader.h>
+#include <map>
+#include <utility>
 
-class EventListViewMsgHandler : public MessageHandler
+#include "handler/umpHandler.h"
+#include "model/eventList.h"
+#include "model/sysex/mdsMessage.h"
+#include "model/ump/sysex8.h"
+
+class MdsBuilder : public UmpHandler
 {
 public:
-    EventListViewMsgHandler (AppContext& theAppContext);
-    ~EventListViewMsgHandler () override;
+    using DeferFn = std::function<void (Event&)>;
 
-    Handler::Result handle (const Event& e) override;
-    Handler::Result handle (const Event& e, void* ctx) override;
+    MdsBuilder (EventList theEventList, DeferFn deferFn);
 
 private:
-    AppContext appContext;
+    Handler::Result onMixedDataSetHeaderEvent  (const UmpEvent& e) override;
+    Handler::Result onMixedDataSetPayloadEvent (const UmpEvent& e) override;
+
+    struct InProgress
+    {
+        Buffer::Ptr buffer;
+        int numChunks      { 0 };
+        int numValidBytes  { 0 };
+        int chunksReceived { 0 };
+        int manufacturerId { 0 };
+        int deviceId       { 0 };
+        int subId1         { 0 };
+        int subId2         { 0 };
+    };
+
+    void completeMessage (const MixedDataSetPayloadEvent& e, const std::pair<int, int>& key);
+
+    EventList                                    eventList;
+    DeferFn                                      deferFn;
+    std::map<std::pair<int, int>, InProgress>    inProgressBuffers;
 };

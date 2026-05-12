@@ -24,22 +24,32 @@
 
 #pragma once
 
-#include "handler/msgHandler.h"
-#include "model/appContext.h"
-#include "model/sysex/mdsMessage.h"
-#include "model/sysex/sysex7Message.h"
-#include "model/sysex/sysex8Message.h"
-#include "view/dispatchContext.h"
+#include <JuceHeader.h>
 
-class EventListViewMsgHandler : public MessageHandler
+#include "model/event.h"
+#include "model/midiTypes.h"
+#include "utility/buffer.h"
+
+struct MdsMessage : public Event
 {
-public:
-    EventListViewMsgHandler (AppContext& theAppContext);
-    ~EventListViewMsgHandler () override;
+    static const inline juce::Identifier type { "MsgMds" };
 
-    Handler::Result handle (const Event& e) override;
-    Handler::Result handle (const Event& e, void* ctx) override;
+    // Re-wrap an existing Event whose ValueTree is already a MsgMds
+    MdsMessage (const Event& e);
 
-private:
-    AppContext appContext;
+    // Reconstruct directly from a stored ValueTree (e.g. when reading back from an EventList)
+    MdsMessage (juce::ValueTree vt);
+
+    // Build a fresh message from accumulated buffer data
+    MdsMessage (MidiNibble group, int mdsId, int manufacturerId, int deviceId,
+                int subId1, int subId2, int numChunks, Buffer::Ptr data);
+
+    MAKE_VALUE_MEMBER (int,         group,          {});
+    MAKE_VALUE_MEMBER (int,         mdsId,          {});
+    MAKE_VALUE_MEMBER (int,         manufacturerId, {});
+    MAKE_VALUE_MEMBER (int,         deviceId,       {});
+    MAKE_VALUE_MEMBER (int,         subId1,         {});
+    MAKE_VALUE_MEMBER (int,         subId2,         {});
+    MAKE_VALUE_MEMBER (int,         numChunks,      {});
+    MAKE_VALUE_MEMBER (Buffer::Ptr, data,           {});
 };

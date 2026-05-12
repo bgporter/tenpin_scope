@@ -129,6 +129,56 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
         return Handler::Result::ok;
     }
 
+    if (e.getTypeName () == MdsMessage::type.toString ())
+    {
+        MdsMessage msg (e);
+        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
+        auto* eventView = dispCtx->view;
+        const int width = dispCtx->width;
+
+        Palette pal { PersistentContext { appContext } };
+        PersistentContext pc { appContext };
+        const auto rawFormat = pc.eventViewContext.valueFormatType.get ();
+        const auto formatType =
+            (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+
+        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
+                              pal.sysex8Label.get (), pal.sysex8Value.get (), pal.outline.get ());
+        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
+        eventView->setEndpoint (endpointStr);
+        eventView->setEvent ("MDS Message");
+
+        eventView->addValue ("grp",  juce::String (static_cast<int> (msg.group)));
+        eventView->addValue ("id",   juce::String (static_cast<int> (msg.mdsId)));
+        eventView->addValue ("mfr",  juce::String::toHexString (static_cast<int> (msg.manufacturerId)));
+        eventView->addValue ("dev",  juce::String::toHexString (static_cast<int> (msg.deviceId)));
+        eventView->addValue ("sub1", juce::String::toHexString (static_cast<int> (msg.subId1)));
+        eventView->addValue ("sub2", juce::String::toHexString (static_cast<int> (msg.subId2)));
+
+        if (auto buf = msg.data.get ())
+        {
+            eventView->addValue ("data", "");
+            const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
+            const size_t displayCount = std::min (buf->size (), maxBytes);
+            for (size_t i = 0; i < displayCount; ++i)
+            {
+                auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
+                if (i > 0)
+                    val = " " + val;
+                eventView->addValue ("", val);
+            }
+            if (buf->size () > maxBytes)
+            {
+                const auto remaining = static_cast<int> (buf->size () - maxBytes);
+                eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
+            }
+        }
+
+        eventView->sizeToWidth (width);
+        return Handler::Result::ok;
+    }
+
     return Handler::Result::notHandled;
 }
 

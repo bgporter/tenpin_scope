@@ -45,6 +45,7 @@ SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& 
     auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
     sysex7Builder.emplace (midiEndpointProperties.received, defer);
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
+    mdsBuilder.emplace    (midiEndpointProperties.received, defer);
 
     midiEndpointProperties.playRequested.onPropertyChange (
         [this] (const juce::Identifier&)
