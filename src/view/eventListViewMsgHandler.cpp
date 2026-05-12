@@ -179,6 +179,44 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
         return Handler::Result::ok;
     }
 
+    if (TextMessage::isTextMessage (e))
+    {
+        TextMessage msg (e);
+        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
+        auto* eventView = dispCtx->view;
+        const int width = dispCtx->width;
+
+        Palette pal { PersistentContext { appContext } };
+
+        const auto typeName = e.getTypeName ();
+        if (TextMessage::isFlexDataTextMessage (typeName))
+            eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
+                                  pal.flexDataLabel.get (), pal.flexDataValue.get (), pal.outline.get ());
+        else
+            eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
+                                  pal.streamLabel.get (), pal.streamValue.get (), pal.outline.get ());
+
+        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
+        eventView->setEndpoint (endpointStr);
+        eventView->setEvent (TextMessage::displayName (typeName));
+
+        if (TextMessage::isFlexDataTextMessage (typeName))
+        {
+            eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+            eventView->addValue ("ch",  juce::String (static_cast<int> (msg.channel)));
+        }
+        else if (typeName == TextMessage::typeFunctionBlockName.toString ())
+        {
+            eventView->addValue ("fb", juce::String (static_cast<int> (msg.functionBlockNumber)));
+        }
+
+        eventView->addValue ("text", static_cast<juce::String> (msg.text));
+
+        eventView->sizeToWidth (width);
+        return Handler::Result::ok;
+    }
+
     return Handler::Result::notHandled;
 }
 

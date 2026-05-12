@@ -29,6 +29,7 @@
 #include "model/sysex/mdsMessage.h"
 #include "model/sysex/sysex7Message.h"
 #include "model/sysex/sysex8Message.h"
+#include "model/sysex/textMessage.h"
 #include "view/dispatchContext.h"
 
 class EventListViewMsgHandler : public MessageHandler

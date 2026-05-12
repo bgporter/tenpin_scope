@@ -46,6 +46,7 @@ SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& 
     sysex7Builder.emplace (midiEndpointProperties.received, defer);
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
     mdsBuilder.emplace    (midiEndpointProperties.received, defer);
+    textBuilder.emplace   (midiEndpointProperties.received, defer);
 
     midiEndpointProperties.playRequested.onPropertyChange (
         [this] (const juce::Identifier&)

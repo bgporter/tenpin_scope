@@ -34,6 +34,7 @@
 #include "model/sysex/mdsBuilder.h"
 #include "model/sysex/sysex7Builder.h"
 #include "model/sysex/sysex8Builder.h"
+#include "model/sysex/textBuilder.h"
 
 /// @brief Raw packet data to queue from MIDI thread for processing on message thread
 struct RawPacketData
@@ -93,6 +94,7 @@ private:
     std::optional<Sysex7Builder> sysex7Builder;
     std::optional<Sysex8Builder> sysex8Builder;
     std::optional<MdsBuilder>    mdsBuilder;
+    std::optional<TextBuilder>   textBuilder;
     /// @brief The time when the first packet was received from any endpoint.
     static inline double startTime { -1 };
     std::queue<RawPacketData> eventQueue;

@@ -71,6 +71,7 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id, con
     sysex7Builder.emplace (midiEndpointProperties.received, defer);
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
     mdsBuilder.emplace    (midiEndpointProperties.received, defer);
+    textBuilder.emplace   (midiEndpointProperties.received, defer);
 }
 
 EndpointController::~EndpointController ()

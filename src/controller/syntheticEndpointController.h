@@ -31,6 +31,7 @@
 #include "model/sysex/mdsBuilder.h"
 #include "model/sysex/sysex7Builder.h"
 #include "model/sysex/sysex8Builder.h"
+#include "model/sysex/textBuilder.h"
 #include "model/ump/umpEvent.h"
 
 struct TestEvent
@@ -78,6 +79,7 @@ private:
     std::optional<Sysex7Builder> sysex7Builder;
     std::optional<Sysex8Builder> sysex8Builder;
     std::optional<MdsBuilder>    mdsBuilder;
+    std::optional<TextBuilder>   textBuilder;
     TestEventList          eventList;
 
     size_t      nextEventIndex { 0 };

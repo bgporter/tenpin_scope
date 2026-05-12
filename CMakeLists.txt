@@ -132,6 +132,10 @@ set(SOURCES_SYSEX
     src/model/sysex/mdsMessage.cpp
     src/model/sysex/mdsBuilder.h
     src/model/sysex/mdsBuilder.cpp
+    src/model/sysex/textMessage.h
+    src/model/sysex/textMessage.cpp
+    src/model/sysex/textBuilder.h
+    src/model/sysex/textBuilder.cpp
 )
 
 set(SOURCES_UTILITY
