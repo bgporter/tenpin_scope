@@ -61,6 +61,8 @@ public:
     MAKE_VALUE_MEMBER (int, col3Width, 160);
     // used to control the slide in/out of the settings window.
     MAKE_VALUE_MEMBER (float, settingsPos, 0.f);
+    // monotonic counter; increment to trigger a clear of all endpoint event lists.
+    MAKE_VALUE_MEMBER (int, clearEvents, 0);
 
     EventList eventList;
     MidiProperties midiProperties { *this };

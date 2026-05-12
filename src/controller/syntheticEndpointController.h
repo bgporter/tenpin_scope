@@ -26,6 +26,7 @@
 
 #include <JuceHeader.h>
 
+#include "model/appContext.h"
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/sysex/mdsBuilder.h"
@@ -54,7 +55,8 @@ public:
 class SyntheticEndpointController
 {
 public:
-    SyntheticEndpointController (const MidiProperties& midiProperties, const juce::String& name);
+    SyntheticEndpointController (const MidiProperties& midiProperties, const juce::String& name,
+                                 AppContext& appContext);
     ~SyntheticEndpointController () = default;
 
     /** Called by MidiController::timerCallback() at ~30 Hz on the message thread. */
@@ -76,6 +78,7 @@ private:
 
     MidiProperties         midiProperties;
     MidiEndpointProperties midiEndpointProperties;
+    RuntimeContext         runtimeContext;
     std::optional<Sysex7Builder> sysex7Builder;
     std::optional<Sysex8Builder> sysex8Builder;
     std::optional<MdsBuilder>    mdsBuilder;

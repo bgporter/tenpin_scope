@@ -79,6 +79,7 @@ private:
     void rebuildMidiEventsFromEndpoints ();
 
 
+    AppContext appContext;
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
     MidiProperties midiProperties;

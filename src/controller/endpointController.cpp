@@ -61,10 +61,12 @@ bool hasFunctionBlockInDirection (const ump::Endpoint& e, ump::IOKind direction)
 }
 } // namespace
 
-EndpointController::EndpointController (int index, juce::ump::EndpointId id, const MidiProperties& mp)
+EndpointController::EndpointController (int index, juce::ump::EndpointId id,
+                                         const MidiProperties& mp, AppContext& ac)
 : endpointIndex { index }
 , midiProperties { mp }
 , midiEndpointProperties { id }
+, runtimeContext { ac }
 {
     midiProperties.endpoints.append (&midiEndpointProperties);
     auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
@@ -72,6 +74,13 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id, con
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
     mdsBuilder.emplace    (midiEndpointProperties.received, defer);
     textBuilder.emplace   (midiEndpointProperties.received, defer);
+
+    runtimeContext.clearEvents.onPropertyChange ([this] (const juce::Identifier&)
+    {
+        midiEndpointProperties.received.clear ();
+        midiEndpointProperties.transmitted.clear ();
+        midiEndpointProperties.deferredMessages.clear ();
+    });
 }
 
 EndpointController::~EndpointController ()

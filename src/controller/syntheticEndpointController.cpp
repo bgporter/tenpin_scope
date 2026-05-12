@@ -34,9 +34,11 @@
 #include "model/ump/utility.h"
 
 SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& mp,
-                                                           const juce::String& name)
+                                                           const juce::String& name,
+                                                           AppContext& ac)
 : midiProperties { mp }
 , midiEndpointProperties { juce::ump::EndpointId {} }
+, runtimeContext { ac }
 {
     midiEndpointProperties.name         = name;
     midiEndpointProperties.isInputAlive = true;
@@ -54,6 +56,13 @@ SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& 
             if (midiEndpointProperties.playRequested.get ())
                 startPlayback ();
         });
+
+    runtimeContext.clearEvents.onPropertyChange ([this] (const juce::Identifier&)
+    {
+        midiEndpointProperties.received.clear ();
+        midiEndpointProperties.transmitted.clear ();
+        midiEndpointProperties.deferredMessages.clear ();
+    });
 
     buildDefaultEventList ();
 }

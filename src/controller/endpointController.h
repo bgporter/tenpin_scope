@@ -28,6 +28,7 @@
 #include <array>
 #include <queue>
 
+#include "model/appContext.h"
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/ump/umpEvent.h"
@@ -58,7 +59,8 @@ public:
      * fresh Endpoint instance using the ID.
      * @param midiProperties The MidiProperties object to append this endpoint's properties to.
      */
-    EndpointController (int index, juce::ump::EndpointId id, const MidiProperties& midiProperties);
+    EndpointController (int index, juce::ump::EndpointId id, const MidiProperties& midiProperties,
+                        AppContext& appContext);
 
     /**
      * @brief Destructor for the Endpoint Controller object.
@@ -91,6 +93,7 @@ private:
     juce::ump::Output output;
     MidiProperties midiProperties;
     MidiEndpointProperties midiEndpointProperties;
+    RuntimeContext runtimeContext;
     std::optional<Sysex7Builder> sysex7Builder;
     std::optional<Sysex8Builder> sysex8Builder;
     std::optional<MdsBuilder>    mdsBuilder;

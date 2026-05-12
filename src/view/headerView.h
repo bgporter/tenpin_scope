@@ -49,5 +49,6 @@ private:
     AppContext appContext;
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
+    juce::ImageButton clearButton;
     juce::ImageButton filterButton;
 };

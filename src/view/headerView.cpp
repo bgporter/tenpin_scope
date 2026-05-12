@@ -68,6 +68,20 @@ HeaderView::HeaderView (AppContext& context)
             onSettingsToggled (filterButton.getToggleState ());
     };
     addAndMakeVisible (filterButton);
+
+    const auto clearIconImage = renderSvgWithColor (
+        ImageData::delete_sweep_24dp_F3F3F3_FILL0_wght300_GRAD0_opsz24_svg,
+        ImageData::delete_sweep_24dp_F3F3F3_FILL0_wght300_GRAD0_opsz24_svgSize,
+        svgFillColor, iconColor, kHeight);
+
+    clearButton.setImages (
+        false, true, true,
+        clearIconImage, 0.7f, juce::Colours::transparentBlack,
+        clearIconImage, 1.0f, juce::Colours::transparentBlack,
+        clearIconImage, 1.0f, iconColor.withAlpha (0.2f));
+    clearButton.setButtonText ("clear");
+    clearButton.onClick = [this] () { ++runtimeContext.clearEvents; };
+    addAndMakeVisible (clearButton);
 }
 
 void HeaderView::dismissSettings ()
@@ -87,8 +101,9 @@ void HeaderView::paint (juce::Graphics& g)
 
 void HeaderView::resized ()
 {
-    auto bounds = getLocalBounds ();
+    auto bounds          = getLocalBounds ();
     const int buttonSize = kHeight - 8;
     const int yOffset    = (getHeight () - buttonSize) / 2;
-    filterButton.setBounds (bounds.getRight () - buttonSize - 4, yOffset, buttonSize, buttonSize);
+    clearButton.setBounds  (bounds.getX () + 4,                     yOffset, buttonSize, buttonSize);
+    filterButton.setBounds (bounds.getRight () - buttonSize - 4,    yOffset, buttonSize, buttonSize);
 }

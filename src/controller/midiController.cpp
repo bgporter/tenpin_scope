@@ -33,7 +33,8 @@
 #include "utility/logger.h"
 
 MidiController::MidiController (juce::StringRef sessionName, AppContext& appContext)
-: persistentContext { appContext }
+: appContext { appContext }
+, persistentContext { appContext }
 , runtimeContext { appContext }
 , midiProperties { runtimeContext }
 , eventFilter { appContext }
@@ -77,18 +78,6 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
         };
         thisEndpointProperties->received.onChildRemoved = [this, propIndex] (juce::ValueTree& vt, int, int)
         { DBG ("REMOVING EVENT FROM " << endpointProperties[propIndex]->name); };
-        // TEMPORARY: clear this endpoint's received list when count hits 100, 200, etc.
-        thisEndpointProperties->received.count.onPropertyChange (
-            [this, propIndex] (const juce::Identifier&)
-            {
-                const int c = endpointProperties[propIndex]->received.count.get ();
-                if (c > 0 && c % 300 == 0)
-                {
-                    DBG ("&&&&& CLEARING EVENTS FrOM " << endpointProperties[propIndex]->name);
-                    endpointProperties[propIndex]->received.clear ();
-                    rebuildMidiEventsFromEndpoints ();
-                }
-            });
         thisEndpointProperties->transmitted.onChildAdded = [this, propIndex] (juce::ValueTree& vt, int, int)
         {
             UmpEvent event (vt);
@@ -117,11 +106,15 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
     endpoints->addListener (*this);
     startTimer (33); // 30 times per second (30 Hz)
 #if JUCE_DEBUG
-    syntheticController = std::make_unique<SyntheticEndpointController> (midiProperties, "Synthetic Input");
+    syntheticController = std::make_unique<SyntheticEndpointController> (midiProperties, "Synthetic Input",
+                                                                           appContext);
 #endif
 
     persistentContext.eventViewContext.onPropertyChange ([this] (const juce::Identifier&)
                                                          { rebuildMidiEventsFromEndpoints (); });
+
+    runtimeContext.clearEvents.onPropertyChange ([this] (const juce::Identifier&)
+                                                 { midiProperties.midiEvents.clear (); });
 }
 
 MidiController::~MidiController ()
@@ -171,7 +164,8 @@ void MidiController::addEndpointController (int index, juce::ump::EndpointId end
         { "srcId", endpointId.get (juce::ump::IOKind::src) },
         { "dstId", endpointId.get (juce::ump::IOKind::dst) }
     });
-    auto endpointController = std::make_unique<EndpointController> (index, endpointId, midiProperties);
+    auto endpointController = std::make_unique<EndpointController> (index, endpointId, midiProperties,
+                                                                      appContext);
     endpointController->connectEndpoint (&session);
 
     // we keep track of two things:
