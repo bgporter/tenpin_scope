@@ -37,10 +37,9 @@ DataView::DataView (AppContext& theAppContext)
 , col2Resizer { runtimeContext.col2Width, persistentContext.eventViewContext.col2Width, persistentContext.dragging }
 , col3Resizer { runtimeContext.col3Width, persistentContext.eventViewContext.col3Width, persistentContext.dragging }
 {
-    // Z-order: viewport at back, settingsViewport above content, header above that,
-    // resizers at front so they are interactive and visible across the full height.
+    // Z-order: viewport at back, header above it, resizers above header (full-height
+    // drag), settingsViewport at front so it renders over the resizers when open.
     addAndMakeVisible (viewport);
-    addAndMakeVisible (settingsViewport);
     addAndMakeVisible (header);
     col1Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
     col2Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
@@ -48,6 +47,7 @@ DataView::DataView (AppContext& theAppContext)
     addAndMakeVisible (col1Resizer);
     addAndMakeVisible (col2Resizer);
     addAndMakeVisible (col3Resizer);
+    addAndMakeVisible (settingsViewport);
 
     viewport.setViewedComponent (&eventListView, false);
     settingsViewport.setViewedComponent (&settingsView, false);
@@ -112,9 +112,8 @@ void DataView::resized ()
     col3Resizer.setBounds (col1W + kDividerWidth + col2W + kDividerWidth + col3W - half, 0, kDividerWidth, h);
 
     // Position the settings panel: centered horizontally, sliding down from
-    // behind the header. At settingsPos=0 its bottom edge is flush with the
-    // top of the viewport (hidden behind the header). At settingsPos=1 its
-    // top edge is flush with the top of the viewport (fully visible).
+    // above the view. At settingsPos=0 it is entirely above y=0 (invisible).
+    // At settingsPos=1 its top edge is flush with the bottom of the header.
     // The settingsViewport caps the visible height to the available space so the
     // panel never overflows the window; the content scrolls inside it.
     const float settingsPos = runtimeContext.settingsPos;
@@ -122,7 +121,7 @@ void DataView::resized ()
     const int availableH    = getHeight () - DataViewHeader::kHeaderHeight;
     const int settingsH     = juce::jmin (settingsView.getHeight (), availableH);
     const int settingsX     = (getWidth () - settingsW) / 2;
-    const int settingsY     = DataViewHeader::kHeaderHeight + juce::roundToInt (settingsH * (settingsPos - 1.f));
+    const int settingsY     = juce::roundToInt ((settingsH + DataViewHeader::kHeaderHeight) * settingsPos) - settingsH;
     settingsViewport.setBounds (settingsX, settingsY, settingsW, settingsH);
 }
 
