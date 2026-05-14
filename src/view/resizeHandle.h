@@ -50,12 +50,15 @@ public:
     void mouseEnter (const juce::MouseEvent& e) override;
     void mouseExit (const juce::MouseEvent& e) override;
 
+    void setHeaderHeight (int h) { headerHeight = h; }
+
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ResizeHandle)
     cello::Value<int>& rcValue;
     cello::Value<int>& pcValue;
     cello::Value<bool>& dragging;
     LinePosition linePosition;
+    int headerHeight { 0 };
     int dragStartValue { 0 };
     bool isHovered { false };
     bool isBeingDragged { false };

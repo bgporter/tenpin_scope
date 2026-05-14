@@ -30,9 +30,6 @@ DataViewHeader::DataViewHeader (AppContext& context)
 : appContext { context }
 , persistentContext { appContext }
 , runtimeContext { appContext }
-, col1Resizer { runtimeContext.col1Width, persistentContext.eventViewContext.col1Width, persistentContext.dragging }
-, col2Resizer { runtimeContext.col2Width, persistentContext.eventViewContext.col2Width, persistentContext.dragging }
-, col3Resizer { runtimeContext.col3Width, persistentContext.eventViewContext.col3Width, persistentContext.dragging }
 {
     for (auto* label : { &timeLabel, &endpointLabel, &eventLabel, &dataLabel })
     {
@@ -43,10 +40,6 @@ DataViewHeader::DataViewHeader (AppContext& context)
     endpointLabel.setText ("Endpoint", juce::dontSendNotification);
     eventLabel.setText ("Event", juce::dontSendNotification);
     dataLabel.setText ("Data", juce::dontSendNotification);
-
-    addAndMakeVisible (col1Resizer);
-    addAndMakeVisible (col2Resizer);
-    addAndMakeVisible (col3Resizer);
 
     // Seed runtime context with persisted values so initial layout is correct.
     runtimeContext.col1Width = persistentContext.eventViewContext.col1Width.get ();
@@ -78,10 +71,7 @@ void DataViewHeader::resized ()
     const int handle3Start = col1Width + kDividerWidth + col2Width + kDividerWidth + col3Width - half;
 
     timeLabel.setBounds (0, 0, handle1Start, getHeight ());
-    col1Resizer.setBounds (handle1Start, 0, kDividerWidth, getHeight ());
     endpointLabel.setBounds (handle1Start + kDividerWidth, 0, col2Width, getHeight ());
-    col2Resizer.setBounds (handle2Start, 0, kDividerWidth, getHeight ());
     eventLabel.setBounds (handle2Start + kDividerWidth, 0, col3Width, getHeight ());
-    col3Resizer.setBounds (handle3Start, 0, kDividerWidth, getHeight ());
     dataLabel.setBounds (handle3Start + kDividerWidth, 0, getWidth () - handle3Start - kDividerWidth, getHeight ());
 }

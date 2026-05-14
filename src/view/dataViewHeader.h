@@ -27,7 +27,6 @@
 #include <JuceHeader.h>
 
 #include "model/appContext.h"
-#include "resizeHandle.h"
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
 
@@ -52,7 +51,4 @@ private:
     juce::Label endpointLabel;
     juce::Label eventLabel;
     juce::Label dataLabel;
-    ResizeHandle col1Resizer;
-    ResizeHandle col2Resizer;
-    ResizeHandle col3Resizer;
 };

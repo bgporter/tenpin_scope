@@ -53,7 +53,7 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
 
         eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
                               pal.sysex7Label.get (), pal.sysex7Value.get (), pal.outline.get ());
-        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        eventView->setTime (formatTime (msg.timestamp));
         const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
         eventView->setEndpoint (endpointStr);
         eventView->setEvent ("Sysex7 Message");
@@ -98,7 +98,7 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
 
         eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
                               pal.sysex8Label.get (), pal.sysex8Value.get (), pal.outline.get ());
-        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        eventView->setTime (formatTime (msg.timestamp));
         const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
         eventView->setEndpoint (endpointStr);
         eventView->setEvent ("Sysex8 Message");
@@ -144,7 +144,7 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
 
         eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
                               pal.sysex8Label.get (), pal.sysex8Value.get (), pal.outline.get ());
-        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        eventView->setTime (formatTime (msg.timestamp));
         const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
         eventView->setEndpoint (endpointStr);
         eventView->setEvent ("MDS Message");
@@ -196,7 +196,7 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
             eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
                                   pal.streamLabel.get (), pal.streamValue.get (), pal.outline.get ());
 
-        eventView->setTime (juce::String (static_cast<double> (msg.timestamp), 3));
+        eventView->setTime (formatTime (msg.timestamp));
         const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
         eventView->setEndpoint (endpointStr);
         eventView->setEvent (TextMessage::displayName (typeName));

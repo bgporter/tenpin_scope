@@ -73,7 +73,7 @@ void EventView::resized ()
     const int contentH   = static_cast<int> (std::ceil (naturalH));
     const int rowH       = getRowHeight ();
 
-    timeValue->setBounds (kDividerWidth, padding, col1Width, contentH);
+    timeValue->setBounds (kDividerWidth, padding, col1Width - kDividerWidth, contentH);
 
     if (endpointValue)
         endpointValue->setBounds (col2StartX, padding, col2Width, contentH);

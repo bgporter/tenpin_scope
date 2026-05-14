@@ -91,10 +91,10 @@ public:
                        juce::Font (juce::FontOptions { "Fira Code", 15.f, juce::Font::FontStyleFlags::plain }));
 
     // colors from the juce ColourScheme struct:
-    COLOR_M (windowBackground, "#060e20");
+    COLOR_M (windowBackground, "#404040");
     COLOR_M (widgetBackground, "#fff");
     COLOR_M (menuBackground, "#fff");
-    COLOR_M (outline, "#2d3449");
+    COLOR_M (outline, "#404040");
     COLOR_M (defaultText, "#dae2fe");
     COLOR_M (secondaryText, "0x94a3b8");
     COLOR_M (defaultFill, "#a9a9a9");
@@ -104,7 +104,7 @@ public:
     COLOR_M (surfaceMid, "#0b1426");
     COLOR_M (surfaceHigh, "#1a2332");
     COLOR_M (divider, "outline");
-    COLOR_M (deepBackground, "#060e20");
+    COLOR_M (deepBackground, "#0f0f0f");
     COLOR_M (umpBackground, "deepBackground");
 
     // MIDI 2.0 (UMP) — Emerald 400 / Emerald 800

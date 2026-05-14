@@ -26,10 +26,8 @@
 
 #include "lookAndFeel.h"
 
-ResizeHandle::ResizeHandle (cello::Value<int>& rcValue_,
-                             cello::Value<int>& pcValue_,
-                             cello::Value<bool>& dragging_,
-                             LinePosition linePosition_)
+ResizeHandle::ResizeHandle (cello::Value<int>& rcValue_, cello::Value<int>& pcValue_, cello::Value<bool>& dragging_,
+                            LinePosition linePosition_)
 : rcValue { rcValue_ }
 , pcValue { pcValue_ }
 , dragging { dragging_ }
@@ -41,20 +39,37 @@ void ResizeHandle::paint (juce::Graphics& g)
 {
     if (isHovered || isBeingDragged)
     {
-        g.fillAll (juce::Colours::black);
+        g.fillAll (juce::Colours::blue);
+        return;
+    }
+
+    int lineX { 0 };
+    switch (linePosition)
+    {
+        case LinePosition::left:   lineX = 0;                break;
+        case LinePosition::centre: lineX = getWidth () / 2;  break;
+        case LinePosition::right:  lineX = getWidth () - 1;  break;
+    }
+
+    auto* laf = TenpinLookAndFeel::getFrom (*this);
+    if (laf == nullptr)
+        return;
+
+    const auto& palette  = laf->getPalette ();
+    const float totalH   = static_cast<float> (getHeight ());
+    const float splitY   = static_cast<float> (headerHeight);
+
+    if (headerHeight > 0)
+    {
+        g.setColour (palette.deepBackground.get ());
+        g.drawVerticalLine (lineX, 0.f, splitY);
+        g.setColour (palette.outline.get ());
+        g.drawVerticalLine (lineX, splitY, totalH);
     }
     else
     {
-        int lineX { 0 };
-        switch (linePosition)
-        {
-            case LinePosition::left:   lineX = 0;              break;
-            case LinePosition::centre: lineX = getWidth () / 2; break;
-            case LinePosition::right:  lineX = getWidth () - 1; break;
-        }
-        if (auto* laf = TenpinLookAndFeel::getFrom (*this))
-            g.setColour (laf->getPalette ().divider.get ());
-        g.drawVerticalLine (lineX, 0.0f, static_cast<float> (getHeight ()));
+        g.setColour (palette.deepBackground.get ());
+        g.drawVerticalLine (lineX, 0.f, totalH);
     }
 }
 

@@ -40,7 +40,7 @@ EventListView::EventListView (AppContext& theAppContext)
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
 , dispatcher { std::make_unique<EventDispatcher> (std::make_unique<EventListViewHandler> (appContext),
-                                                   std::make_unique<EventListViewMsgHandler> (appContext)) }
+                                                  std::make_unique<EventListViewMsgHandler> (appContext)) }
 , eventViewPool { appContext }
 {
     eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };
@@ -313,7 +313,7 @@ bool EventListView::shouldDisplayNewEvent () const
 void EventListView::paint (juce::Graphics& g)
 {
     Palette palette { PersistentContext { appContext } };
-    g.fillAll (palette.windowBackground.get ());
+    g.fillAll (palette.deepBackground.get ());
 
     auto bounds = getLocalBounds ();
     g.setColour (palette.divider.get ());
