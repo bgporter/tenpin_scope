@@ -138,7 +138,7 @@ Handler::Result EventListViewHandler::postDispatch (const UmpEvent& event, Handl
                 rawDataStr += formatValue (event.getattr<uint32_t> (dataId, 0), 32, ValueFormatType::Hex) + " ";
             }
 
-            eventView->addValue ("raw", rawDataStr.trimEnd ());
+            eventView->addValue ("ump", rawDataStr.trimEnd ());
         }
         eventView->sizeToWidth (currentWidth);
     }
