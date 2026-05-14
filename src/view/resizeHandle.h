@@ -26,7 +26,8 @@
 
 #include <JuceHeader.h>
 
-class ResizeHandle : public juce::Component
+class ResizeHandle : public juce::Component,
+                     public juce::Timer
 {
 public:
     enum class LinePosition
@@ -49,6 +50,8 @@ public:
     void mouseDrag (const juce::MouseEvent& e) override;
     void mouseEnter (const juce::MouseEvent& e) override;
     void mouseExit (const juce::MouseEvent& e) override;
+
+    void timerCallback () override;
 
     void setHeaderHeight (int h) { headerHeight = h; }
 

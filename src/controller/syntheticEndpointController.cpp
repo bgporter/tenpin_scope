@@ -62,6 +62,7 @@ SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& 
         midiEndpointProperties.received.clear ();
         midiEndpointProperties.transmitted.clear ();
         midiEndpointProperties.deferredMessages.clear ();
+        startTime = -1;
     });
 
     buildDefaultEventList ();

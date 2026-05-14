@@ -75,9 +75,11 @@ void ResizeHandle::paint (juce::Graphics& g)
 
 void ResizeHandle::mouseDown (const juce::MouseEvent&)
 {
+    stopTimer ();
     dragStartValue = pcValue.get ();
     dragging       = true;
     isBeingDragged = true;
+    repaint ();
 }
 
 void ResizeHandle::mouseUp (const juce::MouseEvent&)
@@ -85,6 +87,7 @@ void ResizeHandle::mouseUp (const juce::MouseEvent&)
     pcValue        = rcValue.get ();
     dragging       = false;
     isBeingDragged = false;
+    isHovered      = isMouseOver ();
     setMouseCursor (juce::MouseCursor::NormalCursor);
     repaint ();
 }
@@ -96,15 +99,25 @@ void ResizeHandle::mouseDrag (const juce::MouseEvent& e)
 
 void ResizeHandle::mouseEnter (const juce::MouseEvent&)
 {
-    isHovered = true;
+    startTimer (100);
     setMouseCursor (juce::MouseCursor::LeftRightResizeCursor);
-    repaint ();
 }
 
 void ResizeHandle::mouseExit (const juce::MouseEvent&)
 {
+    stopTimer ();
     isHovered = false;
     if (!isBeingDragged)
         setMouseCursor (juce::MouseCursor::NormalCursor);
     repaint ();
+}
+
+void ResizeHandle::timerCallback ()
+{
+    stopTimer ();
+    if (isMouseOver ())
+    {
+        isHovered = true;
+        repaint ();
+    }
 }

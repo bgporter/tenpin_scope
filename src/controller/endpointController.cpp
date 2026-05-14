@@ -80,6 +80,7 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id,
         midiEndpointProperties.received.clear ();
         midiEndpointProperties.transmitted.clear ();
         midiEndpointProperties.deferredMessages.clear ();
+        startTime = -1;
     });
 }
 

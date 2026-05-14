@@ -42,8 +42,8 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 , valueFormatTypeComboBox { "Value format" }
 , precisionDigitsComboBox { "Precision" }
 {
-    setupButton (showParsedDataButton, "Show parsed data", eventViewContext.umpShowParsedData.getId ());
-    setupButton (showRawDataButton, "Show raw data", eventViewContext.umpShowRawData.getId ());
+    setupButton (showParsedDataButton, "Show parsed event data", eventViewContext.umpShowParsedData.getId ());
+    setupButton (showRawDataButton, "Show raw UMP data", eventViewContext.umpShowRawData.getId ());
 
     setupCombobox (octaveTypeComboBox, eventViewContext.octaveType.getId (), octaveTypeOptions, OctaveType::Yamaha);
     setupCombobox (valueFormatTypeComboBox, eventViewContext.valueFormatType.getId (), valueFormatTypeOptions,
@@ -98,18 +98,18 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
     syncSysex8Children ();
 
     // Compute height: 2*margin + display-format section + sectionGap + label + gap + 16 filter rows.
-    // Each filter row is buttonH(24) + gap(8) = 32; last row has no trailing gap.
-    constexpr int margin     = 8;
-    constexpr int buttonH    = 24;
-    constexpr int comboH     = 28;
-    constexpr int gap        = 8;
-    constexpr int sectionGap = 16;
-    constexpr int labelH     = 20;
-    constexpr int innerH     = buttonH + gap              // parsed/raw row
-                               + comboH + gap             // octave
-                               + comboH + gap             // format
-                               + comboH                   // precision
-                               + sectionGap + labelH + gap // section header
+    // Each filter row is buttonH + gap; last row has no trailing gap.
+    constexpr int margin     = 6;
+    constexpr int buttonH    = 20;
+    constexpr int comboH     = 24;
+    constexpr int gap        = 4;
+    constexpr int sectionGap = 8;
+    constexpr int labelH     = 16;
+    constexpr int innerH     = buttonH + gap                     // parsed/raw row
+                               + comboH + gap                    // octave
+                               + comboH + gap                    // format
+                               + comboH                          // precision
+                               + sectionGap + labelH + gap       // section header
                                + 15 * (buttonH + gap) + buttonH; // 16 filter rows
     setSize (400, innerH + 2 * margin);
 }
@@ -124,13 +124,13 @@ void EventListSettingsView::paint (juce::Graphics& g)
 
 void EventListSettingsView::resized ()
 {
-    constexpr int margin     = 8;
-    constexpr int buttonH    = 24;
-    constexpr int comboH     = 28;
-    constexpr int gap        = 8;
-    constexpr int indent     = 20;
-    constexpr int sectionGap = 16;
-    constexpr int labelH     = 20;
+    constexpr int margin     = 6;
+    constexpr int buttonH    = 20;
+    constexpr int comboH     = 24;
+    constexpr int gap        = 4;
+    constexpr int indent     = 16;
+    constexpr int sectionGap = 8;
+    constexpr int labelH     = 16;
 
     auto bounds = getLocalBounds ().reduced (margin);
 
@@ -207,4 +207,3 @@ void EventListSettingsView::setupButton (juce::Button& button, const juce::Strin
     persistentContext.eventViewContext.onPropertyChange (
         valId, [valId, setButtonStateFromContext] (const juce::Identifier& /*id*/) { setButtonStateFromContext (); });
 }
-
