@@ -10,8 +10,11 @@
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
 #include "view/dataView.h"
+#include "view/dataViewHeader.h"
 #include "view/deviceView.h"
+#include "view/eventListSettingsView.h"
 #include "view/headerView.h"
+#include "view/resizeHandle.h"
 
 //==============================================================================
 /*
@@ -36,7 +39,14 @@ private:
     RuntimeContext runtimeContext;
     friz::Animator animator;
     HeaderView headerView;
+    DataViewHeader dataViewHeader;
     DataView dataView;
     DeviceView deviceView;
+    EventListSettingsView settingsView;
+    juce::Viewport settingsViewport;
+    ResizeHandle sidebarResizer;
+    ResizeHandle col1Resizer;
+    ResizeHandle col2Resizer;
+    ResizeHandle col3Resizer;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
 };

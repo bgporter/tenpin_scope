@@ -55,9 +55,9 @@ void ResizeHandle::paint (juce::Graphics& g)
     if (laf == nullptr)
         return;
 
-    const auto& palette  = laf->getPalette ();
-    const float totalH   = static_cast<float> (getHeight ());
-    const float splitY   = static_cast<float> (headerHeight);
+    const auto& palette = laf->getPalette ();
+    const float totalH  = static_cast<float> (getHeight ());
+    const float splitY  = static_cast<float> (headerHeight);
 
     if (headerHeight > 0)
     {
@@ -68,7 +68,7 @@ void ResizeHandle::paint (juce::Graphics& g)
     }
     else
     {
-        g.setColour (palette.deepBackground.get ());
+        g.setColour (palette.outline.get ());
         g.drawVerticalLine (lineX, 0.f, totalH);
     }
 }

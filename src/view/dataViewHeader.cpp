@@ -49,6 +49,7 @@ DataViewHeader::DataViewHeader (AppContext& context)
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
     runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
 }
 
 void DataViewHeader::paint (juce::Graphics& g)
@@ -62,16 +63,17 @@ void DataViewHeader::paint (juce::Graphics& g)
 
 void DataViewHeader::resized ()
 {
-    const int col1Width    = runtimeContext.col1Width;
-    const int col2Width    = runtimeContext.col2Width;
-    const int col3Width    = runtimeContext.col3Width;
-    const int half         = kDividerWidth / 2;
-    const int handle1Start = col1Width - half;
-    const int handle2Start = col1Width + kDividerWidth + col2Width - half;
-    const int handle3Start = col1Width + kDividerWidth + col2Width + kDividerWidth + col3Width - half;
+    const int xBase     = runtimeContext.sidebarWidth;
+    const int col1Width = runtimeContext.col1Width;
+    const int col2Width = runtimeContext.col2Width;
+    const int col3Width = runtimeContext.col3Width;
+    const int half      = kDividerWidth / 2;
+    const int h1        = xBase + col1Width - half;
+    const int h2        = h1 + kDividerWidth + col2Width;
+    const int h3        = h2 + kDividerWidth + col3Width;
 
-    timeLabel.setBounds (0, 0, handle1Start, getHeight ());
-    endpointLabel.setBounds (handle1Start + kDividerWidth, 0, col2Width, getHeight ());
-    eventLabel.setBounds (handle2Start + kDividerWidth, 0, col3Width, getHeight ());
-    dataLabel.setBounds (handle3Start + kDividerWidth, 0, getWidth () - handle3Start - kDividerWidth, getHeight ());
+    timeLabel.setBounds (xBase, 0, h1 - xBase, getHeight ());
+    endpointLabel.setBounds (h1 + kDividerWidth, 0, col2Width, getHeight ());
+    eventLabel.setBounds (h2 + kDividerWidth, 0, col3Width, getHeight ());
+    dataLabel.setBounds (h3 + kDividerWidth, 0, getWidth () - h3 - kDividerWidth, getHeight ());
 }

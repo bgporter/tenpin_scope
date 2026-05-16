@@ -31,7 +31,6 @@
 #include "model/midiProperties.h"
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
-#include "resizeHandle.h"
 
 class DeviceView : public juce::Component
 {
@@ -47,13 +46,10 @@ public:
     void rebuild ();
 
 private:
-    static const inline int resizeHandleWidth { 5 };
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DeviceView)
     AppContext appContext;
     RuntimeContext runtimeContext;
     PersistentContext persistentContext;
     MidiProperties midiProperties;
-    ResizeHandle resizer;
     std::vector<std::unique_ptr<EndpointView>> endpointViews;
 };

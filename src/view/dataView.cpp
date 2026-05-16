@@ -30,36 +30,18 @@ DataView::DataView (AppContext& theAppContext)
 : appContext { theAppContext }
 , persistentContext { appContext }
 , runtimeContext { appContext }
-, header { appContext }
 , eventListView { appContext }
-, settingsView { appContext }
-, col1Resizer { runtimeContext.col1Width, persistentContext.eventViewContext.col1Width, persistentContext.dragging }
-, col2Resizer { runtimeContext.col2Width, persistentContext.eventViewContext.col2Width, persistentContext.dragging }
-, col3Resizer { runtimeContext.col3Width, persistentContext.eventViewContext.col3Width, persistentContext.dragging }
 {
-    // Z-order: viewport at back, header above it, resizers above header (full-height
-    // drag), settingsViewport at front so it renders over the resizers when open.
     addAndMakeVisible (viewport);
-    addAndMakeVisible (header);
-    col1Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
-    col2Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
-    col3Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
-    addAndMakeVisible (col1Resizer);
-    addAndMakeVisible (col2Resizer);
-    addAndMakeVisible (col3Resizer);
-    addAndMakeVisible (settingsViewport);
 
     viewport.setViewedComponent (&eventListView, false);
-    settingsViewport.setViewedComponent (&settingsView, false);
-    settingsViewport.setScrollBarsShown (true, false);
 
     viewport.getVerticalScrollBar ().addListener (this);
     viewport.addMouseListener (this, true);
 
-    runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); resized (); });
-    runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); resized (); });
-    runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); resized (); });
-    runtimeContext.settingsPos.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+    runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+    runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
 }
 
 DataView::~DataView ()
@@ -80,49 +62,21 @@ void DataView::paint (juce::Graphics& g)
     const int line1X            = col1Width;
     const int line2X            = col1Width + kDividerWidth + col2Width;
     const int line3X            = line2X + kDividerWidth + col3Width;
-    const float top             = static_cast<float> (DataViewHeader::kHeaderHeight);
-    const float bottom          = static_cast<float> (getHeight ());
-
     g.setColour (palette.outline.get ());
-    g.drawVerticalLine (line1X, top, bottom);
-    g.drawVerticalLine (line2X, top, bottom);
-    g.drawVerticalLine (line3X, top, bottom);
+    g.drawVerticalLine (line1X, 0.f, static_cast<float> (getHeight ()));
+    g.drawVerticalLine (line2X, 0.f, static_cast<float> (getHeight ()));
+    g.drawVerticalLine (line3X, 0.f, static_cast<float> (getHeight ()));
 }
 
 void DataView::resized ()
 {
     auto bounds = getLocalBounds ();
-    header.setBounds (bounds.removeFromTop (DataViewHeader::kHeaderHeight));
     viewport.setBounds (bounds);
     // Use the viewport's visible content width rather than the full DataView
     // width: when the vertical scrollbar is visible it occupies some pixels
     // on the right, so the content area is narrower than getWidth().
     eventListView.widthChanged (viewport.getMaximumVisibleWidth ());
     eventListView.visibleAreaChanged (viewport.getViewArea ());
-
-    // Position resizers: full height of DataView, centred on each column boundary.
-    constexpr int kDividerWidth = 5;
-    const int col1W             = runtimeContext.col1Width.get ();
-    const int col2W             = runtimeContext.col2Width.get ();
-    const int col3W             = runtimeContext.col3Width.get ();
-    const int half              = kDividerWidth / 2;
-    const int h                 = getHeight ();
-    col1Resizer.setBounds (col1W - half, 0, kDividerWidth, h);
-    col2Resizer.setBounds (col1W + kDividerWidth + col2W - half, 0, kDividerWidth, h);
-    col3Resizer.setBounds (col1W + kDividerWidth + col2W + kDividerWidth + col3W - half, 0, kDividerWidth, h);
-
-    // Position the settings panel: centered horizontally, sliding down from
-    // above the view. At settingsPos=0 it is entirely above y=0 (invisible).
-    // At settingsPos=1 its top edge is flush with the bottom of the header.
-    // The settingsViewport caps the visible height to the available space so the
-    // panel never overflows the window; the content scrolls inside it.
-    const float settingsPos = runtimeContext.settingsPos;
-    const int settingsW     = settingsView.getWidth ();
-    const int availableH    = getHeight () - DataViewHeader::kHeaderHeight;
-    const int settingsH     = juce::jmin (settingsView.getHeight (), availableH);
-    const int settingsX     = (getWidth () - settingsW) / 2;
-    const int settingsY     = juce::roundToInt ((settingsH + DataViewHeader::kHeaderHeight) * settingsPos) - settingsH;
-    settingsViewport.setBounds (settingsX, settingsY, settingsW, settingsH);
 }
 
 void DataView::scrollBarMoved (juce::ScrollBar* scrollBar, double newRangeStart)

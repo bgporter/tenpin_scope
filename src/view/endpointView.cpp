@@ -74,8 +74,9 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
 
     endpointProperties.received.count.onPropertyChange ([updateRx] (const juce::Identifier&) { updateRx (); });
     endpointProperties.transmitted.count.onPropertyChange ([updateTx] (const juce::Identifier&) { updateTx (); });
-    endpointProperties.isInputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
-    endpointProperties.isOutputAlive.onPropertyChange ([this] (const juce::Identifier&) { repaint (); });
+    endpointProperties.isInputAlive.onPropertyChange ([this] (const juce::Identifier&) { updateColors (); });
+    endpointProperties.isOutputAlive.onPropertyChange ([this] (const juce::Identifier&) { updateColors (); });
+    updateColors ();
 
     if (endpointProperties.isSynthetic.get ())
     {
@@ -84,14 +85,64 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
     }
 }
 
+void EndpointView::updateColors ()
+{
+    const bool rxAlive = endpointProperties.isInputAlive.get ();
+    const bool txAlive = endpointProperties.isOutputAlive.get ();
+    const bool alive   = rxAlive || txAlive;
+
+    seenRx |= rxAlive;
+    seenTx |= txAlive;
+
+    auto* laf = TenpinLookAndFeel::getFrom (*this);
+    if (laf == nullptr)
+        return;
+
+    const auto& pal = laf->getPalette ();
+
+    const bool effectiveRx = rxAlive || (!alive && seenRx);
+    const bool effectiveTx = txAlive || (!alive && seenTx);
+
+    juce::Colour bg, data;
+    if (effectiveRx && effectiveTx)
+    {
+        bg   = pal.endpointBidirBackground.get ();
+        data = pal.endpointBidirData.get ();
+    }
+    else if (effectiveRx)
+    {
+        bg   = pal.endpointRxBackground.get ();
+        data = pal.endpointRxData.get ();
+    }
+    else if (effectiveTx)
+    {
+        bg   = pal.endpointTxBackground.get ();
+        data = pal.endpointTxData.get ();
+    }
+    else
+    {
+        bg   = pal.surfaceHigh.get ();
+        data = pal.defaultText.get ();
+    }
+
+    if (!alive)
+    {
+        bg   = bg.withAlpha (0.4f);
+        data = data.withAlpha (0.5f);
+    }
+
+    bgColor = bg;
+    nameLabel.setColour (juce::Label::textColourId, data);
+    rxTitleLabel.setColour (juce::Label::textColourId, data);
+    rxValueLabel.setColour (juce::Label::textColourId, data);
+    txTitleLabel.setColour (juce::Label::textColourId, data);
+    txValueLabel.setColour (juce::Label::textColourId, data);
+    repaint ();
+}
+
 void EndpointView::paint (juce::Graphics& g)
 {
-    juce::Colour backgroundColor = juce::Colours::darkgrey;
-    if (endpointProperties.isAlive)
-    {
-        backgroundColor = endpointProperties.isInputAlive.get () ? juce::Colours::green : juce::Colours::red;
-    }
-    g.fillAll (backgroundColor);
+    g.fillAll (bgColor);
 
     if (auto* laf = TenpinLookAndFeel::getFrom (*this))
         g.setColour (laf->getPalette ().divider.get ());

@@ -26,13 +26,10 @@
 
 #include <JuceHeader.h>
 
-#include "dataViewHeader.h"
-#include "eventListSettingsView.h"
 #include "eventListView.h"
 #include "model/appContext.h"
 #include "model/persistentContext.h"
 #include "model/runtimeContext.h"
-#include "resizeHandle.h"
 
 class DataView : public juce::Component,
                  public juce::ScrollBar::Listener
@@ -57,13 +54,7 @@ private:
     AppContext appContext;
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
-    DataViewHeader header;
     juce::Viewport viewport;
     EventListView eventListView;
-    EventListSettingsView settingsView;
-    juce::Viewport settingsViewport;
-    ResizeHandle col1Resizer;
-    ResizeHandle col2Resizer;
-    ResizeHandle col3Resizer;
     bool wasAtBottomBeforeAdd { false };
 };

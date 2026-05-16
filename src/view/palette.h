@@ -143,10 +143,13 @@ public:
     COLOR_M (undefinedLabel, "#7F1D1D");
     COLOR_M (undefinedValue, "#EF4444");
 
-    // Endpoint status
-    COLOR_M (endpointNotAlive, "surfaceHigh");
-    COLOR_M (endpointInputAlive, "#166534");
-    COLOR_M (endpointOutputAlive, "#7F1D1D");
+    // Endpoint status — background and data colors per connection type
+    COLOR_M (endpointRxBackground,    "#064E3B");  // Receive-only (MIDI 1 IN)
+    COLOR_M (endpointRxData,          "#10B981");
+    COLOR_M (endpointTxBackground,    "#451A03");  // Transmit-only (MIDI 1 OUT)
+    COLOR_M (endpointTxData,          "#F59E0B");
+    COLOR_M (endpointBidirBackground, "#172554");  // Bidirectional (MIDI 2.0)
+    COLOR_M (endpointBidirData,       "#3B82F6");
 
     // Resize handle active (hover/drag)
     COLOR_M (resizeHandleActive, "outline");

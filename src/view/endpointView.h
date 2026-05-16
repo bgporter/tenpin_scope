@@ -37,6 +37,7 @@ public:
     void resized () override;
 
 private:
+    void updateColors ();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EndpointView)
     AppContext appContext;
     MidiEndpointProperties endpointProperties;
@@ -46,4 +47,7 @@ private:
     juce::Label txTitleLabel;
     juce::Label txValueLabel;
     juce::TextButton playButton { ">" };
+    juce::Colour bgColor;
+    bool seenRx { false };
+    bool seenTx { false };
 };
