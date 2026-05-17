@@ -24,9 +24,11 @@
 
 #include "endpointView.h"
 #include "lookAndFeel.h"
+#include <ImageData.h>
 
 EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
 : appContext { theAppContext }
+, runtimeContext { appContext }
 , endpointProperties { tree }
 {
     jassert (endpointProperties.wasWrapped ());
@@ -76,13 +78,37 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
     endpointProperties.transmitted.count.onPropertyChange ([updateTx] (const juce::Identifier&) { updateTx (); });
     endpointProperties.isInputAlive.onPropertyChange ([this] (const juce::Identifier&) { updateColors (); });
     endpointProperties.isOutputAlive.onPropertyChange ([this] (const juce::Identifier&) { updateColors (); });
-    updateColors ();
 
     if (endpointProperties.isSynthetic.get ())
     {
         playButton.onClick = [this] { endpointProperties.playRequested = true; };
         addAndMakeVisible (playButton);
     }
+
+    pauseButton.setClickingTogglesState (true);
+    pauseButton.setButtonText ("pause");
+    pauseButton.onClick = [this] ()
+    {
+        endpointProperties.pause = pauseButton.getToggleState ();
+        applyPauseButtonImage ();
+        updateColors ();
+    };
+    addAndMakeVisible (pauseButton);
+
+    updateColors ();
+
+    auto updatePauseEnabled = [this] ()
+    {
+        pauseButton.setEnabled (!runtimeContext.midiProperties.pause.get ());
+    };
+    updatePauseEnabled ();
+
+    runtimeContext.midiProperties.pause.onPropertyChange (
+        [updatePauseEnabled, this] (const juce::Identifier&)
+        {
+            updatePauseEnabled ();
+            updateColors ();
+        });
 }
 
 void EndpointView::updateColors ()
@@ -137,7 +163,32 @@ void EndpointView::updateColors ()
     rxValueLabel.setColour (juce::Label::textColourId, data);
     txTitleLabel.setColour (juce::Label::textColourId, data);
     txValueLabel.setColour (juce::Label::textColourId, data);
+
+    const auto svgFillColor = juce::Colour (0xFFF3F3F3);
+    pauseImg = renderSvgWithColor (
+        ImageData::pause_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svg,
+        ImageData::pause_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svgSize,
+        svgFillColor, data, 24);
+    playImg = renderSvgWithColor (
+        ImageData::play_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svg,
+        ImageData::play_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svgSize,
+        svgFillColor, data, 24);
+    applyPauseButtonImage ();
+
+    const bool paused = runtimeContext.midiProperties.pause.get () || endpointProperties.pause.get ();
+    setAlpha (paused ? 0.5f : 1.0f);
+
     repaint ();
+}
+
+void EndpointView::applyPauseButtonImage ()
+{
+    const auto& img = pauseButton.getToggleState () ? playImg : pauseImg;
+    pauseButton.setImages (
+        false, true, true,
+        img, 0.7f, juce::Colours::transparentBlack,
+        img, 1.0f, juce::Colours::transparentBlack,
+        img, 1.0f, juce::Colours::transparentBlack);
 }
 
 void EndpointView::paint (juce::Graphics& g)
@@ -156,10 +207,17 @@ void EndpointView::resized ()
     auto bounds  = getLocalBounds ();
     auto topRow  = bounds.removeFromTop (bounds.getHeight () / 2);
 
+    const int buttonSize = topRow.getHeight () - 8;
+    const int slotW      = buttonSize + 6;
+
     if (endpointProperties.isSynthetic.get ())
     {
-        const auto buttonW = topRow.getHeight ();
-        playButton.setBounds (topRow.removeFromRight (buttonW));
+        auto slot = topRow.removeFromRight (slotW);
+        playButton.setBounds (slot.withSizeKeepingCentre (buttonSize, buttonSize));
+    }
+    {
+        auto slot = topRow.removeFromRight (slotW);
+        pauseButton.setBounds (slot.withSizeKeepingCentre (buttonSize, buttonSize));
     }
     nameLabel.setBounds (topRow);
 

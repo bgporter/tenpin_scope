@@ -156,3 +156,15 @@ public:
 
 private:
 };
+
+inline juce::Image renderSvgWithColor (const void* data, int dataSize,
+                                        juce::Colour originalColor, juce::Colour newColor, int size)
+{
+    auto drawable = juce::Drawable::createFromImageData (data, dataSize);
+    drawable->replaceColour (originalColor, newColor);
+    juce::Image img (juce::Image::ARGB, size, size, true);
+    juce::Graphics g (img);
+    drawable->drawWithin (g, img.getBounds ().toFloat (),
+                          juce::RectanglePlacement::centred, 1.0f);
+    return img;
+}

@@ -95,8 +95,11 @@ void SyntheticEndpointController::processUmpEvents ()
         copy.timestamp    = elapsed;
         copy.endpointName = midiEndpointProperties.name.get ();
         copy.isReceived   = true;
-        midiEndpointProperties.received.addEvent (copy);
-        midiEndpointProperties.drainDeferredMessages ();
+        if (!midiProperties.pause.get () && !midiEndpointProperties.pause.get ())
+        {
+            midiEndpointProperties.received.addEvent (copy);
+            midiEndpointProperties.drainDeferredMessages ();
+        }
 
         ++nextEventIndex;
         if (nextEventIndex >= eventList.eventList.size ())

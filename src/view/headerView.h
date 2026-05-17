@@ -38,6 +38,7 @@ public:
     std::function<void (bool)> onSettingsToggled;
 
     void dismissSettings ();
+    void sidebarWidthChanged ();
 
     void paint (juce::Graphics& g) override;
     void resized () override;
@@ -50,5 +51,6 @@ private:
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
     juce::ImageButton clearButton;
+    juce::ImageButton pauseButton;
     juce::ImageButton filterButton;
 };

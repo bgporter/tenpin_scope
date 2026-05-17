@@ -23,7 +23,11 @@ MainComponent::MainComponent (AppContext& theAppContext)
     // Seed runtime context and register listener before setSize so the first
     // resized() call uses the persisted sidebar width, not the default.
     runtimeContext.sidebarWidth = persistentContext.sidebarWidth.get ();
-    runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    runtimeContext.sidebarWidth.onPropertyChange ([this] (const juce::Identifier&)
+    {
+        resized ();
+        headerView.sidebarWidthChanged ();
+    });
 
     headerView.onSettingsToggled = [this] (bool show)
     {
@@ -55,6 +59,7 @@ MainComponent::MainComponent (AppContext& theAppContext)
     addAndMakeVisible (deviceView);
     addAndMakeVisible (dataView);
     // Resizers added last so they sit above all content including the header row.
+    sidebarResizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
     col1Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
     col2Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
     col3Resizer.setHeaderHeight (DataViewHeader::kHeaderHeight);
@@ -90,7 +95,7 @@ void MainComponent::resized ()
     const int half              = kDividerWidth / 2;
     const int handleY           = HeaderView::kHeight;
     const int handleH           = getHeight () - handleY;
-    sidebarResizer.setBounds (sidebarW - kDividerWidth, 0, kDividerWidth, getHeight ());
+    sidebarResizer.setBounds (sidebarW - kDividerWidth, handleY, kDividerWidth, handleH);
 
     // Settings panel: centered over the DataView area, slides in from above.
     const float settingsPos  = runtimeContext.settingsPos;

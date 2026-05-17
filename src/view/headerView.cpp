@@ -27,18 +27,6 @@
 #include "palette.h"
 #include <ImageData.h>
 
-static juce::Image renderSvgWithColor (const void* data, int dataSize,
-                                        juce::Colour originalColor, juce::Colour newColor, int size)
-{
-    auto drawable = juce::Drawable::createFromImageData (data, dataSize);
-    drawable->replaceColour (originalColor, newColor);
-
-    juce::Image img (juce::Image::ARGB, size, size, true);
-    juce::Graphics g (img);
-    drawable->drawWithin (g, img.getBounds ().toFloat (),
-                          juce::RectanglePlacement::centred, 1.0f);
-    return img;
-}
 
 HeaderView::HeaderView (AppContext& context)
 : appContext { context }
@@ -82,6 +70,34 @@ HeaderView::HeaderView (AppContext& context)
     clearButton.setButtonText ("clear");
     clearButton.onClick = [this] () { ++runtimeContext.clearEvents; };
     addAndMakeVisible (clearButton);
+
+    const juce::Image pauseImg = renderSvgWithColor (
+        ImageData::pause_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svg,
+        ImageData::pause_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svgSize,
+        svgFillColor, iconColor, kHeight);
+    const juce::Image playImg = renderSvgWithColor (
+        ImageData::play_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svg,
+        ImageData::play_circle_24dp_F3F3F3_FILL0_wght400_GRAD0_opsz24_svgSize,
+        svgFillColor, iconColor, kHeight);
+
+    auto setPauseButtonImage = [this, pauseImg, playImg, iconColor] ()
+    {
+        const auto& img = pauseButton.getToggleState () ? playImg : pauseImg;
+        pauseButton.setImages (
+            false, true, true,
+            img, 0.7f, juce::Colours::transparentBlack,
+            img, 1.0f, juce::Colours::transparentBlack,
+            img, 1.0f, iconColor.withAlpha (0.2f));
+    };
+    setPauseButtonImage ();
+    pauseButton.setClickingTogglesState (true);
+    pauseButton.setButtonText ("pause");
+    pauseButton.onClick = [this, setPauseButtonImage] ()
+    {
+        runtimeContext.midiProperties.pause = pauseButton.getToggleState ();
+        setPauseButtonImage ();
+    };
+    addAndMakeVisible (pauseButton);
 }
 
 void HeaderView::dismissSettings ()
@@ -99,11 +115,19 @@ void HeaderView::paint (juce::Graphics& g)
     g.drawHorizontalLine (getHeight () - 1, 0.0f, static_cast<float> (getWidth ()));
 }
 
+void HeaderView::sidebarWidthChanged ()
+{
+    resized ();
+}
+
 void HeaderView::resized ()
 {
-    auto bounds          = getLocalBounds ();
     const int buttonSize = kHeight - 8;
     const int yOffset    = (getHeight () - buttonSize) / 2;
-    clearButton.setBounds  (bounds.getX () + 4,                     yOffset, buttonSize, buttonSize);
-    filterButton.setBounds (bounds.getRight () - buttonSize - 4,    yOffset, buttonSize, buttonSize);
+    const int sidebarW   = runtimeContext.sidebarWidth.get ();
+
+    clearButton.setBounds  (4, yOffset, buttonSize, buttonSize);
+    filterButton.setBounds (getWidth () - buttonSize - 4, yOffset, buttonSize, buttonSize);
+
+    pauseButton.setBounds (sidebarW - buttonSize - 4, yOffset, buttonSize, buttonSize);
 }

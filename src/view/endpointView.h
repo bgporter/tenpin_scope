@@ -38,15 +38,20 @@ public:
 
 private:
     void updateColors ();
+    void applyPauseButtonImage ();
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (EndpointView)
     AppContext appContext;
+    RuntimeContext runtimeContext;
     MidiEndpointProperties endpointProperties;
     juce::Label nameLabel;
     juce::Label rxTitleLabel;
     juce::Label rxValueLabel;
     juce::Label txTitleLabel;
     juce::Label txValueLabel;
-    juce::TextButton playButton { ">" };
+    juce::TextButton  playButton { ">" };
+    juce::ImageButton pauseButton;
+    juce::Image pauseImg;
+    juce::Image playImg;
     juce::Colour bgColor;
     bool seenRx { false };
     bool seenTx { false };

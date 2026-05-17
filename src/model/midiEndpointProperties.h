@@ -84,6 +84,8 @@ public:
     MAKE_VALUE_MEMBER (bool, isSynthetic, false);
     /// Set to true to trigger a one-shot playback of the synthetic event list.
     MAKE_VALUE_MEMBER (bool, playRequested, false);
+    /// Whether MIDI capture is paused for this endpoint.
+    MAKE_VALUE_MEMBER (bool, pause, false);
     /// TEMPORARY DEBUG: UUID string for debugging purposes.
     MAKE_VALUE_MEMBER (juce::String, debugUuid, juce::Uuid ().toString ());
 

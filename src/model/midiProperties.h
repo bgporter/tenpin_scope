@@ -48,6 +48,7 @@ public:
     {
     }
 
+    MAKE_VALUE_MEMBER (bool, pause, false);
     EventList midiEvents;
     Endpoints endpoints;
 };

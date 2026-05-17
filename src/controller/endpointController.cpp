@@ -196,6 +196,9 @@ void EndpointController::processUmpEvents ()
         auto rawData = localQueue.front ();
         localQueue.pop ();
 
+        if (midiProperties.pause.get () || midiEndpointProperties.pause.get ())
+            continue;
+
         // Create UmpEvent on message thread from raw data using new constructor
         UmpEvent umpEvent (rawData.data.data (), rawData.size, rawData.timestamp, rawData.endpointIndex);
         umpEvent.endpointName = midiEndpointProperties.name.get ();
