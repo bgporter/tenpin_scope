@@ -47,6 +47,7 @@ private:
     AppContext appContext;
     PersistentContext persistentContext;
     RuntimeContext runtimeContext;
+    juce::Label endpointsLabel;
     juce::Label timeLabel;
     juce::Label endpointLabel;
     juce::Label eventLabel;

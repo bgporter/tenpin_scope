@@ -31,13 +31,14 @@ DataViewHeader::DataViewHeader (AppContext& context)
 , persistentContext { appContext }
 , runtimeContext { appContext }
 {
-    for (auto* label : { &timeLabel, &endpointLabel, &eventLabel, &dataLabel })
+    for (auto* label : { &endpointsLabel, &timeLabel, &endpointLabel, &eventLabel, &dataLabel })
     {
         label->setJustificationType (juce::Justification::centredLeft);
         addAndMakeVisible (label);
     }
+    endpointsLabel.setText ("Endpoints", juce::dontSendNotification);
     timeLabel.setText ("Time", juce::dontSendNotification);
-    endpointLabel.setText ("Endpoint", juce::dontSendNotification);
+    endpointLabel.setText ("Src/Dst", juce::dontSendNotification);
     eventLabel.setText ("Event", juce::dontSendNotification);
     dataLabel.setText ("Data", juce::dontSendNotification);
 
@@ -72,6 +73,7 @@ void DataViewHeader::resized ()
     const int h2        = h1 + kDividerWidth + col2Width;
     const int h3        = h2 + kDividerWidth + col3Width;
 
+    endpointsLabel.setBounds (0, 0, xBase, getHeight ());
     timeLabel.setBounds (xBase, 0, h1 - xBase, getHeight ());
     endpointLabel.setBounds (h1 + kDividerWidth, 0, col2Width, getHeight ());
     eventLabel.setBounds (h2 + kDividerWidth, 0, col3Width, getHeight ());
