@@ -128,6 +128,12 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
 juce::String formatTime (double seconds);
 
 /**
+ * @brief Formats the src/dst endpoint label from an event's isReceived flag and endpoint name.
+ * @return "src: <name>" for received events, "dst: <name>" for sent events.
+ */
+juce::String formatEndpoint (const Event& e);
+
+/**
  * @brief Gets the name of a note based on its MIDI note number, using
  * the specified octave convention.
  *

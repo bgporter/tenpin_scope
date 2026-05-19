@@ -111,9 +111,7 @@ Handler::Result EventListViewHandler::preDispatch (const UmpEvent& event)
 {
     eventView->setTime (formatTime ((double) event.timestamp));
 
-    // const auto endpointStr = juce::String (event.endpointName) + " " + (event.isReceived ? "Rx" : "Tx");
-    const auto endpointStr = juce::String ((event.isReceived ? "src: " : "dst: ")) + juce::String (event.endpointName);
-    eventView->setEndpoint (endpointStr);
+    eventView->setEndpoint (formatEndpoint (event));
 
     return Handler::Result::ok;
 }

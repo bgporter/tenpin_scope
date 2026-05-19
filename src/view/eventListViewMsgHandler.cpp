@@ -46,8 +46,8 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
     if (ctx)
     {
         auto* dispCtx = static_cast<DispatchContext*> (ctx);
-        eventView    = dispCtx->view;
-        currentWidth = dispCtx->width;
+        eventView     = dispCtx->view;
+        currentWidth  = dispCtx->width;
     }
 
     if (eventView)
@@ -77,8 +77,8 @@ Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
             valueColor = pal.streamValue.get ();
         }
 
-        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
-                              labelColor, valueColor, pal.outline.get ());
+        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f), labelColor,
+                              valueColor, pal.outline.get ());
     }
 
     return MessageHandler::handle (e, ctx);
@@ -89,8 +89,7 @@ Handler::Result EventListViewMsgHandler::preDispatch (const Event& e)
     if (!eventView)
         return Handler::Result::notHandled;
     eventView->setTime (formatTime (e.timestamp));
-    const auto endpointStr = juce::String (e.isReceived ? "src: " : "dst: ") + juce::String (e.endpointName);
-    eventView->setEndpoint (endpointStr);
+    eventView->setEndpoint (formatEndpoint (e));
     return Handler::Result::ok;
 }
 
@@ -169,10 +168,10 @@ Handler::Result EventListViewMsgHandler::onMdsMessage (const Event& e)
     const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
 
     eventView->setEvent ("MDS Message");
-    eventView->addValue ("grp",  juce::String (static_cast<int> (msg.group)));
-    eventView->addValue ("id",   juce::String (static_cast<int> (msg.mdsId)));
-    eventView->addValue ("mfr",  juce::String::toHexString (static_cast<int> (msg.manufacturerId)));
-    eventView->addValue ("dev",  juce::String::toHexString (static_cast<int> (msg.deviceId)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("id", juce::String (static_cast<int> (msg.mdsId)));
+    eventView->addValue ("mfr", juce::String::toHexString (static_cast<int> (msg.manufacturerId)));
+    eventView->addValue ("dev", juce::String::toHexString (static_cast<int> (msg.deviceId)));
     eventView->addValue ("sub1", juce::String::toHexString (static_cast<int> (msg.subId1)));
     eventView->addValue ("sub2", juce::String::toHexString (static_cast<int> (msg.subId2)));
 
@@ -201,8 +200,8 @@ Handler::Result EventListViewMsgHandler::onFlexDataTextMessage (const Event& e)
 {
     TextMessage msg (e);
     eventView->setEvent (TextMessage::displayName (e.getType ()));
-    eventView->addValue ("grp",  juce::String (static_cast<int> (msg.group)));
-    eventView->addValue ("ch",   juce::String (static_cast<int> (msg.channel)));
+    eventView->addValue ("grp", juce::String (msg.group.get ()));
+    eventView->addValue ("ch", juce::String (static_cast<int> (msg.channel)));
     eventView->addValue ("text", static_cast<juce::String> (msg.text));
     return Handler::Result::ok;
 }

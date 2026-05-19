@@ -326,6 +326,11 @@ juce::String formatTime (double seconds)
     return juce::String (sec) + "." + msStr;
 }
 
+juce::String formatEndpoint (const Event& e)
+{
+    return juce::String (e.isReceived ? "src: " : "dst: ") + juce::String (e.endpointName);
+}
+
 #if RUN_UNIT_TESTS
 #include "test/test_EventNameUtils.inl"
 #endif
