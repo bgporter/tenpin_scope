@@ -33,6 +33,21 @@ public:
     MessageHandler ();
     virtual ~MessageHandler ();
 
-    virtual Handler::Result handle (const Event& e) = 0;
-    virtual Handler::Result handle (const Event& e, void* ctx) = 0;
+    Handler::Result handle (const Event& e);
+    virtual Handler::Result handle (const Event& e, void* ctx);
+
+protected:
+    Handler::Result defaultResult { Handler::Result::notHandled };
+
+private:
+    virtual Handler::Result preDispatch (const Event& e) { return Handler::Result::ok; }
+    virtual Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) { return pendingResult; }
+
+    virtual Handler::Result onSysex7Message        (const Event& e) { return defaultResult; }
+    virtual Handler::Result onSysex8Message        (const Event& e) { return defaultResult; }
+    virtual Handler::Result onMdsMessage           (const Event& e) { return defaultResult; }
+    virtual Handler::Result onFlexDataTextMessage  (const Event& e) { return defaultResult; }
+    virtual Handler::Result onStreamTextMessage    (const Event& e) { return defaultResult; }
+    virtual Handler::Result onTextMessage          (const Event& e) { return defaultResult; }
+    virtual Handler::Result onMessage              (const Event& e) { return defaultResult; }
 };

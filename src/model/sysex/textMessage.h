@@ -94,11 +94,11 @@ struct TextMessage : public Event
     static bool isTextMessage (const Event& e);
 
     // Classify the specific text message type.
-    static bool isFlexDataTextMessage  (const juce::String& typeName);
-    static bool isStreamTextMessage    (const juce::String& typeName);
+    static bool isFlexDataTextMessage  (const juce::Identifier& type);
+    static bool isStreamTextMessage    (const juce::Identifier& type);
 
     // Human-readable label for display in the event view.
-    static juce::String displayName (const juce::String& typeName);
+    static juce::String displayName (const juce::Identifier& type);
 
     // Map FlexData (statusBank, status) to the corresponding type identifier string.
     static juce::String typeForFlexStatus (int statusBank, int status);

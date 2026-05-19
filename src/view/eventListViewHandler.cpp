@@ -28,9 +28,9 @@
 #include "model/ump/channelVoice2.h"
 #include "model/ump/flexData.h"
 #include "model/ump/stream.h"
-#include "model/ump/systemCommon.h"
 #include "model/ump/sysex7.h"
 #include "model/ump/sysex8.h"
+#include "model/ump/systemCommon.h"
 #include "model/ump/utility.h"
 
 #include "palette.h"
@@ -52,9 +52,9 @@ Handler::Result EventListViewHandler::handle (const UmpEvent& event, void* ctx)
     if (ctx)
     {
         auto* dispCtx = static_cast<DispatchContext*> (ctx);
-        eventView    = dispCtx->view;
-        currentIndex = dispCtx->index;
-        currentWidth = dispCtx->width;
+        eventView     = dispCtx->view;
+        currentIndex  = dispCtx->index;
+        currentWidth  = dispCtx->width;
     }
 
     Palette pal { pc };
@@ -111,7 +111,8 @@ Handler::Result EventListViewHandler::preDispatch (const UmpEvent& event)
 {
     eventView->setTime (formatTime ((double) event.timestamp));
 
-    const auto endpointStr = juce::String (event.endpointName) + " " + (event.isReceived ? "Rx" : "Tx");
+    // const auto endpointStr = juce::String (event.endpointName) + " " + (event.isReceived ? "Rx" : "Tx");
+    const auto endpointStr = juce::String ((event.isReceived ? "src: " : "dst: ")) + juce::String (event.endpointName);
     eventView->setEndpoint (endpointStr);
 
     return Handler::Result::ok;
@@ -657,9 +658,7 @@ Handler::Result EventListViewHandler::addSysex7DataValues (const Sysex7Event& e)
         if (i > 0)
             bytesStr += " ";
         const int b = e[i];
-        bytesStr += isInteger
-            ? juce::String (b)
-            : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
+        bytesStr += isInteger ? juce::String (b) : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
     }
     if (bytesStr.isNotEmpty ())
         eventView->addValue ("data", bytesStr);
@@ -702,9 +701,9 @@ Handler::Result EventListViewHandler::addSysex8DataValues (const Sysex8Event& e)
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
 
-    eventView->addValue ("grp",    juce::String ((int) e.userGroup));
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("status", getSysexStatusName (e.status));
-    eventView->addValue ("sid",    juce::String::toHexString ((int) e.streamId).paddedLeft ('0', 2).toUpperCase ());
+    eventView->addValue ("sid", juce::String::toHexString ((int) e.streamId).paddedLeft ('0', 2).toUpperCase ());
 
     // numBytes includes the stream ID; actual data byte count is numBytes - 1,
     // clamped to 0–13. The special unknown-quality value (0xF) produces 14 here
@@ -719,9 +718,7 @@ Handler::Result EventListViewHandler::addSysex8DataValues (const Sysex8Event& e)
             if (i > 0)
                 bytesStr += " ";
             const int b = e[i];
-            bytesStr += isInteger
-                ? juce::String (b)
-                : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
+            bytesStr += isInteger ? juce::String (b) : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
         }
         eventView->addValue ("data", bytesStr);
     }
@@ -765,8 +762,8 @@ Handler::Result EventListViewHandler::onMixedDataSetHeaderEvent (const UmpEvent&
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
-    eventView->addValue ("grp",  juce::String ((int) e.userGroup));
-    eventView->addValue ("mds",  juce::String ((int) e.mdsId));
+    eventView->addValue ("grp", juce::String ((int) e.userGroup));
+    eventView->addValue ("mds", juce::String ((int) e.mdsId));
     eventView->addValue ("bytes", juce::String ((int) e.numValidBytes));
     eventView->addValue ("chunks", juce::String ((int) e.numChunks));
     eventView->addValue ("chunk", juce::String ((int) e.chunkNumber));
@@ -792,9 +789,7 @@ Handler::Result EventListViewHandler::onMixedDataSetPayloadEvent (const UmpEvent
         if (i > 0)
             bytesStr += " ";
         const int b = e[i];
-        bytesStr += isInteger
-            ? juce::String (b)
-            : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
+        bytesStr += isInteger ? juce::String (b) : juce::String::toHexString (b).paddedLeft ('0', 2).toUpperCase ();
     }
     eventView->addValue ("data", bytesStr);
     return Handler::Result::ok;
@@ -808,7 +803,7 @@ Handler::Result EventListViewHandler::onSetTempoEvent (const UmpEvent& event)
         return Handler::Result::ok;
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     const uint32_t tenNs = e.tenNsPerQuarterNote;
-    const double bpm = tenNsToBpm (tenNs);
+    const double bpm     = tenNsToBpm (tenNs);
     eventView->addValue ("tempo", juce::String (tenNs) + " (" + juce::String (bpm, 3) + " bpm)");
     return Handler::Result::ok;
 }
@@ -821,7 +816,7 @@ Handler::Result EventListViewHandler::onSetTimeSignatureEvent (const UmpEvent& e
         return Handler::Result::ok;
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("num", juce::String ((int) e.numerator));
-    const int dp = e.denominatorPower;
+    const int dp                = e.denominatorPower;
     const juce::String denomStr = (dp == 0) ? "non-standard" : juce::String (1 << dp);
     eventView->addValue ("denom", denomStr);
     eventView->addValue ("32nds", juce::String ((int) e.num32ndNotes));
@@ -875,7 +870,7 @@ Handler::Result EventListViewHandler::onSetKeySignatureEvent (const UmpEvent& ev
     eventView->addValue ("key", sfStr);
 
     static constexpr const char* noteNames[] = { "unknown", "A", "B", "C", "D", "E", "F", "G" };
-    const int tn = static_cast<int> (e.tonicNote.get ());
+    const int tn                             = static_cast<int> (e.tonicNote.get ());
     eventView->addValue ("tonic", (tn >= 0 && tn <= 7) ? noteNames[tn] : "reserved");
 
     return Handler::Result::ok;
@@ -901,7 +896,7 @@ Handler::Result EventListViewHandler::handleTextEvent (const UmpEvent& event)
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
 
     static constexpr const char* fmtNames[] = { "complete", "start", "continue", "end" };
-    const int fi = static_cast<int> (e.format.get ());
+    const int fi                            = static_cast<int> (e.format.get ());
     eventView->addValue ("fmt", (fi >= 0 && fi <= 3) ? fmtNames[fi] : "?");
 
     const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
@@ -916,9 +911,8 @@ Handler::Result EventListViewHandler::handleTextEvent (const UmpEvent& event)
         if (b >= 0x20 && b <= 0x7E)
             bytesStr += juce::String ("'") + juce::String::charToString ((juce::juce_wchar) b) + "'";
         else
-            bytesStr += isInteger
-                ? juce::String ((int) b)
-                : juce::String::toHexString ((int) b).paddedLeft ('0', 2).toUpperCase ();
+            bytesStr += isInteger ? juce::String ((int) b)
+                                  : juce::String::toHexString ((int) b).paddedLeft ('0', 2).toUpperCase ();
     }
     if (bytesStr.isNotEmpty ())
         eventView->addValue ("data", bytesStr);
@@ -940,11 +934,16 @@ Handler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
     {
         switch (sf)
         {
-            case -2: return "bb";
-            case -1: return "b";
-            case  1: return "#";
-            case  2: return "x";
-            default: return "";
+            case -2:
+                return "bb";
+            case -1:
+                return "b";
+            case 1:
+                return "#";
+            case 2:
+                return "x";
+            default:
+                return "";
         }
     };
 
@@ -952,35 +951,64 @@ Handler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
     {
         switch (ct)
         {
-            case ChordType::noChord:           return "No Chord";
-            case ChordType::major:             return "Major";
-            case ChordType::major6th:          return "Major 6th";
-            case ChordType::major7th:          return "Major 7th";
-            case ChordType::major9th:          return "Major 9th";
-            case ChordType::major11th:         return "Major 11th";
-            case ChordType::major13th:         return "Major 13th";
-            case ChordType::minor:             return "Minor";
-            case ChordType::minor6th:          return "Minor 6th";
-            case ChordType::minor7th:          return "Minor 7th";
-            case ChordType::minor9th:          return "Minor 9th";
-            case ChordType::minor11th:         return "Minor 11th";
-            case ChordType::minor13th:         return "Minor 13th";
-            case ChordType::dominant:          return "Dominant";
-            case ChordType::dominant9th:       return "Dominant 9th";
-            case ChordType::dominant11th:      return "Dominant 11th";
-            case ChordType::dominant13th:      return "Dominant 13th";
-            case ChordType::augmented:         return "Augmented";
-            case ChordType::augmented7th:      return "Augmented 7th";
-            case ChordType::diminished:        return "Diminished";
-            case ChordType::diminished7th:     return "Diminished 7th";
-            case ChordType::halfDiminished:    return "Half Dim.";
-            case ChordType::majorMinor:        return "Major-Minor";
-            case ChordType::pedal:             return "Pedal";
-            case ChordType::power:             return "Power";
-            case ChordType::suspended2nd:      return "Sus2";
-            case ChordType::suspended4th:      return "Sus4";
-            case ChordType::sevenSuspended4th: return "7Sus4";
-            default:                           return "reserved";
+            case ChordType::noChord:
+                return "No Chord";
+            case ChordType::major:
+                return "Major";
+            case ChordType::major6th:
+                return "Major 6th";
+            case ChordType::major7th:
+                return "Major 7th";
+            case ChordType::major9th:
+                return "Major 9th";
+            case ChordType::major11th:
+                return "Major 11th";
+            case ChordType::major13th:
+                return "Major 13th";
+            case ChordType::minor:
+                return "Minor";
+            case ChordType::minor6th:
+                return "Minor 6th";
+            case ChordType::minor7th:
+                return "Minor 7th";
+            case ChordType::minor9th:
+                return "Minor 9th";
+            case ChordType::minor11th:
+                return "Minor 11th";
+            case ChordType::minor13th:
+                return "Minor 13th";
+            case ChordType::dominant:
+                return "Dominant";
+            case ChordType::dominant9th:
+                return "Dominant 9th";
+            case ChordType::dominant11th:
+                return "Dominant 11th";
+            case ChordType::dominant13th:
+                return "Dominant 13th";
+            case ChordType::augmented:
+                return "Augmented";
+            case ChordType::augmented7th:
+                return "Augmented 7th";
+            case ChordType::diminished:
+                return "Diminished";
+            case ChordType::diminished7th:
+                return "Diminished 7th";
+            case ChordType::halfDiminished:
+                return "Half Dim.";
+            case ChordType::majorMinor:
+                return "Major-Minor";
+            case ChordType::pedal:
+                return "Pedal";
+            case ChordType::power:
+                return "Power";
+            case ChordType::suspended2nd:
+                return "Sus2";
+            case ChordType::suspended4th:
+                return "Sus4";
+            case ChordType::sevenSuspended4th:
+                return "7Sus4";
+            default:
+                return "reserved";
         }
     };
 
@@ -988,17 +1016,21 @@ Handler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
     {
         switch (t)
         {
-            case AlterationType::add:      return "add";
-            case AlterationType::subtract: return "sub";
-            case AlterationType::raise:    return "raise";
-            case AlterationType::lower:    return "lower";
-            default:                       return "";
+            case AlterationType::add:
+                return "add";
+            case AlterationType::subtract:
+                return "sub";
+            case AlterationType::raise:
+                return "raise";
+            case AlterationType::lower:
+                return "lower";
+            default:
+                return "";
         }
     };
 
-    const int tn = static_cast<int> (e.chordTonic.get ());
-    const juce::String tonicStr =
-        juce::String (noteNames[tn >= 0 && tn <= 7 ? tn : 0]) + accStr (e.chordSharpsFlats);
+    const int tn                = static_cast<int> (e.chordTonic.get ());
+    const juce::String tonicStr = juce::String (noteNames[tn >= 0 && tn <= 7 ? tn : 0]) + accStr (e.chordSharpsFlats);
     eventView->addValue ("chord", tonicStr + " " + chordName (e.chordType.get ()));
 
     auto showAlter = [&] (AlterationType t, int deg, const juce::String& label)
@@ -1013,9 +1045,8 @@ Handler::Result EventListViewHandler::onSetChordEvent (const UmpEvent& event)
 
     if (e.bassSharpsFlats != -8)
     {
-        const int bn = static_cast<int> (e.bassNote.get ());
-        juce::String bassStr =
-            juce::String (noteNames[bn >= 0 && bn <= 7 ? bn : 0]) + accStr (e.bassSharpsFlats);
+        const int bn         = static_cast<int> (e.bassNote.get ());
+        juce::String bassStr = juce::String (noteNames[bn >= 0 && bn <= 7 ? bn : 0]) + accStr (e.bassSharpsFlats);
         if (e.bassChordType.get () != ChordType::noChord)
             bassStr += juce::String (" / ") + chordName (e.bassChordType.get ());
         eventView->addValue ("bass", bassStr);
@@ -1034,11 +1065,11 @@ Handler::Result EventListViewHandler::onEndpointDiscoveryEvent (const UmpEvent& 
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
     eventView->addValue ("ver", juce::String ((int) e.umpVersionMajor) + "." + juce::String ((int) e.umpVersionMinor));
-    eventView->addValue ("e", (bool) e.requestEndpointInfo      ? "Y" : "N");
-    eventView->addValue ("d", (bool) e.requestDeviceIdentity    ? "Y" : "N");
-    eventView->addValue ("n", (bool) e.requestEndpointName      ? "Y" : "N");
+    eventView->addValue ("e", (bool) e.requestEndpointInfo ? "Y" : "N");
+    eventView->addValue ("d", (bool) e.requestDeviceIdentity ? "Y" : "N");
+    eventView->addValue ("n", (bool) e.requestEndpointName ? "Y" : "N");
     eventView->addValue ("i", (bool) e.requestProductInstanceId ? "Y" : "N");
-    eventView->addValue ("s", (bool) e.requestStreamConfig      ? "Y" : "N");
+    eventView->addValue ("s", (bool) e.requestStreamConfig ? "Y" : "N");
     return Handler::Result::ok;
 }
 
@@ -1048,13 +1079,13 @@ Handler::Result EventListViewHandler::onEndpointInfoNotificationEvent (const Ump
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
-    eventView->addValue ("ver",    juce::String ((int) e.umpVersionMajor) + "." + juce::String ((int) e.umpVersionMinor));
+    eventView->addValue ("ver", juce::String ((int) e.umpVersionMajor) + "." + juce::String ((int) e.umpVersionMinor));
     eventView->addValue ("static", (bool) e.staticFunctionBlocks ? "Y" : "N");
-    eventView->addValue ("fb",     juce::String ((int) e.numFunctionBlocks));
-    eventView->addValue ("m2",     (bool) e.midi2Protocol ? "Y" : "N");
-    eventView->addValue ("m1",     (bool) e.midi1Protocol ? "Y" : "N");
-    eventView->addValue ("rxJR",   (bool) e.rxJrTimestamp ? "Y" : "N");
-    eventView->addValue ("txJR",   (bool) e.txJrTimestamp ? "Y" : "N");
+    eventView->addValue ("fb", juce::String ((int) e.numFunctionBlocks));
+    eventView->addValue ("m2", (bool) e.midi2Protocol ? "Y" : "N");
+    eventView->addValue ("m1", (bool) e.midi1Protocol ? "Y" : "N");
+    eventView->addValue ("rxJR", (bool) e.rxJrTimestamp ? "Y" : "N");
+    eventView->addValue ("txJR", (bool) e.txJrTimestamp ? "Y" : "N");
     return Handler::Result::ok;
 }
 
@@ -1064,12 +1095,13 @@ Handler::Result EventListViewHandler::onDeviceIdentityNotificationEvent (const U
     eventView->setEvent (e.eventName);
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
-    auto hex2 = [] (int v) { return juce::String::toHexString (v).paddedLeft ('0', 2).toUpperCase (); };
+    auto hex2                 = [] (int v) { return juce::String::toHexString (v).paddedLeft ('0', 2).toUpperCase (); };
     const juce::String mfrStr = hex2 (e.mfrId1) + " " + hex2 (e.mfrId2) + " " + hex2 (e.mfrId3);
-    eventView->addValue ("mfr",    mfrStr);
+    eventView->addValue ("mfr", mfrStr);
     eventView->addValue ("family", juce::String ((int) e.deviceFamily));
-    eventView->addValue ("model",  juce::String ((int) e.modelNumber));
-    eventView->addValue ("rev",    hex2 (e.swRev1) + " " + hex2 (e.swRev2) + " " + hex2 (e.swRev3) + " " + hex2 (e.swRev4));
+    eventView->addValue ("model", juce::String ((int) e.modelNumber));
+    eventView->addValue ("rev",
+                         hex2 (e.swRev1) + " " + hex2 (e.swRev2) + " " + hex2 (e.swRev3) + " " + hex2 (e.swRev4));
     return Handler::Result::ok;
 }
 
@@ -1081,7 +1113,7 @@ Handler::Result EventListViewHandler::addStreamTextValues (const StreamTextEvent
     if (e.status == StreamStatus::functionBlockNameNotification)
         eventView->addValue ("fb", juce::String ((int) e.functionBlockNumber));
     static constexpr const char* fmtNames[] = { "complete", "start", "continue", "end" };
-    const int fi = static_cast<int> (e.format.get ());
+    const int fi                            = static_cast<int> (e.format.get ());
     eventView->addValue ("fmt", (fi >= 0 && fi <= 3) ? fmtNames[fi] : "?");
     const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
     juce::String bytesStr;
@@ -1123,7 +1155,7 @@ Handler::Result EventListViewHandler::addStreamConfigValues (const UmpEvent& eve
                              : juce::String ("Stream: Stream Configuration Notification"));
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
-    const int proto = e.protocol;
+    const int proto             = e.protocol;
     const juce::String protoStr = (proto == 1) ? "MIDI 1.0" : (proto == 2) ? "MIDI 2.0" : juce::String (proto);
     eventView->addValue ("proto", protoStr);
     eventView->addValue ("rxJR", (bool) e.rxJrTimestamp ? "Y" : "N");
@@ -1149,8 +1181,8 @@ Handler::Result EventListViewHandler::onFunctionBlockDiscoveryEvent (const UmpEv
         return Handler::Result::ok;
     const int fb = e.functionBlockNumber;
     eventView->addValue ("fb", fb == 0xFF ? "all" : juce::String (fb));
-    eventView->addValue ("i",  (bool) e.requestInfo ? "Y" : "N");
-    eventView->addValue ("n",  (bool) e.requestName ? "Y" : "N");
+    eventView->addValue ("i", (bool) e.requestInfo ? "Y" : "N");
+    eventView->addValue ("n", (bool) e.requestName ? "Y" : "N");
     return Handler::Result::ok;
 }
 
@@ -1161,19 +1193,19 @@ Handler::Result EventListViewHandler::onFunctionBlockInfoNotificationEvent (cons
     if (!pc.eventViewContext.umpShowParsedData)
         return Handler::Result::ok;
     eventView->addValue ("active", (bool) e.active ? "Y" : "N");
-    eventView->addValue ("fb",     juce::String ((int) e.functionBlockNumber));
+    eventView->addValue ("fb", juce::String ((int) e.functionBlockNumber));
     static constexpr const char* dirNames[] = { "reserved", "input", "output", "bidir" };
     eventView->addValue ("dir", dirNames[(int) e.direction & 0x3]);
-    eventView->addValue ("ui",  juce::String ((int) e.uiHint));
-    eventView->addValue ("m1",  juce::String ((int) e.midi1));
-    const int fg = e.firstGroup;
-    const int ng = e.numGroups;
+    eventView->addValue ("ui", juce::String ((int) e.uiHint));
+    eventView->addValue ("m1", juce::String ((int) e.midi1));
+    const int fg        = e.firstGroup;
+    const int ng        = e.numGroups;
     juce::String grpStr = juce::String (fg + 1);
     if (ng > 1)
         grpStr += "-" + juce::String (fg + ng);
-    eventView->addValue ("grp",  grpStr);
+    eventView->addValue ("grp", grpStr);
     eventView->addValue ("m1ch", juce::String ((int) e.numMidi1Channels));
-    eventView->addValue ("sx8",  juce::String ((int) e.maxSysex8Streams));
+    eventView->addValue ("sx8", juce::String ((int) e.maxSysex8Streams));
     return Handler::Result::ok;
 }
 

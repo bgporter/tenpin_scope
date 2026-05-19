@@ -24,13 +24,18 @@
 
 #include "eventListViewMsgHandler.h"
 
-#include "model/persistentContext.h"
+#include "model/sysex/mdsMessage.h"
+#include "model/sysex/sysex7Message.h"
+#include "model/sysex/sysex8Message.h"
+#include "model/sysex/textMessage.h"
 #include "palette.h"
+#include "view/dispatchContext.h"
 #include "view/eventNameUtils.h"
 #include "view/eventView.h"
 
 EventListViewMsgHandler::EventListViewMsgHandler (AppContext& theAppContext)
 : appContext { theAppContext }
+, pc { theAppContext }
 {
 }
 
@@ -38,189 +43,176 @@ EventListViewMsgHandler::~EventListViewMsgHandler () {}
 
 Handler::Result EventListViewMsgHandler::handle (const Event& e, void* ctx)
 {
-    if (e.getTypeName () == Sysex7Message::type.toString ())
+    if (ctx)
     {
-        Sysex7Message msg (e);
-        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
-        auto* eventView = dispCtx->view;
-        const int width = dispCtx->width;
-
-        Palette pal { PersistentContext { appContext } };
-        PersistentContext pc { appContext };
-        const auto rawFormat = pc.eventViewContext.valueFormatType.get ();
-        const auto formatType =
-            (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
-
-        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
-                              pal.sysex7Label.get (), pal.sysex7Value.get (), pal.outline.get ());
-        eventView->setTime (formatTime (msg.timestamp));
-        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
-        eventView->setEndpoint (endpointStr);
-        eventView->setEvent ("Sysex7 Message");
-
-        eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
-
-        if (auto buf = msg.data.get ())
-        {
-            eventView->addValue ("data", "");
-            const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
-            const size_t displayCount = std::min (buf->size (), maxBytes);
-            for (size_t i = 0; i < displayCount; ++i)
-            {
-                auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
-                if (i > 0)
-                    val = " " + val;
-                eventView->addValue ("", val);
-            }
-            if (buf->size () > maxBytes)
-            {
-                const auto remaining = static_cast<int> (buf->size () - maxBytes);
-                eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
-            }
-        }
-
-        eventView->sizeToWidth (width);
-        return Handler::Result::ok;
+        auto* dispCtx = static_cast<DispatchContext*> (ctx);
+        eventView    = dispCtx->view;
+        currentWidth = dispCtx->width;
     }
 
-    if (e.getTypeName () == Sysex8Message::type.toString ())
+    if (eventView)
     {
-        Sysex8Message msg (e);
-        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
-        auto* eventView = dispCtx->view;
-        const int width = dispCtx->width;
+        Palette pal { pc };
+        const auto type = e.getType ();
+        juce::Colour labelColor, valueColor;
 
-        Palette pal { PersistentContext { appContext } };
-        PersistentContext pc { appContext };
-        const auto rawFormat = pc.eventViewContext.valueFormatType.get ();
-        const auto formatType =
-            (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
-
-        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
-                              pal.sysex8Label.get (), pal.sysex8Value.get (), pal.outline.get ());
-        eventView->setTime (formatTime (msg.timestamp));
-        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
-        eventView->setEndpoint (endpointStr);
-        eventView->setEvent ("Sysex8 Message");
-
-        eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
-        eventView->addValue ("sid", juce::String (static_cast<int> (msg.streamId)));
-
-        if (auto buf = msg.data.get ())
+        if (type == Sysex7Message::type)
         {
-            eventView->addValue ("data", "");
-            const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
-            const size_t displayCount = std::min (buf->size (), maxBytes);
-            for (size_t i = 0; i < displayCount; ++i)
-            {
-                auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
-                if (i > 0)
-                    val = " " + val;
-                eventView->addValue ("", val);
-            }
-            if (buf->size () > maxBytes)
-            {
-                const auto remaining = static_cast<int> (buf->size () - maxBytes);
-                eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
-            }
+            labelColor = pal.sysex7Label.get ();
+            valueColor = pal.sysex7Value.get ();
         }
-
-        eventView->sizeToWidth (width);
-        return Handler::Result::ok;
-    }
-
-    if (e.getTypeName () == MdsMessage::type.toString ())
-    {
-        MdsMessage msg (e);
-        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
-        auto* eventView = dispCtx->view;
-        const int width = dispCtx->width;
-
-        Palette pal { PersistentContext { appContext } };
-        PersistentContext pc { appContext };
-        const auto rawFormat = pc.eventViewContext.valueFormatType.get ();
-        const auto formatType =
-            (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
-
-        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
-                              pal.sysex8Label.get (), pal.sysex8Value.get (), pal.outline.get ());
-        eventView->setTime (formatTime (msg.timestamp));
-        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
-        eventView->setEndpoint (endpointStr);
-        eventView->setEvent ("MDS Message");
-
-        eventView->addValue ("grp",  juce::String (static_cast<int> (msg.group)));
-        eventView->addValue ("id",   juce::String (static_cast<int> (msg.mdsId)));
-        eventView->addValue ("mfr",  juce::String::toHexString (static_cast<int> (msg.manufacturerId)));
-        eventView->addValue ("dev",  juce::String::toHexString (static_cast<int> (msg.deviceId)));
-        eventView->addValue ("sub1", juce::String::toHexString (static_cast<int> (msg.subId1)));
-        eventView->addValue ("sub2", juce::String::toHexString (static_cast<int> (msg.subId2)));
-
-        if (auto buf = msg.data.get ())
+        else if (type == Sysex8Message::type || type == MdsMessage::type)
         {
-            eventView->addValue ("data", "");
-            const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
-            const size_t displayCount = std::min (buf->size (), maxBytes);
-            for (size_t i = 0; i < displayCount; ++i)
-            {
-                auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
-                if (i > 0)
-                    val = " " + val;
-                eventView->addValue ("", val);
-            }
-            if (buf->size () > maxBytes)
-            {
-                const auto remaining = static_cast<int> (buf->size () - maxBytes);
-                eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
-            }
+            labelColor = pal.sysex8Label.get ();
+            valueColor = pal.sysex8Value.get ();
         }
-
-        eventView->sizeToWidth (width);
-        return Handler::Result::ok;
-    }
-
-    if (TextMessage::isTextMessage (e))
-    {
-        TextMessage msg (e);
-        auto* dispCtx   = static_cast<DispatchContext*> (ctx);
-        auto* eventView = dispCtx->view;
-        const int width = dispCtx->width;
-
-        Palette pal { PersistentContext { appContext } };
-
-        const auto typeName = e.getTypeName ();
-        if (TextMessage::isFlexDataTextMessage (typeName))
-            eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
-                                  pal.flexDataLabel.get (), pal.flexDataValue.get (), pal.outline.get ());
+        else if (TextMessage::isFlexDataTextMessage (type))
+        {
+            labelColor = pal.flexDataLabel.get ();
+            valueColor = pal.flexDataValue.get ();
+        }
         else
-            eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
-                                  pal.streamLabel.get (), pal.streamValue.get (), pal.outline.get ());
-
-        eventView->setTime (formatTime (msg.timestamp));
-        const auto endpointStr = juce::String (msg.endpointName) + " " + (msg.isReceived ? "Rx" : "Tx");
-        eventView->setEndpoint (endpointStr);
-        eventView->setEvent (TextMessage::displayName (typeName));
-
-        if (TextMessage::isFlexDataTextMessage (typeName))
         {
-            eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
-            eventView->addValue ("ch",  juce::String (static_cast<int> (msg.channel)));
-        }
-        else if (typeName == TextMessage::typeFunctionBlockName.toString ())
-        {
-            eventView->addValue ("fb", juce::String (static_cast<int> (msg.functionBlockNumber)));
+            labelColor = pal.streamLabel.get ();
+            valueColor = pal.streamValue.get ();
         }
 
-        eventView->addValue ("text", static_cast<juce::String> (msg.text));
-
-        eventView->sizeToWidth (width);
-        return Handler::Result::ok;
+        eventView->setColors (static_cast<juce::Colour> (pal.umpBackground.get ()).brighter (0.1f),
+                              labelColor, valueColor, pal.outline.get ());
     }
 
-    return Handler::Result::notHandled;
+    return MessageHandler::handle (e, ctx);
 }
 
-Handler::Result EventListViewMsgHandler::handle (const Event& e)
+Handler::Result EventListViewMsgHandler::preDispatch (const Event& e)
 {
-    return handle (e, nullptr);
+    if (!eventView)
+        return Handler::Result::notHandled;
+    eventView->setTime (formatTime (e.timestamp));
+    const auto endpointStr = juce::String (e.isReceived ? "src: " : "dst: ") + juce::String (e.endpointName);
+    eventView->setEndpoint (endpointStr);
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewMsgHandler::postDispatch (const Event& /*e*/, Handler::Result pendingResult)
+{
+    if (pendingResult == Handler::Result::ok)
+        eventView->sizeToWidth (currentWidth);
+    return pendingResult;
+}
+
+Handler::Result EventListViewMsgHandler::onSysex7Message (const Event& e)
+{
+    Sysex7Message msg (e);
+    const auto rawFormat  = pc.eventViewContext.valueFormatType.get ();
+    const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+
+    eventView->setEvent ("Sysex7 Message");
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+
+    if (auto buf = msg.data.get ())
+    {
+        eventView->addValue ("data", "");
+        const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
+        const size_t displayCount = std::min (buf->size (), maxBytes);
+        for (size_t i = 0; i < displayCount; ++i)
+        {
+            auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
+            if (i > 0)
+                val = " " + val;
+            eventView->addValue ("", val);
+        }
+        if (buf->size () > maxBytes)
+        {
+            const auto remaining = static_cast<int> (buf->size () - maxBytes);
+            eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
+        }
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewMsgHandler::onSysex8Message (const Event& e)
+{
+    Sysex8Message msg (e);
+    const auto rawFormat  = pc.eventViewContext.valueFormatType.get ();
+    const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+
+    eventView->setEvent ("Sysex8 Message");
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("sid", juce::String (static_cast<int> (msg.streamId)));
+
+    if (auto buf = msg.data.get ())
+    {
+        eventView->addValue ("data", "");
+        const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
+        const size_t displayCount = std::min (buf->size (), maxBytes);
+        for (size_t i = 0; i < displayCount; ++i)
+        {
+            auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
+            if (i > 0)
+                val = " " + val;
+            eventView->addValue ("", val);
+        }
+        if (buf->size () > maxBytes)
+        {
+            const auto remaining = static_cast<int> (buf->size () - maxBytes);
+            eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
+        }
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewMsgHandler::onMdsMessage (const Event& e)
+{
+    MdsMessage msg (e);
+    const auto rawFormat  = pc.eventViewContext.valueFormatType.get ();
+    const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+
+    eventView->setEvent ("MDS Message");
+    eventView->addValue ("grp",  juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("id",   juce::String (static_cast<int> (msg.mdsId)));
+    eventView->addValue ("mfr",  juce::String::toHexString (static_cast<int> (msg.manufacturerId)));
+    eventView->addValue ("dev",  juce::String::toHexString (static_cast<int> (msg.deviceId)));
+    eventView->addValue ("sub1", juce::String::toHexString (static_cast<int> (msg.subId1)));
+    eventView->addValue ("sub2", juce::String::toHexString (static_cast<int> (msg.subId2)));
+
+    if (auto buf = msg.data.get ())
+    {
+        eventView->addValue ("data", "");
+        const size_t maxBytes     = static_cast<size_t> (pc.eventViewContext.maxDataBytes.get ());
+        const size_t displayCount = std::min (buf->size (), maxBytes);
+        for (size_t i = 0; i < displayCount; ++i)
+        {
+            auto val { formatValue ((*buf)[i], 8, formatType, 2, 0.f, 1.f, i > 0) };
+            if (i > 0)
+                val = " " + val;
+            eventView->addValue ("", val);
+        }
+        if (buf->size () > maxBytes)
+        {
+            const auto remaining = static_cast<int> (buf->size () - maxBytes);
+            eventView->addValue ("", juce::String::formatted ("(+%d bytes...)", remaining));
+        }
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewMsgHandler::onFlexDataTextMessage (const Event& e)
+{
+    TextMessage msg (e);
+    eventView->setEvent (TextMessage::displayName (e.getType ()));
+    eventView->addValue ("grp",  juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("ch",   juce::String (static_cast<int> (msg.channel)));
+    eventView->addValue ("text", static_cast<juce::String> (msg.text));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewMsgHandler::onStreamTextMessage (const Event& e)
+{
+    TextMessage msg (e);
+    eventView->setEvent (TextMessage::displayName (e.getType ()));
+    if (e.getType () == TextMessage::typeFunctionBlockName)
+        eventView->addValue ("fb", juce::String (static_cast<int> (msg.functionBlockNumber)));
+    eventView->addValue ("text", static_cast<juce::String> (msg.text));
+    return Handler::Result::ok;
 }

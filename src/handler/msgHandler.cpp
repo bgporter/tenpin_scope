@@ -24,7 +24,46 @@
 
 #include "msgHandler.h"
 
+#include "model/sysex/mdsMessage.h"
+#include "model/sysex/sysex7Message.h"
+#include "model/sysex/sysex8Message.h"
+#include "model/sysex/textMessage.h"
+
 MessageHandler::MessageHandler () {}
 
 MessageHandler::~MessageHandler () {}
 
+Handler::Result MessageHandler::handle (const Event& e)
+{
+    Handler::Result result { preDispatch (e) };
+    if (result == Handler::Result::ok)
+    {
+        const auto type = e.getType ();
+        if (type == Sysex7Message::type)
+            result = onSysex7Message (e);
+        else if (type == Sysex8Message::type)
+            result = onSysex8Message (e);
+        else if (type == MdsMessage::type)
+            result = onMdsMessage (e);
+        else if (TextMessage::isTextMessage (e))
+        {
+            if (TextMessage::isFlexDataTextMessage (type))
+                result = onFlexDataTextMessage (e);
+            else
+                result = onStreamTextMessage (e);
+
+            if (result == Handler::Result::notHandled)
+                result = onTextMessage (e);
+            if (result == Handler::Result::notHandled)
+                result = onMessage (e);
+        }
+        else
+            result = onMessage (e);
+    }
+    return postDispatch (e, result);
+}
+
+Handler::Result MessageHandler::handle (const Event& e, void* /*ctx*/)
+{
+    return handle (e);
+}

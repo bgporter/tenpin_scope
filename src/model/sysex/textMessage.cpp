@@ -60,59 +60,59 @@ TextMessage::TextMessage (const juce::String& typeName, int theFunctionBlockNumb
 
 bool TextMessage::isTextMessage (const Event& e)
 {
-    const auto name = e.getTypeName ();
-    return isFlexDataTextMessage (name) || isStreamTextMessage (name);
+    const auto type = e.getType ();
+    return isFlexDataTextMessage (type) || isStreamTextMessage (type);
 }
 
-bool TextMessage::isFlexDataTextMessage (const juce::String& typeName)
+bool TextMessage::isFlexDataTextMessage (const juce::Identifier& type)
 {
-    return typeName == typeProjectName.toString ()           ||
-           typeName == typeCompositionName.toString ()       ||
-           typeName == typeMidiClipName.toString ()          ||
-           typeName == typeCopyrightNotice.toString ()       ||
-           typeName == typeComposerName.toString ()          ||
-           typeName == typeLyricistName.toString ()          ||
-           typeName == typeArrangerName.toString ()          ||
-           typeName == typePublisherName.toString ()         ||
-           typeName == typePrimaryPerformer.toString ()      ||
-           typeName == typeAccompanyingPerformer.toString () ||
-           typeName == typeRecordingDate.toString ()         ||
-           typeName == typeRecordingLocation.toString ()     ||
-           typeName == typeLyrics.toString ()                ||
-           typeName == typeLyricsLanguage.toString ()        ||
-           typeName == typeRuby.toString ()                  ||
-           typeName == typeRubyLanguage.toString ();
+    return type == typeProjectName           ||
+           type == typeCompositionName       ||
+           type == typeMidiClipName          ||
+           type == typeCopyrightNotice       ||
+           type == typeComposerName          ||
+           type == typeLyricistName          ||
+           type == typeArrangerName          ||
+           type == typePublisherName         ||
+           type == typePrimaryPerformer      ||
+           type == typeAccompanyingPerformer ||
+           type == typeRecordingDate         ||
+           type == typeRecordingLocation     ||
+           type == typeLyrics               ||
+           type == typeLyricsLanguage        ||
+           type == typeRuby                  ||
+           type == typeRubyLanguage;
 }
 
-bool TextMessage::isStreamTextMessage (const juce::String& typeName)
+bool TextMessage::isStreamTextMessage (const juce::Identifier& type)
 {
-    return typeName == typeEndpointName.toString ()      ||
-           typeName == typeProductInstanceId.toString () ||
-           typeName == typeFunctionBlockName.toString ();
+    return type == typeEndpointName      ||
+           type == typeProductInstanceId ||
+           type == typeFunctionBlockName;
 }
 
-juce::String TextMessage::displayName (const juce::String& typeName)
+juce::String TextMessage::displayName (const juce::Identifier& type)
 {
-    if (typeName == typeProjectName.toString ())           return "Project Name";
-    if (typeName == typeCompositionName.toString ())       return "Composition Name";
-    if (typeName == typeMidiClipName.toString ())          return "MIDI Clip Name";
-    if (typeName == typeCopyrightNotice.toString ())       return "Copyright Notice";
-    if (typeName == typeComposerName.toString ())          return "Composer Name";
-    if (typeName == typeLyricistName.toString ())          return "Lyricist Name";
-    if (typeName == typeArrangerName.toString ())          return "Arranger Name";
-    if (typeName == typePublisherName.toString ())         return "Publisher Name";
-    if (typeName == typePrimaryPerformer.toString ())      return "Primary Performer";
-    if (typeName == typeAccompanyingPerformer.toString ()) return "Accompanying Performer";
-    if (typeName == typeRecordingDate.toString ())         return "Recording Date";
-    if (typeName == typeRecordingLocation.toString ())     return "Recording Location";
-    if (typeName == typeLyrics.toString ())                return "Lyrics";
-    if (typeName == typeLyricsLanguage.toString ())        return "Lyrics Language";
-    if (typeName == typeRuby.toString ())                  return "Ruby";
-    if (typeName == typeRubyLanguage.toString ())          return "Ruby Language";
-    if (typeName == typeEndpointName.toString ())          return "Endpoint Name";
-    if (typeName == typeProductInstanceId.toString ())     return "Product Instance ID";
-    if (typeName == typeFunctionBlockName.toString ())     return "Function Block Name";
-    return typeName;
+    if (type == typeProjectName)           return "Project Name";
+    if (type == typeCompositionName)       return "Composition Name";
+    if (type == typeMidiClipName)          return "MIDI Clip Name";
+    if (type == typeCopyrightNotice)       return "Copyright Notice";
+    if (type == typeComposerName)          return "Composer Name";
+    if (type == typeLyricistName)          return "Lyricist Name";
+    if (type == typeArrangerName)          return "Arranger Name";
+    if (type == typePublisherName)         return "Publisher Name";
+    if (type == typePrimaryPerformer)      return "Primary Performer";
+    if (type == typeAccompanyingPerformer) return "Accompanying Performer";
+    if (type == typeRecordingDate)         return "Recording Date";
+    if (type == typeRecordingLocation)     return "Recording Location";
+    if (type == typeLyrics)               return "Lyrics";
+    if (type == typeLyricsLanguage)        return "Lyrics Language";
+    if (type == typeRuby)                  return "Ruby";
+    if (type == typeRubyLanguage)          return "Ruby Language";
+    if (type == typeEndpointName)          return "Endpoint Name";
+    if (type == typeProductInstanceId)     return "Product Instance ID";
+    if (type == typeFunctionBlockName)     return "Function Block Name";
+    return type.toString ();
 }
 
 juce::String TextMessage::typeForFlexStatus (int statusBank, int status)

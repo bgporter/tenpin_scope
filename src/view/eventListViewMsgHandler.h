@@ -26,11 +26,9 @@
 
 #include "handler/msgHandler.h"
 #include "model/appContext.h"
-#include "model/sysex/mdsMessage.h"
-#include "model/sysex/sysex7Message.h"
-#include "model/sysex/sysex8Message.h"
-#include "model/sysex/textMessage.h"
-#include "view/dispatchContext.h"
+#include "model/persistentContext.h"
+
+class EventView;
 
 class EventListViewMsgHandler : public MessageHandler
 {
@@ -38,9 +36,20 @@ public:
     EventListViewMsgHandler (AppContext& theAppContext);
     ~EventListViewMsgHandler () override;
 
-    Handler::Result handle (const Event& e) override;
     Handler::Result handle (const Event& e, void* ctx) override;
 
 private:
+    Handler::Result preDispatch  (const Event& e) override;
+    Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) override;
+
+    Handler::Result onSysex7Message       (const Event& e) override;
+    Handler::Result onSysex8Message       (const Event& e) override;
+    Handler::Result onMdsMessage          (const Event& e) override;
+    Handler::Result onFlexDataTextMessage (const Event& e) override;
+    Handler::Result onStreamTextMessage   (const Event& e) override;
+
     AppContext appContext;
+    PersistentContext pc;
+    EventView* eventView { nullptr };
+    int currentWidth { 0 };
 };
