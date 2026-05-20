@@ -47,13 +47,14 @@ struct SystemCommonEvent : public UmpEvent
         init ();
     }
 
-    MAKE_BITFIELD (int, group, 0, 4, 24);
     MAKE_BITFIELD (int, status, 0, 8, 16);
 
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
-
 private:
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
+
     void init () { eventName = "System Common"; }
 };
 

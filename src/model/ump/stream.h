@@ -78,6 +78,16 @@ struct StreamEvent : public UmpEvent
     MAKE_BITFIELD (StreamFormat, format, 0, 2, 26);
     MAKE_BITFIELD (int, status, 0, 10, 16);
 
+private:
+    using UmpEvent::group;
+    using UmpEvent::groupId;
+    using UmpEvent::userGroup;
+    using UmpEvent::userGroupId;
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
+
 protected:
     StreamEvent (StreamFormat theFormat, int theStatus)
     : UmpEvent ()

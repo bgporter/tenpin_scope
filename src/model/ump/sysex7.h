@@ -64,7 +64,6 @@ struct Sysex7Event : public UmpEvent
     }
 
     // Word 0
-    MAKE_BITFIELD (int,         group,    0, 4, 24);
     MAKE_BITFIELD (SysexStatus, status,   0, 4, 20);
     MAKE_BITFIELD (int,         numBytes, 0, 4, 16);
     MAKE_BITFIELD (int,         data0,    0, 7,  8);
@@ -74,11 +73,6 @@ struct Sysex7Event : public UmpEvent
     MAKE_BITFIELD (int,         data3,    1, 7, 16);
     MAKE_BITFIELD (int,         data4,    1, 7,  8);
     MAKE_BITFIELD (int,         data5,    1, 7,  0);
-
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userGroup,
-        [this] () -> int { return group.get () + 1; },
-        [this] (const int& val) { group = val - 1; });
 
     void setDataByte (int index, int val)
     {
@@ -109,6 +103,11 @@ struct Sysex7Event : public UmpEvent
     }
 
 private:
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
+
     // Common setup for fresh construction: zeroes both data words and sets fixed fields.
     // Public constructors delegate here via : Sysex7Event(theGroup, theStatus).
     Sysex7Event (MidiGroup theGroup, SysexStatus theStatus)

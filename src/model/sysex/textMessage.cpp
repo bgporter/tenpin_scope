@@ -28,19 +28,19 @@
 #include "model/ump/stream.h"
 
 TextMessage::TextMessage (const Event& e)
-: Event (e.getTypeName (), juce::ValueTree { e })
+: MessageBase (e.getTypeName (), juce::ValueTree { e })
 {
 }
 
 TextMessage::TextMessage (juce::ValueTree vt)
-: Event (vt.getType ().toString (), vt)
+: MessageBase (vt.getType ().toString (), vt)
 {
 }
 
 TextMessage::TextMessage (const juce::String& typeName, int theGroup, int theChannel,
                           int theAddress, int theStatusBank, int theStatus,
                           const juce::String& theText)
-: Event (typeName)
+: MessageBase (typeName)
 {
     group      = theGroup;
     channel    = theChannel;
@@ -52,7 +52,7 @@ TextMessage::TextMessage (const juce::String& typeName, int theGroup, int theCha
 
 TextMessage::TextMessage (const juce::String& typeName, int theFunctionBlockNumber,
                           const juce::String& theText)
-: Event (typeName)
+: MessageBase (typeName)
 {
     functionBlockNumber = theFunctionBlockNumber;
     text                = theText;

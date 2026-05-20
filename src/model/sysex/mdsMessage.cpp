@@ -25,18 +25,18 @@
 #include "mdsMessage.h"
 
 MdsMessage::MdsMessage (const Event& e)
-: Event (type.toString (), juce::ValueTree { e })
+: MessageBase (type.toString (), juce::ValueTree { e })
 {
 }
 
 MdsMessage::MdsMessage (juce::ValueTree vt)
-: Event (type.toString (), vt)
+: MessageBase (type.toString (), vt)
 {
 }
 
 MdsMessage::MdsMessage (MidiNibble theGroup, int theMdsId, int theManufacturerId, int theDeviceId,
                         int theSubId1, int theSubId2, int theNumChunks, Buffer::Ptr theData)
-: Event (type.toString ())
+: MessageBase (type.toString ())
 {
     group          = theGroup.get ();
     mdsId          = theMdsId;

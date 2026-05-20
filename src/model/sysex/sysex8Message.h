@@ -26,11 +26,11 @@
 
 #include <JuceHeader.h>
 
-#include "model/event.h"
+#include "model/message.h"
 #include "model/midiTypes.h"
 #include "utility/buffer.h"
 
-struct Sysex8Message : public Event
+struct Sysex8Message : public MessageBase
 {
     static const inline juce::Identifier type { "MsgSysex8" };
 
@@ -43,7 +43,12 @@ struct Sysex8Message : public Event
     // Build a fresh message from accumulated buffer data
     Sysex8Message (MidiNibble group, int streamId, Buffer::Ptr data);
 
-    MAKE_VALUE_MEMBER (int,         group,    {});
     MAKE_VALUE_MEMBER (int,         streamId, {});
     MAKE_VALUE_MEMBER (Buffer::Ptr, data,     {});
+
+private:
+    using MessageBase::channel;
+    using MessageBase::channelId;
+    using MessageBase::userChannel;
+    using MessageBase::userChannelId;
 };

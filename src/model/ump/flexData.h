@@ -200,19 +200,10 @@ struct FlexDataEvent : public UmpEvent
     }
 
     // Word 0
-    MAKE_BITFIELD (int, group, 0, 4, 24);
     MAKE_BITFIELD (FlexDataFormat, format, 0, 2, 22);
     MAKE_BITFIELD (FlexDataAddress, address, 0, 2, 20);
-    MAKE_BITFIELD (int, channel, 0, 4, 16);
     MAKE_BITFIELD (FlexDataStatusBank, statusBank, 0, 8, 8);
     MAKE_BITFIELD (int, status, 0, 8, 0);
-
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
-
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userChannel, [this] () -> int { return channel.get () + 1; },
-        [this] (const int& val) { channel = val - 1; });
 
 protected:
     template <typename StatusEnum>

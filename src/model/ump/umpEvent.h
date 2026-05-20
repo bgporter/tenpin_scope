@@ -218,5 +218,15 @@ struct UmpEvent : public Event
 
     MAKE_BITFIELD (int, messageType, 0, 4, 28);
 
+    MAKE_BITFIELD (int, group, 0, 4, 24);
+    MAKE_BITFIELD (int, channel, 0, 4, 16);
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
+
+    MAKE_COMPUTED_VALUE_MEMBER (
+        int, userChannel, [this] () -> int { return channel.get () + 1; },
+        [this] (const int& val) { channel = val - 1; });
+
     // we'll also create and populate 1 to 4 data words at construction time.
 };

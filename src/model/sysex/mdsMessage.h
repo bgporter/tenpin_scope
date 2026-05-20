@@ -26,11 +26,11 @@
 
 #include <JuceHeader.h>
 
-#include "model/event.h"
+#include "model/message.h"
 #include "model/midiTypes.h"
 #include "utility/buffer.h"
 
-struct MdsMessage : public Event
+struct MdsMessage : public MessageBase
 {
     static const inline juce::Identifier type { "MsgMds" };
 
@@ -44,7 +44,6 @@ struct MdsMessage : public Event
     MdsMessage (MidiNibble group, int mdsId, int manufacturerId, int deviceId,
                 int subId1, int subId2, int numChunks, Buffer::Ptr data);
 
-    MAKE_VALUE_MEMBER (int,         group,          {});
     MAKE_VALUE_MEMBER (int,         mdsId,          {});
     MAKE_VALUE_MEMBER (int,         manufacturerId, {});
     MAKE_VALUE_MEMBER (int,         deviceId,       {});
@@ -52,4 +51,10 @@ struct MdsMessage : public Event
     MAKE_VALUE_MEMBER (int,         subId2,         {});
     MAKE_VALUE_MEMBER (int,         numChunks,      {});
     MAKE_VALUE_MEMBER (Buffer::Ptr, data,           {});
+
+private:
+    using MessageBase::channel;
+    using MessageBase::channelId;
+    using MessageBase::userChannel;
+    using MessageBase::userChannelId;
 };

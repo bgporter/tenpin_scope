@@ -74,7 +74,6 @@ struct Sysex8Event : public UmpEvent
     }
 
     // Word 0
-    MAKE_BITFIELD (int, group, 0, 4, 24);
     MAKE_BITFIELD (SysexStatus, status, 0, 4, 20);
     MAKE_BITFIELD (int, numBytes, 0, 4, 16);
     MAKE_BITFIELD (int, streamId, 0, 8, 8);
@@ -94,9 +93,6 @@ struct Sysex8Event : public UmpEvent
     MAKE_BITFIELD (int, data10, 3, 8, 16);
     MAKE_BITFIELD (int, data11, 3, 8, 8);
     MAKE_BITFIELD (int, data12, 3, 8, 0);
-
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
 
     void setDataByte (int index, int val)
     {
@@ -156,6 +152,11 @@ struct Sysex8Event : public UmpEvent
     }
 
 private:
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
+
     // Common setup for fresh construction. All four data words are zeroed so
     // unused data/reserved fields are clean. Public constructors delegate here.
     Sysex8Event (MidiGroup theGroup, SysexStatus theStatus, int theStreamId)
@@ -273,7 +274,6 @@ struct MixedDataSetHeaderEvent : public UmpEvent
     }
 
     // Word 0
-    MAKE_BITFIELD (int, group, 0, 4, 24);
     MAKE_BITFIELD (SysexStatus, status, 0, 4, 20);
     MAKE_BITFIELD (int, mdsId, 0, 4, 16);
     MAKE_BITFIELD (int, numValidBytes, 0, 16, 0);
@@ -287,10 +287,12 @@ struct MixedDataSetHeaderEvent : public UmpEvent
     MAKE_BITFIELD (int, subId1, 3, 16, 16);
     MAKE_BITFIELD (int, subId2, 3, 16, 0);
 
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
-
 private:
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
+
     MixedDataSetHeaderEvent (MidiGroup theGroup, int theMdsId)
     : UmpEvent ()
     {
@@ -327,7 +329,6 @@ struct MixedDataSetPayloadEvent : public UmpEvent
     }
 
     // Word 0
-    MAKE_BITFIELD (int, group, 0, 4, 24);
     MAKE_BITFIELD (SysexStatus, status, 0, 4, 20);
     MAKE_BITFIELD (int, mdsId, 0, 4, 16);
     MAKE_BITFIELD (int, data0, 0, 8, 8);
@@ -347,9 +348,6 @@ struct MixedDataSetPayloadEvent : public UmpEvent
     MAKE_BITFIELD (int, data11, 3, 8, 16);
     MAKE_BITFIELD (int, data12, 3, 8, 8);
     MAKE_BITFIELD (int, data13, 3, 8, 0);
-
-    MAKE_COMPUTED_VALUE_MEMBER (
-        int, userGroup, [this] () -> int { return group.get () + 1; }, [this] (const int& val) { group = val - 1; });
 
     void setDataByte (int index, int val)
     {
@@ -412,6 +410,11 @@ struct MixedDataSetPayloadEvent : public UmpEvent
     }
 
 private:
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
+
     MixedDataSetPayloadEvent (MidiGroup theGroup, int theMdsId)
     : UmpEvent ()
     {

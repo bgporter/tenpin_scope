@@ -26,7 +26,7 @@
 
 #include <JuceHeader.h>
 
-#include "model/event.h"
+#include "model/message.h"
 
 /**
  * @brief Assembled message for all FlexData metadata/performance text events and
@@ -38,7 +38,7 @@
  * FlexData fields: group, channel, address, statusBank, status, text.
  * StreamText fields: status, functionBlockNumber (only for MsgFunctionBlockName), text.
  */
-struct TextMessage : public Event
+struct TextMessage : public MessageBase
 {
     // -------------------------------------------------------------------------
     // FlexData metadata text type identifiers
@@ -82,8 +82,6 @@ struct TextMessage : public Event
 
     // -------------------------------------------------------------------------
     MAKE_VALUE_MEMBER (juce::String, text,                {});
-    MAKE_VALUE_MEMBER (int,          group,               {});
-    MAKE_VALUE_MEMBER (int,          channel,             {});
     MAKE_VALUE_MEMBER (int,          address,             {});
     MAKE_VALUE_MEMBER (int,          statusBank,          {});
     MAKE_VALUE_MEMBER (int,          status,              {});

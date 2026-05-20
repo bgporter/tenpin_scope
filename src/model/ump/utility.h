@@ -45,6 +45,16 @@ struct UtilityEvent : public UmpEvent
     }
 
     MAKE_BITFIELD (int, status, 0, 4, 20);
+
+private:
+    using UmpEvent::group;
+    using UmpEvent::groupId;
+    using UmpEvent::userGroup;
+    using UmpEvent::userGroupId;
+    using UmpEvent::channel;
+    using UmpEvent::channelId;
+    using UmpEvent::userChannel;
+    using UmpEvent::userChannelId;
 };
 
 struct NoOpEvent : public UtilityEvent

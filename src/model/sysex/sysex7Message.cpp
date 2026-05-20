@@ -25,17 +25,17 @@
 #include "sysex7Message.h"
 
 Sysex7Message::Sysex7Message (const Event& e)
-: Event (type.toString (), juce::ValueTree { e })
+: MessageBase (type.toString (), juce::ValueTree { e })
 {
 }
 
 Sysex7Message::Sysex7Message (juce::ValueTree vt)
-: Event (type.toString (), vt)
+: MessageBase (type.toString (), vt)
 {
 }
 
 Sysex7Message::Sysex7Message (MidiNibble theGroup, Buffer::Ptr theData)
-: Event (type.toString ())
+: MessageBase (type.toString ())
 {
     group = theGroup.get ();
     data  = theData;

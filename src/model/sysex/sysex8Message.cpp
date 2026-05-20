@@ -25,17 +25,17 @@
 #include "sysex8Message.h"
 
 Sysex8Message::Sysex8Message (const Event& e)
-: Event (type.toString (), juce::ValueTree { e })
+: MessageBase (type.toString (), juce::ValueTree { e })
 {
 }
 
 Sysex8Message::Sysex8Message (juce::ValueTree vt)
-: Event (type.toString (), vt)
+: MessageBase (type.toString (), vt)
 {
 }
 
 Sysex8Message::Sysex8Message (MidiNibble theGroup, int theStreamId, Buffer::Ptr theData)
-: Event (type.toString ())
+: MessageBase (type.toString ())
 {
     group    = theGroup.get ();
     streamId = theStreamId;
