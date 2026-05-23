@@ -77,6 +77,8 @@ private:
     void addStreamEvents ();
     void addCiDiscoveryEvents ();
     void addCiEndpointEvents ();
+    void addCiInvalidateMuidEvent ();
+    void addCiAckEvent ();
     void startPlayback ();
 
     MidiProperties         midiProperties;

@@ -148,6 +148,10 @@ set(SOURCES_CI
     src/model/ci/discovery.cpp
     src/model/ci/endpointInfo.h
     src/model/ci/endpointInfo.cpp
+    src/model/ci/invalidateMuid.h
+    src/model/ci/invalidateMuid.cpp
+    src/model/ci/ack.h
+    src/model/ci/ack.cpp
     src/model/ci/ciParser.h
     src/model/ci/ciParser.cpp
     src/view/eventListViewCiHandler.h

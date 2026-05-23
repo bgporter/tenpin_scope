@@ -26,6 +26,8 @@
 
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
+#include "model/ci/invalidateMuid.h"
+#include "model/ci/ack.h"
 #include "model/sysex/sysex7Message.h"
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
@@ -135,6 +137,8 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addStreamEvents ();
     addCiDiscoveryEvents ();
     addCiEndpointEvents ();
+    addCiInvalidateMuidEvent ();
+    addCiAckEvent ();
 }
 
 void SyntheticEndpointController::addUtilityEvents ()
@@ -401,6 +405,43 @@ void SyntheticEndpointController::addCiEndpointEvents ()
                             "SN20250401-SYNTH" };
     auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
     addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiInvalidateMuidEvent ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    CiInvalidateMuid msg { group, initiatorMuid, responderMuid };
+    auto sysexMsg { msg.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    if (auto buf { sysexMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
+}
+
+void SyntheticEndpointController::addCiAckEvent ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    // ACK from responder confirming the Discovery Inquiry was received.
+    std::array<uint8_t, CiAck::kDetailBytes> details { 0, 0, 0, 0, 0 };
+    CiAck msg { group, responderMuid, initiatorMuid,
+                MidiByte { CiType::discoveryInquiry },
+                MidiByte { CiAckStatus::ack },
+                MidiByte { 0 },
+                details,
+                "Discovery acknowledged" };
+    auto sysexMsg { msg.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    if (auto buf { sysexMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
 }
 
 void SyntheticEndpointController::addMixedDataSetEvents ()

@@ -26,6 +26,8 @@
 
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
+#include "model/ci/invalidateMuid.h"
+#include "model/ci/ack.h"
 
 CiHandler::CiHandler () {}
 
@@ -45,6 +47,10 @@ Handler::Result CiHandler::handle (const Event& e)
             result = onCiEndpointInquiry (e);
         else if (type == CiEndpointReply::type)
             result = onCiEndpointReply (e);
+        else if (type == CiInvalidateMuid::type)
+            result = onCiInvalidateMuid (e);
+        else if (type == CiAck::type)
+            result = onCiAck (e);
         else
             result = onCiMessage (e);
     }

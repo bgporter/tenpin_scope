@@ -28,6 +28,8 @@
 #include "model/ci/ciMessage.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
+#include "model/ci/invalidateMuid.h"
+#include "model/ci/ack.h"
 
 CiParser::CiParser (DeferFn deferFn)
 : defer { std::move (deferFn) }
@@ -64,6 +66,18 @@ void CiParser::parse (const Sysex7Message& msg)
         case CiType::endpointReply:
         {
             CiEndpointReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::invalidateMuid:
+        {
+            CiInvalidateMuid ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::ack:
+        {
+            CiAck ci { msg };
             defer (ci);
             break;
         }

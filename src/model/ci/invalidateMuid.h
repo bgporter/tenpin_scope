@@ -24,33 +24,31 @@
 
 #pragma once
 
-#include "handler/ciHandler.h"
-#include "model/appContext.h"
-#include "model/persistentContext.h"
+#include "model/ci/ciMessage.h"
+#include "model/midiTypes.h"
+#include "model/sysex/sysex7Message.h"
 
-class EventView;
+// ---------------------------------------------------------------------------
 
-class EventListViewCiHandler : public CiHandler
+/**
+ * @brief CI Invalidate MUID (0x7E). One-way — no reply.
+ *
+ * Destination MUID is always broadcast. Payload:
+ *   [13..16] target MUID (the MUID being invalidated, LSB first)
+ */
+struct CiInvalidateMuid : public CiMessage
 {
-public:
-    EventListViewCiHandler (AppContext& theAppContext);
-    ~EventListViewCiHandler () override;
+    static const inline juce::Identifier type { "CiInvalidateMuid" };
 
-    Handler::Result handle (const Event& e, void* ctx) override;
+    explicit CiInvalidateMuid (const Sysex7Message& msg);
+    explicit CiInvalidateMuid (const Event& e);
+    explicit CiInvalidateMuid (juce::ValueTree vt);
 
-private:
-    Handler::Result preDispatch  (const Event& e) override;
-    Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) override;
+    // Programmatic construction. destMuid is always broadcast.
+    CiInvalidateMuid (MidiGroup group, int sourceMuid, int targetMuidValue);
 
-    Handler::Result onCiDiscoveryInquiry  (const Event& e) override;
-    Handler::Result onCiDiscoveryReply    (const Event& e) override;
-    Handler::Result onCiEndpointInquiry   (const Event& e) override;
-    Handler::Result onCiEndpointReply     (const Event& e) override;
-    Handler::Result onCiInvalidateMuid    (const Event& e) override;
-    Handler::Result onCiAck              (const Event& e) override;
+    Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    AppContext appContext;
-    PersistentContext pc;
-    EventView* eventView  { nullptr };
-    int        currentWidth { 0 };
+    // The MUID being declared invalid.
+    MAKE_VALUE_MEMBER (int, targetMuid, 0);
 };

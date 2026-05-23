@@ -43,7 +43,16 @@ constexpr int discoveryInquiry  = 0x70;
 constexpr int discoveryReply    = 0x71;
 constexpr int endpointInquiry   = 0x72;
 constexpr int endpointReply     = 0x73;
+constexpr int invalidateMuid    = 0x7E;
+constexpr int ack               = 0x7D;
 } // namespace CiType
+
+namespace CiAckStatus
+{
+constexpr int ack               = 0x00; // success
+constexpr int timeout           = 0x10; // status data = wait time in 100ms units
+constexpr int flowControl       = 0x11; // send next chunks
+} // namespace CiAckStatus
 
 namespace CiEndpointStatus
 {
