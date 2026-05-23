@@ -71,7 +71,7 @@ MidiController::MidiController (juce::StringRef sessionName, AppContext& appCont
                 UmpEvent event (vt.createCopy ());
                 addMidiEvent (event);
             }
-            else if (typeName.startsWith ("Msg"))
+            else if (typeName.startsWith ("Msg") || typeName.startsWith ("Ci"))
             {
                 addMidiMessage (vt.createCopy ());
             }
@@ -236,7 +236,7 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
                 if (eventFilter.filterMidiEvent (evCopy))
                     currentEvents.addEvent (evCopy);
             }
-            else if (typeName.startsWith ("Msg"))
+            else if (typeName.startsWith ("Msg") || typeName.startsWith ("Ci"))
             {
                 Event evCopy (typeName, child);
                 if (eventFilter.filterMessage (evCopy))
@@ -254,7 +254,7 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
                 if (eventFilter.filterMidiEvent (evCopy))
                     currentEvents.addEvent (evCopy);
             }
-            else if (typeName.startsWith ("Msg"))
+            else if (typeName.startsWith ("Msg") || typeName.startsWith ("Ci"))
             {
                 Event evCopy (typeName, child);
                 if (eventFilter.filterMessage (evCopy))
@@ -293,7 +293,7 @@ void MidiController::rebuildMidiEventsFromEndpoints ()
             UmpEvent evCopy (ev);
             midiProperties.midiEvents.addEvent (evCopy);
         }
-        else if (typeName.startsWith ("Msg"))
+        else if (typeName.startsWith ("Msg") || typeName.startsWith ("Ci"))
         {
             Event evCopy (typeName, ev);
             midiProperties.midiEvents.addMessage (evCopy);

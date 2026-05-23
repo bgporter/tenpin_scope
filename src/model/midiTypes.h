@@ -170,6 +170,40 @@ private:
     int value;
 };
 
+namespace juce
+{
+template <> struct VariantConverter<MidiLong>
+{
+    static MidiLong fromVar (const juce::var& v) { return MidiLong { static_cast<int> (v) }; }
+    static juce::var toVar  (MidiLong val)        { return juce::var { val.get () }; }
+};
+} // namespace juce
+
+/**
+ * @brief Two 7-bit bytes representing a 14-bit value stored LSB first.
+ * Tag-typed so distinct uses (DeviceFamily, DeviceFamilyModel) are not interchangeable.
+ */
+template <typename Tag>
+struct MidiBytePair
+{
+    MidiByte lsb;
+    MidiByte msb;
+    int get () const { return (msb.get () << 7) | lsb.get (); }
+};
+
+using DeviceFamily      = MidiBytePair<struct DeviceFamilyTag>;
+using DeviceFamilyModel = MidiBytePair<struct DeviceFamilyModelTag>;
+
+/**
+ * @brief Three 7-bit bytes for a MIDI SysEx manufacturer ID.
+ */
+struct ManufacturerId
+{
+    MidiByte byte0;
+    MidiByte byte1;
+    MidiByte byte2;
+};
+
 class MidiUnipolarFloat
 {
 public:

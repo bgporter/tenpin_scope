@@ -26,6 +26,7 @@
 
 #include <algorithm>
 
+#include "eventListViewCiHandler.h"
 #include "eventListViewHandler.h"
 #include "eventListViewMsgHandler.h"
 #include "model/ump/umpEvent.h"
@@ -40,7 +41,8 @@ EventListView::EventListView (AppContext& theAppContext)
 , midiProperties { runtimeContext }
 , eventList { midiProperties.midiEvents }
 , dispatcher { std::make_unique<EventDispatcher> (std::make_unique<EventListViewHandler> (appContext),
-                                                  std::make_unique<EventListViewMsgHandler> (appContext)) }
+                                                  std::make_unique<EventListViewMsgHandler> (appContext),
+                                                  std::make_unique<EventListViewCiHandler> (appContext)) }
 , eventViewPool { appContext }
 {
     eventList.onChildAdded      = [this] (juce::ValueTree& vt, int, int) { addEvent (vt); };

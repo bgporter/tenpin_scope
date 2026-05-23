@@ -24,6 +24,8 @@
 
 #include "syntheticEndpointController.h"
 
+#include "model/ci/discovery.h"
+#include "model/sysex/sysex7Message.h"
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
 #include "model/ump/systemCommon.h"
@@ -45,7 +47,14 @@ SyntheticEndpointController::SyntheticEndpointController (const MidiProperties& 
     midiEndpointProperties.isSynthetic  = true;
     midiProperties.endpoints.append (&midiEndpointProperties);
     auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
-    sysex7Builder.emplace (midiEndpointProperties.received, defer);
+    ciParser.emplace (defer);
+    auto sysex7Defer = [this] (Event& e)
+    {
+        midiEndpointProperties.deferMessage (e);
+        Sysex7Message msg { e };
+        ciParser->parse (msg);
+    };
+    sysex7Builder.emplace (midiEndpointProperties.received, sysex7Defer);
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
     mdsBuilder.emplace    (midiEndpointProperties.received, defer);
     textBuilder.emplace   (midiEndpointProperties.received, defer);
@@ -123,6 +132,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addMidi1Events ();
     addMidi2Events ();
     addStreamEvents ();
+    addCiDiscoveryEvents ();
 }
 
 void SyntheticEndpointController::addUtilityEvents ()
@@ -326,6 +336,40 @@ void SyntheticEndpointController::addStreamEvents ()
     // Clip markers
     eventList.addEvent (100, StartOfClipEvent ());
     eventList.addEvent (100, EndOfClipEvent   ());
+}
+
+void SyntheticEndpointController::addCiDiscoveryEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    ManufacturerId manufacturer { MidiByte { 0x41 }, MidiByte { 0x00 }, MidiByte { 0x00 } }; // Roland
+    DeviceFamily      family    { MidiByte { 0x42 }, MidiByte { 0x00 } };
+    DeviceFamilyModel model     { MidiByte { 0x12 }, MidiByte { 0x00 } };
+    const int categories { CiCategory::profileConfiguration | CiCategory::propertyExchange };
+
+    // Inquiry — broadcast (format 1)
+    CiDiscoveryInquiry inquiry { group, initiatorMuid, manufacturer, family, model,
+                                 MidiByte { 1 }, MidiByte { 2 }, MidiByte { 0 }, MidiByte { 0 },
+                                 categories, MidiLong { 512 } };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, 1) };
+    if (auto buf { inquiryMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
+
+    // Reply — unicast back to initiator (format 1)
+    CiDiscoveryReply reply { group, responderMuid, initiatorMuid, manufacturer, family, model,
+                             MidiByte { 3 }, MidiByte { 1 }, MidiByte { 0 }, MidiByte { 0 },
+                             categories, MidiLong { 512 } };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, 1) };
+    if (auto buf { replyMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
 }
 
 void SyntheticEndpointController::addMixedDataSetEvents ()

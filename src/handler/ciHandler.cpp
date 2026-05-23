@@ -22,31 +22,31 @@
  SOFTWARE.
  */
 
-#include "eventDispatcher.h"
+#include "ciHandler.h"
 
-#include "model/ump/umpEvent.h"
+#include "model/ci/discovery.h"
 
-EventDispatcher::EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
-                                  std::unique_ptr<CiHandler> ci)
-: umpHandler { std::move (ump) }
-, messageHandler { std::move (msg) }
-, ciHandler { std::move (ci) }
+CiHandler::CiHandler () {}
+
+CiHandler::~CiHandler () {}
+
+Handler::Result CiHandler::handle (const Event& e)
 {
+    Handler::Result result { preDispatch (e) };
+    if (result == Handler::Result::ok)
+    {
+        const auto type = e.getType ();
+        if (type == CiDiscoveryInquiry::type)
+            result = onCiDiscoveryInquiry (e);
+        else if (type == CiDiscoveryReply::type)
+            result = onCiDiscoveryReply (e);
+        else
+            result = onCiMessage (e);
+    }
+    return postDispatch (e, result);
 }
 
-Handler::Result EventDispatcher::dispatch (const Event& e)
+Handler::Result CiHandler::handle (const Event& e, void* /*ctx*/)
 {
-    return dispatch (e, nullptr);
-}
-
-Handler::Result EventDispatcher::dispatch (const Event& e, void* ctx)
-{
-    const auto typeName { e.getTypeName () };
-    if (typeName.startsWith ("Ump"))
-        return umpHandler->handle (static_cast<const UmpEvent&> (e), ctx);
-    if (typeName.startsWith ("Msg"))
-        return messageHandler->handle (e, ctx);
-    if (typeName.startsWith ("Ci"))
-        return ciHandler->handle (e, ctx);
-    return Handler::Result::notHandled;
+    return handle (e);
 }

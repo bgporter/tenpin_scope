@@ -24,6 +24,7 @@
 
 #include "endpointController.h"
 
+#include "model/sysex/sysex7Message.h"
 #include "model/ump/umpEvent.h"
 #include "utility/logger.h"
 
@@ -70,7 +71,14 @@ EndpointController::EndpointController (int index, juce::ump::EndpointId id,
 {
     midiProperties.endpoints.append (&midiEndpointProperties);
     auto defer = [this] (Event& e) { midiEndpointProperties.deferMessage (e); };
-    sysex7Builder.emplace (midiEndpointProperties.received, defer);
+    ciParser.emplace (defer);
+    auto sysex7Defer = [this] (Event& e)
+    {
+        midiEndpointProperties.deferMessage (e);
+        Sysex7Message msg { e };
+        ciParser->parse (msg);
+    };
+    sysex7Builder.emplace (midiEndpointProperties.received, sysex7Defer);
     sysex8Builder.emplace (midiEndpointProperties.received, defer);
     mdsBuilder.emplace    (midiEndpointProperties.received, defer);
     textBuilder.emplace   (midiEndpointProperties.received, defer);

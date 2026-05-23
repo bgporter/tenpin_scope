@@ -22,31 +22,36 @@
  SOFTWARE.
  */
 
-#include "eventDispatcher.h"
+#pragma once
 
-#include "model/ump/umpEvent.h"
+#include <functional>
 
-EventDispatcher::EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
-                                  std::unique_ptr<CiHandler> ci)
-: umpHandler { std::move (ump) }
-, messageHandler { std::move (msg) }
-, ciHandler { std::move (ci) }
+#include "model/event.h"
+#include "model/sysex/sysex7Message.h"
+
+/**
+ * @brief Inspects assembled Sysex7Messages and emits typed CiMessage
+ * objects for recognized MIDI-CI message types.
+ *
+ * Sits after Sysex7Builder in the processing pipeline. The caller keeps
+ * the original Sysex7Message in the EventList; CiParser creates an
+ * additional CI-typed event for each recognized CI message.
+ */
+class CiParser
 {
-}
+public:
+    using DeferFn = std::function<void (Event&)>;
 
-Handler::Result EventDispatcher::dispatch (const Event& e)
-{
-    return dispatch (e, nullptr);
-}
+    explicit CiParser (DeferFn deferFn);
 
-Handler::Result EventDispatcher::dispatch (const Event& e, void* ctx)
-{
-    const auto typeName { e.getTypeName () };
-    if (typeName.startsWith ("Ump"))
-        return umpHandler->handle (static_cast<const UmpEvent&> (e), ctx);
-    if (typeName.startsWith ("Msg"))
-        return messageHandler->handle (e, ctx);
-    if (typeName.startsWith ("Ci"))
-        return ciHandler->handle (e, ctx);
-    return Handler::Result::notHandled;
-}
+    /**
+     * @brief Try to parse a Sysex7Message as a MIDI-CI message.
+     * If the message is a recognized CI type, constructs the appropriate
+     * typed struct and calls deferFn with it. Non-CI messages and unknown
+     * CI types are silently ignored.
+     */
+    void parse (const Sysex7Message& msg);
+
+private:
+    DeferFn defer;
+};

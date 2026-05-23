@@ -32,6 +32,7 @@
 #include "model/midiEndpointProperties.h"
 #include "model/midiProperties.h"
 #include "model/ump/umpEvent.h"
+#include "model/ci/ciParser.h"
 #include "model/sysex/mdsBuilder.h"
 #include "model/sysex/sysex7Builder.h"
 #include "model/sysex/sysex8Builder.h"
@@ -94,6 +95,7 @@ private:
     MidiProperties midiProperties;
     MidiEndpointProperties midiEndpointProperties;
     RuntimeContext runtimeContext;
+    std::optional<CiParser>      ciParser;
     std::optional<Sysex7Builder> sysex7Builder;
     std::optional<Sysex8Builder> sysex8Builder;
     std::optional<MdsBuilder>    mdsBuilder;

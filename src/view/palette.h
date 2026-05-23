@@ -139,6 +139,10 @@ public:
     COLOR_M (streamLabel, "#713F12");
     COLOR_M (streamValue, "#EAB308");
 
+    // MIDI-CI — Teal 900 / Teal 500
+    COLOR_M (midiCiLabel, "#134E4A");
+    COLOR_M (midiCiValue, "#14B8A6");
+
     // Undefined/Error — Red 500 / Red 900
     COLOR_M (undefinedLabel, "#7F1D1D");
     COLOR_M (undefinedValue, "#EF4444");

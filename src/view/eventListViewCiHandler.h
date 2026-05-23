@@ -22,31 +22,31 @@
  SOFTWARE.
  */
 
-#include "eventDispatcher.h"
+#pragma once
 
-#include "model/ump/umpEvent.h"
+#include "handler/ciHandler.h"
+#include "model/appContext.h"
+#include "model/persistentContext.h"
 
-EventDispatcher::EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
-                                  std::unique_ptr<CiHandler> ci)
-: umpHandler { std::move (ump) }
-, messageHandler { std::move (msg) }
-, ciHandler { std::move (ci) }
+class EventView;
+
+class EventListViewCiHandler : public CiHandler
 {
-}
+public:
+    EventListViewCiHandler (AppContext& theAppContext);
+    ~EventListViewCiHandler () override;
 
-Handler::Result EventDispatcher::dispatch (const Event& e)
-{
-    return dispatch (e, nullptr);
-}
+    Handler::Result handle (const Event& e, void* ctx) override;
 
-Handler::Result EventDispatcher::dispatch (const Event& e, void* ctx)
-{
-    const auto typeName { e.getTypeName () };
-    if (typeName.startsWith ("Ump"))
-        return umpHandler->handle (static_cast<const UmpEvent&> (e), ctx);
-    if (typeName.startsWith ("Msg"))
-        return messageHandler->handle (e, ctx);
-    if (typeName.startsWith ("Ci"))
-        return ciHandler->handle (e, ctx);
-    return Handler::Result::notHandled;
-}
+private:
+    Handler::Result preDispatch  (const Event& e) override;
+    Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) override;
+
+    Handler::Result onCiDiscoveryInquiry (const Event& e) override;
+    Handler::Result onCiDiscoveryReply   (const Event& e) override;
+
+    AppContext appContext;
+    PersistentContext pc;
+    EventView* eventView  { nullptr };
+    int        currentWidth { 0 };
+};

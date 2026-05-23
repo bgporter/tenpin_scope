@@ -22,31 +22,34 @@
  SOFTWARE.
  */
 
-#include "eventDispatcher.h"
+#pragma once
 
-#include "model/ump/umpEvent.h"
+#include "model/midiTypes.h"
 
-EventDispatcher::EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
-                                  std::unique_ptr<CiHandler> ci)
-: umpHandler { std::move (ump) }
-, messageHandler { std::move (msg) }
-, ciHandler { std::move (ci) }
+namespace CiDeviceId
 {
-}
+constexpr int group         = 0x7E;
+constexpr int functionBlock = 0x7F;
+} // namespace CiDeviceId
 
-Handler::Result EventDispatcher::dispatch (const Event& e)
+namespace CiSubId
 {
-    return dispatch (e, nullptr);
-}
+constexpr int midiCi = 0x0D;
+} // namespace CiSubId
 
-Handler::Result EventDispatcher::dispatch (const Event& e, void* ctx)
+namespace CiType
 {
-    const auto typeName { e.getTypeName () };
-    if (typeName.startsWith ("Ump"))
-        return umpHandler->handle (static_cast<const UmpEvent&> (e), ctx);
-    if (typeName.startsWith ("Msg"))
-        return messageHandler->handle (e, ctx);
-    if (typeName.startsWith ("Ci"))
-        return ciHandler->handle (e, ctx);
-    return Handler::Result::notHandled;
-}
+constexpr int discoveryInquiry = 0x70;
+constexpr int discoveryReply   = 0x71;
+} // namespace CiType
+
+namespace CiCategory
+{
+constexpr int protocolNegotiation  = 0x02;
+constexpr int profileConfiguration = 0x04;
+constexpr int propertyExchange     = 0x08;
+constexpr int processInquiry       = 0x10;
+} // namespace CiCategory
+
+constexpr int broadcastMuid    = MidiLong::maxValue; // 0x0FFFFFFF
+constexpr int messageFormatMin = 0x01;               // format 0x00 is disallowed

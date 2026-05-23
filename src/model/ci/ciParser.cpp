@@ -22,31 +22,39 @@
  SOFTWARE.
  */
 
-#include "eventDispatcher.h"
+#include "ciParser.h"
 
-#include "model/ump/umpEvent.h"
+#include "model/ci/ciConstants.h"
+#include "model/ci/ciMessage.h"
+#include "model/ci/discovery.h"
 
-EventDispatcher::EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
-                                  std::unique_ptr<CiHandler> ci)
-: umpHandler { std::move (ump) }
-, messageHandler { std::move (msg) }
-, ciHandler { std::move (ci) }
+CiParser::CiParser (DeferFn deferFn)
+: defer { std::move (deferFn) }
 {
 }
 
-Handler::Result EventDispatcher::dispatch (const Event& e)
+void CiParser::parse (const Sysex7Message& msg)
 {
-    return dispatch (e, nullptr);
-}
+    if (!CiMessage::isCiMessage (msg))
+        return;
 
-Handler::Result EventDispatcher::dispatch (const Event& e, void* ctx)
-{
-    const auto typeName { e.getTypeName () };
-    if (typeName.startsWith ("Ump"))
-        return umpHandler->handle (static_cast<const UmpEvent&> (e), ctx);
-    if (typeName.startsWith ("Msg"))
-        return messageHandler->handle (e, ctx);
-    if (typeName.startsWith ("Ci"))
-        return ciHandler->handle (e, ctx);
-    return Handler::Result::notHandled;
+    const int ciType = CiMessage::getCiMessageType (msg);
+
+    switch (ciType)
+    {
+        case CiType::discoveryInquiry:
+        {
+            CiDiscoveryInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::discoveryReply:
+        {
+            CiDiscoveryReply ci { msg };
+            defer (ci);
+            break;
+        }
+        default:
+            break; // unrecognized CI type — silently ignore
+    }
 }

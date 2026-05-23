@@ -24,13 +24,15 @@
 
 #pragma once
 
+#include "handler/ciHandler.h"
 #include "handler/msgHandler.h"
 #include "handler/umpHandler.h"
 
 class EventDispatcher
 {
 public:
-    EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg);
+    EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
+                     std::unique_ptr<CiHandler> ci);
 
     Handler::Result dispatch (const Event& e);
     Handler::Result dispatch (const Event& e, void* ctx);
@@ -38,4 +40,5 @@ public:
 private:
     std::unique_ptr<UmpHandler>     umpHandler;
     std::unique_ptr<MessageHandler> messageHandler;
+    std::unique_ptr<CiHandler>      ciHandler;
 };

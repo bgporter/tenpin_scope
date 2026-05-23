@@ -22,31 +22,33 @@
  SOFTWARE.
  */
 
-#include "eventDispatcher.h"
+#pragma once
 
-#include "model/ump/umpEvent.h"
+#include "handler/handlerResult.h"
+#include "model/event.h"
 
-EventDispatcher::EventDispatcher (std::unique_ptr<UmpHandler> ump, std::unique_ptr<MessageHandler> msg,
-                                  std::unique_ptr<CiHandler> ci)
-: umpHandler { std::move (ump) }
-, messageHandler { std::move (msg) }
-, ciHandler { std::move (ci) }
+/**
+ * @brief Base class for handlers that process MIDI-CI assembled messages.
+ * Mirrors MessageHandler in structure: dispatches by type identifier,
+ * with a catch-all fallback and pre/post hooks.
+ */
+class CiHandler
 {
-}
+public:
+    CiHandler ();
+    virtual ~CiHandler ();
 
-Handler::Result EventDispatcher::dispatch (const Event& e)
-{
-    return dispatch (e, nullptr);
-}
+    Handler::Result handle (const Event& e);
+    virtual Handler::Result handle (const Event& e, void* ctx);
 
-Handler::Result EventDispatcher::dispatch (const Event& e, void* ctx)
-{
-    const auto typeName { e.getTypeName () };
-    if (typeName.startsWith ("Ump"))
-        return umpHandler->handle (static_cast<const UmpEvent&> (e), ctx);
-    if (typeName.startsWith ("Msg"))
-        return messageHandler->handle (e, ctx);
-    if (typeName.startsWith ("Ci"))
-        return ciHandler->handle (e, ctx);
-    return Handler::Result::notHandled;
-}
+protected:
+    Handler::Result defaultResult { Handler::Result::notHandled };
+
+private:
+    virtual Handler::Result preDispatch  (const Event& e) { return Handler::Result::ok; }
+    virtual Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) { return pendingResult; }
+
+    virtual Handler::Result onCiDiscoveryInquiry (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiDiscoveryReply   (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiMessage          (const Event& e) { return defaultResult; }
+};

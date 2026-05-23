@@ -81,6 +81,8 @@ set (SOURCES_CONTROLLER
 
 set (SOURCES_HANDLER
     src/handler/handlerResult.h
+    src/handler/ciHandler.h
+    src/handler/ciHandler.cpp
     src/handler/msgHandler.h
     src/handler/msgHandler.cpp
     src/handler/eventDispatcher.h
@@ -138,6 +140,18 @@ set(SOURCES_SYSEX
     src/model/sysex/textBuilder.cpp
 )
 
+set(SOURCES_CI
+    src/model/ci/ciConstants.h
+    src/model/ci/ciMessage.h
+    src/model/ci/ciMessage.cpp
+    src/model/ci/discovery.h
+    src/model/ci/discovery.cpp
+    src/model/ci/ciParser.h
+    src/model/ci/ciParser.cpp
+    src/view/eventListViewCiHandler.h
+    src/view/eventListViewCiHandler.cpp
+)
+
 set(SOURCES_UTILITY
     src/utility/logger.h
     src/utility/logger.cpp
@@ -193,6 +207,7 @@ set(APP_SOURCES
     ${SOURCES_HANDLER}
     ${SOURCES_MODEL}
     ${SOURCES_SYSEX}
+    ${SOURCES_CI}
     ${SOURCES_UTILITY}
     ${SOURCES_VIEW}
 )
