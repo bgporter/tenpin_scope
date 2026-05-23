@@ -51,6 +51,15 @@ juce::String formatDeviceId (int deviceId)
     return juce::String::toHexString (deviceId);
 }
 
+juce::String formatManufacturerId (int byte0, int byte1, int byte2)
+{
+    if (byte0 != 0)
+        return formatValue (static_cast<uint32_t> (byte0), 8, ValueFormatType::Hex);
+    return formatValue (0u, 8, ValueFormatType::Hex) + " " +
+           formatValue (static_cast<uint32_t> (byte1), 8, ValueFormatType::Hex) + " " +
+           formatValue (static_cast<uint32_t> (byte2), 8, ValueFormatType::Hex);
+}
+
 juce::String formatCiCategories (int bitmap)
 {
     juce::StringArray names;
@@ -76,17 +85,15 @@ template <typename T> void addDiscoveryCommonFields (EventView* view, const T& m
     view->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     view->addLine ();
     view->addValue ("manufacturer ID",
-                    formatValue (static_cast<uint32_t> (m.manufacturerByte0.get ()), 8, ValueFormatType::Hex) + " " +
-                        formatValue (static_cast<uint32_t> (m.manufacturerByte1.get ()), 8, ValueFormatType::Hex) +
-                        " " +
-                        formatValue (static_cast<uint32_t> (m.manufacturerByte2.get ()), 8, ValueFormatType::Hex));
+                    formatManufacturerId (m.manufacturerByte0.get (), m.manufacturerByte1.get (),
+                                         m.manufacturerByte2.get ()));
     view->addLine ();
-    view->addValue (
-        "device family",
-        formatValue (static_cast<uint32_t> (m.deviceFamilyLsb.get () | (m.deviceFamilyMsb.get () << 7)), 14, fmt));
-    view->addValue ("device model", formatValue (static_cast<uint32_t> (m.deviceFamilyModelLsb.get () |
-                                                                        (m.deviceFamilyModelMsb.get () << 7)),
-                                                 14, fmt));
+    view->addValue ("device family",
+                    formatValue (static_cast<uint32_t> (m.deviceFamilyMsb.get ()), 7, fmt) + " " +
+                        formatValue (static_cast<uint32_t> (m.deviceFamilyLsb.get ()), 7, fmt));
+    view->addValue ("device model",
+                    formatValue (static_cast<uint32_t> (m.deviceFamilyModelMsb.get ()), 7, fmt) + " " +
+                        formatValue (static_cast<uint32_t> (m.deviceFamilyModelLsb.get ()), 7, fmt));
     view->addValue ("sw revision", juce::String (m.revisionByte0.get ()) + "." + juce::String (m.revisionByte1.get ()) +
                                        "." + juce::String (m.revisionByte2.get ()) + "." +
                                        juce::String (m.revisionByte3.get ()));
@@ -155,7 +162,7 @@ Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 {
     CiDiscoveryInquiry m { e };
     const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt = (rawFmt == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+    const auto fmt = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("CI Discovery Inquiry");
     addDiscoveryCommonFields (eventView, m, fmt);
@@ -171,7 +178,7 @@ Handler::Result EventListViewCiHandler::onCiDiscoveryReply (const Event& e)
 {
     CiDiscoveryReply m { e };
     const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt = (rawFmt == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+    const auto fmt = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("CI Discovery Reply");
     addDiscoveryCommonFields (eventView, m, fmt);

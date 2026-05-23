@@ -28,7 +28,7 @@
 namespace
 {
 juce::StringArray octaveTypeOptions { "Yamaha (middle C = C3)", "Roland (middle C = C4)" };
-juce::StringArray valueFormatTypeOptions { "Integer", "Hex", "Float (0..1 or -1..1)",
+juce::StringArray valueFormatTypeOptions { "Decimal", "Hex", "Float (0..1 or -1..1)",
                                            "Midi (0..127 with fractional part)", "Percent (0..100)" };
 juce::StringArray precisionDigitsOptions { "1", "2", "3", "4" };
 
@@ -47,7 +47,7 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 
     setupCombobox (octaveTypeComboBox, eventViewContext.octaveType.getId (), octaveTypeOptions, OctaveType::Yamaha);
     setupCombobox (valueFormatTypeComboBox, eventViewContext.valueFormatType.getId (), valueFormatTypeOptions,
-                   ValueFormatType::Integer);
+                   ValueFormatType::Decimal);
     setupCombobox (precisionDigitsComboBox, eventViewContext.precision.getId (), precisionDigitsOptions, 2);
 
     addAndMakeVisible (messageFiltersLabel);

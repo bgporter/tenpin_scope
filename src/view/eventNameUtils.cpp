@@ -246,7 +246,7 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
 
     switch (formatType)
     {
-        case ValueFormatType::Integer:
+        case ValueFormatType::Decimal:
             return juce::String (value);
 
         case ValueFormatType::Hex:

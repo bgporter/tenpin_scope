@@ -51,5 +51,6 @@ constexpr int propertyExchange     = 0x08;
 constexpr int processInquiry       = 0x10;
 } // namespace CiCategory
 
-constexpr int broadcastMuid    = MidiLong::maxValue; // 0x0FFFFFFF
-constexpr int messageFormatMin = 0x01;               // format 0x00 is disallowed
+constexpr int broadcastMuid      = MidiLong::maxValue; // 0x0FFFFFFF
+constexpr int messageFormatMin   = 0x01;               // format 0x00 is disallowed
+constexpr int messageFormatLatest = 0x02;              // highest format version implemented

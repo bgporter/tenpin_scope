@@ -64,7 +64,7 @@ enum class OctaveType
 
 enum class ValueFormatType
 {
-    Integer = 1, // format as a decimal integer (e.g. "64")
+    Decimal = 1, // format as a decimal integer (e.g. "64")
     Hex,         // format as a hexadecimal integer (e.g. "0x40")
     Float,       // format as a float between 0..1 or -1..1 (e.g. "0.5" or "-0.5")
     Midi,        // format as a (high-res) MIDI value 0..127 with fractional part if present.
@@ -75,8 +75,8 @@ inline juce::String getValueFormatTypeName (ValueFormatType formatType)
 {
     switch (formatType)
     {
-        case ValueFormatType::Integer:
-            return "Integer";
+        case ValueFormatType::Decimal:
+            return "Decimal";
         case ValueFormatType::Hex:
             return "Hex";
         case ValueFormatType::Float:
@@ -178,7 +178,7 @@ template <> struct VariantConverter<ValueFormatType>
             return ValueFormatType::Midi;
         if (name == getValueFormatTypeName (ValueFormatType::Percent))
             return ValueFormatType::Percent;
-        return ValueFormatType::Integer; // default value
+        return ValueFormatType::Decimal; // default value
     }
     static var toVar (const ValueFormatType& formatType)
     {

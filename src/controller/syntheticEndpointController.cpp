@@ -353,7 +353,7 @@ void SyntheticEndpointController::addCiDiscoveryEvents ()
     CiDiscoveryInquiry inquiry { group, initiatorMuid, manufacturer, family, model,
                                  MidiByte { 1 }, MidiByte { 2 }, MidiByte { 0 }, MidiByte { 0 },
                                  categories, MidiLong { 512 } };
-    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, 1) };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
     if (auto buf { inquiryMsg.data.get () }; buf != nullptr)
     {
         Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
@@ -364,7 +364,7 @@ void SyntheticEndpointController::addCiDiscoveryEvents ()
     CiDiscoveryReply reply { group, responderMuid, initiatorMuid, manufacturer, family, model,
                              MidiByte { 3 }, MidiByte { 1 }, MidiByte { 0 }, MidiByte { 0 },
                              categories, MidiLong { 512 } };
-    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, 1) };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
     if (auto buf { replyMsg.data.get () }; buf != nullptr)
     {
         Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });

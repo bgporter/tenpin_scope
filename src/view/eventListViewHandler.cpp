@@ -649,7 +649,7 @@ Handler::Result EventListViewHandler::addSysex7DataValues (const Sysex7Event& e)
         return Handler::Result::ok;
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("status", getSysexStatusName (e.status));
-    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Decimal);
     juce::String bytesStr;
     for (int i = 0; i < (int) e.numBytes; ++i)
     {
@@ -709,7 +709,7 @@ Handler::Result EventListViewHandler::addSysex8DataValues (const Sysex8Event& e)
     const int numDataBytes = std::min ((int) e.numBytes - 1, 13);
     if (numDataBytes > 0)
     {
-        const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+        const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Decimal);
         juce::String bytesStr;
         for (int i = 0; i < numDataBytes; ++i)
         {
@@ -780,7 +780,7 @@ Handler::Result EventListViewHandler::onMixedDataSetPayloadEvent (const UmpEvent
         return Handler::Result::ok;
     eventView->addValue ("grp", juce::String ((int) e.userGroup));
     eventView->addValue ("mds", juce::String ((int) e.mdsId));
-    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Decimal);
     juce::String bytesStr;
     for (int i = 0; i < 14; ++i)
     {
@@ -897,7 +897,7 @@ Handler::Result EventListViewHandler::handleTextEvent (const UmpEvent& event)
     const int fi                            = static_cast<int> (e.format.get ());
     eventView->addValue ("fmt", (fi >= 0 && fi <= 3) ? fmtNames[fi] : "?");
 
-    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Decimal);
     juce::String bytesStr;
     for (int i = 0; i < FlexDataTextEvent::maxBytes; ++i)
     {
@@ -1113,7 +1113,7 @@ Handler::Result EventListViewHandler::addStreamTextValues (const StreamTextEvent
     static constexpr const char* fmtNames[] = { "complete", "start", "continue", "end" };
     const int fi                            = static_cast<int> (e.format.get ());
     eventView->addValue ("fmt", (fi >= 0 && fi <= 3) ? fmtNames[fi] : "?");
-    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Integer);
+    const bool isInteger = (pc.eventViewContext.valueFormatType == ValueFormatType::Decimal);
     juce::String bytesStr;
     for (int i = 0; i < StreamTextEvent::maxBytes; ++i)
     {

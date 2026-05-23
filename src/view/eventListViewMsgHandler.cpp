@@ -104,7 +104,7 @@ Handler::Result EventListViewMsgHandler::onSysex7Message (const Event& e)
 {
     Sysex7Message msg (e);
     const auto rawFormat  = pc.eventViewContext.valueFormatType.get ();
-    const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+    const auto formatType = (rawFormat == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("Sysex7 Message");
     eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
@@ -134,7 +134,7 @@ Handler::Result EventListViewMsgHandler::onSysex8Message (const Event& e)
 {
     Sysex8Message msg (e);
     const auto rawFormat  = pc.eventViewContext.valueFormatType.get ();
-    const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+    const auto formatType = (rawFormat == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("Sysex8 Message");
     eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
@@ -165,7 +165,7 @@ Handler::Result EventListViewMsgHandler::onMdsMessage (const Event& e)
 {
     MdsMessage msg (e);
     const auto rawFormat  = pc.eventViewContext.valueFormatType.get ();
-    const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
+    const auto formatType = (rawFormat == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("MDS Message");
     eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
