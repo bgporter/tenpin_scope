@@ -154,7 +154,8 @@ Handler::Result EventListViewCiHandler::postDispatch (const Event& /*e*/, Handle
 Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 {
     CiDiscoveryInquiry m { e };
-    const auto fmt = pc.eventViewContext.valueFormatType.get ();
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt = (rawFmt == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
 
     eventView->setEvent ("CI Discovery Inquiry");
     addDiscoveryCommonFields (eventView, m, fmt);
@@ -169,7 +170,8 @@ Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 Handler::Result EventListViewCiHandler::onCiDiscoveryReply (const Event& e)
 {
     CiDiscoveryReply m { e };
-    const auto fmt = pc.eventViewContext.valueFormatType.get ();
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt = (rawFmt == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
 
     eventView->setEvent ("CI Discovery Reply");
     addDiscoveryCommonFields (eventView, m, fmt);
