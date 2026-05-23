@@ -138,6 +138,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addCiDiscoveryEvents ();
     addCiEndpointEvents ();
     addCiInvalidateMuidEvent ();
+    addCiNakEvent ();
     addCiAckEvent ();
 }
 
@@ -414,6 +415,28 @@ void SyntheticEndpointController::addCiInvalidateMuidEvent ()
     const int responderMuid { 0x0654321 };
 
     CiInvalidateMuid msg { group, initiatorMuid, responderMuid };
+    auto sysexMsg { msg.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    if (auto buf { sysexMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
+}
+
+void SyntheticEndpointController::addCiNakEvent ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    // NAK from responder: profile configuration is not supported.
+    std::array<uint8_t, CiNak::kDetailBytes> details { 0, 0, 0, 0, 0 };
+    CiNak msg { group, responderMuid, initiatorMuid,
+                MidiByte { CiType::discoveryInquiry },
+                MidiByte { CiNakStatus::messageNotSupported },
+                MidiByte { 0 },
+                details,
+                "Discovery not supported on this device" };
     auto sysexMsg { msg.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
     if (auto buf { sysexMsg.data.get () }; buf != nullptr)
     {

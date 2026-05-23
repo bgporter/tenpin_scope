@@ -44,6 +44,7 @@ constexpr int discoveryReply    = 0x71;
 constexpr int endpointInquiry   = 0x72;
 constexpr int endpointReply     = 0x73;
 constexpr int invalidateMuid    = 0x7E;
+constexpr int nak               = 0x7F;
 constexpr int ack               = 0x7D;
 } // namespace CiType
 
@@ -53,6 +54,21 @@ constexpr int ack               = 0x00; // success
 constexpr int timeout           = 0x10; // status data = wait time in 100ms units
 constexpr int flowControl       = 0x11; // send next chunks
 } // namespace CiAckStatus
+
+namespace CiNakStatus
+{
+constexpr int nak                       = 0x00; // generic NAK
+constexpr int messageNotSupported       = 0x01;
+constexpr int versionNotSupported       = 0x02;
+constexpr int channelNotInUse          = 0x03;
+constexpr int profileNotSupported       = 0x04;
+constexpr int flowControlResend         = 0x12; // resend most recent chunk
+constexpr int responderTerminates       = 0x20;
+constexpr int retryError               = 0x40;
+constexpr int malformed                = 0x41;
+constexpr int timeout                  = 0x42;
+constexpr int busy                     = 0x43; // status data = wait time in 100ms units
+} // namespace CiNakStatus
 
 namespace CiEndpointStatus
 {

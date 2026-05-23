@@ -58,6 +58,98 @@ juce::String parseMessageText (const Buffer& buf, size_t start, size_t count)
 } // namespace
 
 // ============================================================================
+// CiNak
+// ============================================================================
+
+CiNak::CiNak (const Sysex7Message& msg)
+: CiMessage { type.toString () }
+{
+    parseHeader (msg);
+    const auto buf = msg.data.get ();
+    if (!buf || buf->size () < kMinSize)
+        return;
+
+    originalSubId = static_cast<int> ((*buf)[kOrigSubIdIdx]);
+    statusCode    = static_cast<int> ((*buf)[kStatusCode]);
+    statusData    = static_cast<int> ((*buf)[kStatusData]);
+    nakDetail0    = static_cast<int> ((*buf)[kDetailStart]);
+    nakDetail1    = static_cast<int> ((*buf)[kDetailStart + 1]);
+    nakDetail2    = static_cast<int> ((*buf)[kDetailStart + 2]);
+    nakDetail3    = static_cast<int> ((*buf)[kDetailStart + 3]);
+    nakDetail4    = static_cast<int> ((*buf)[kDetailStart + 4]);
+
+    const size_t ml = static_cast<size_t> ((*buf)[kMlLsb]) |
+                      (static_cast<size_t> ((*buf)[kMlLsb + 1]) << 7);
+    messageText = parseMessageText (*buf, kTextStart, ml);
+}
+
+CiNak::CiNak (const Event& e)
+: CiMessage { type.toString (), juce::ValueTree { e } }
+{
+}
+
+CiNak::CiNak (juce::ValueTree vt)
+: CiMessage { type.toString (), vt }
+{
+}
+
+CiNak::CiNak (MidiGroup theGroup, int sourceMuidValue, int destMuidValue,
+              MidiByte origSubId, MidiByte theStatusCode, MidiByte theStatusData,
+              const std::array<uint8_t, kDetailBytes>& details,
+              const juce::String& text)
+: CiMessage { type.toString () }
+{
+    group         = theGroup.get () - 1;
+    deviceId      = CiDeviceId::functionBlock;
+    messageType   = CiType::nak;
+    messageFormat = messageFormatMin;
+    sourceMuid    = sourceMuidValue;
+    destMuid      = destMuidValue;
+
+    originalSubId = origSubId.get ();
+    statusCode    = theStatusCode.get ();
+    statusData    = theStatusData.get ();
+    nakDetail0    = details[0];
+    nakDetail1    = details[1];
+    nakDetail2    = details[2];
+    nakDetail3    = details[3];
+    nakDetail4    = details[4];
+    messageText   = text;
+}
+
+Sysex7Message CiNak::toSysex7Message (MidiNibble theGroup, int targetFormat) const
+{
+    Buffer::Ptr buf = new Buffer ();
+    buf->append (0x7E);
+    buf->append (static_cast<uint8_t> (deviceId.get ()));
+    buf->append (static_cast<uint8_t> (CiSubId::midiCi));
+    buf->append (static_cast<uint8_t> (CiType::nak));
+    buf->append (static_cast<uint8_t> (std::max (targetFormat, messageFormatMin)));
+    appendMidiLong (*buf, sourceMuid.get ());
+    appendMidiLong (*buf, destMuid.get ());
+
+    buf->append (static_cast<uint8_t> (originalSubId.get ()));
+    buf->append (static_cast<uint8_t> (statusCode.get ()));
+    buf->append (static_cast<uint8_t> (statusData.get ()));
+    buf->append (static_cast<uint8_t> (nakDetail0.get ()));
+    buf->append (static_cast<uint8_t> (nakDetail1.get ()));
+    buf->append (static_cast<uint8_t> (nakDetail2.get ()));
+    buf->append (static_cast<uint8_t> (nakDetail3.get ()));
+    buf->append (static_cast<uint8_t> (nakDetail4.get ()));
+
+    const auto text = messageText.get ();
+    const auto ml   = static_cast<size_t> (text.length ());
+    buf->append (static_cast<uint8_t> (ml & 0x7F));
+    buf->append (static_cast<uint8_t> ((ml >> 7) & 0x7F));
+    for (int i = 0; i < text.length (); ++i)
+        buf->append (static_cast<uint8_t> (text[i]));
+
+    return Sysex7Message { theGroup, buf };
+}
+
+// ============================================================================
+// CiAck
+// ============================================================================
 
 CiAck::CiAck (const Sysex7Message& msg)
 : CiMessage { type.toString () }

@@ -53,6 +53,7 @@ private:
     virtual Handler::Result onCiEndpointInquiry   (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiEndpointReply     (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiInvalidateMuid    (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiNak              (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiAck              (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiMessage          (const Event& e) { return defaultResult; }
 };

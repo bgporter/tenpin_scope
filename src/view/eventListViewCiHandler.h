@@ -47,6 +47,7 @@ private:
     Handler::Result onCiEndpointInquiry   (const Event& e) override;
     Handler::Result onCiEndpointReply     (const Event& e) override;
     Handler::Result onCiInvalidateMuid    (const Event& e) override;
+    Handler::Result onCiNak              (const Event& e) override;
     Handler::Result onCiAck              (const Event& e) override;
 
     AppContext appContext;

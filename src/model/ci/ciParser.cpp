@@ -75,6 +75,12 @@ void CiParser::parse (const Sysex7Message& msg)
             defer (ci);
             break;
         }
+        case CiType::nak:
+        {
+            CiNak ci { msg };
+            defer (ci);
+            break;
+        }
         case CiType::ack:
         {
             CiAck ci { msg };

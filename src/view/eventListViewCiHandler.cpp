@@ -211,6 +211,38 @@ Handler::Result EventListViewCiHandler::onCiInvalidateMuid (const Event& e)
     return Handler::Result::ok;
 }
 
+Handler::Result EventListViewCiHandler::onCiNak (const Event& e)
+{
+    CiNak m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI NAK");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID",  formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID",  formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("orig sub-ID", formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
+    eventView->addValue ("status",      formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
+    eventView->addValue ("status data", formatValue (static_cast<uint32_t> (m.statusData.get ()), 8, fmt));
+    eventView->addLine ();
+    eventView->addValue ("details",
+                         formatValue (static_cast<uint32_t> (m.nakDetail0.get ()), 8, ValueFormatType::Hex) + " " +
+                         formatValue (static_cast<uint32_t> (m.nakDetail1.get ()), 8, ValueFormatType::Hex) + " " +
+                         formatValue (static_cast<uint32_t> (m.nakDetail2.get ()), 8, ValueFormatType::Hex) + " " +
+                         formatValue (static_cast<uint32_t> (m.nakDetail3.get ()), 8, ValueFormatType::Hex) + " " +
+                         formatValue (static_cast<uint32_t> (m.nakDetail4.get ()), 8, ValueFormatType::Hex));
+    const auto text = static_cast<juce::String> (m.messageText);
+    if (text.isNotEmpty ())
+    {
+        eventView->addLine ();
+        eventView->addValue ("message", text);
+    }
+    return Handler::Result::ok;
+}
+
 Handler::Result EventListViewCiHandler::onCiAck (const Event& e)
 {
     CiAck m { e };

@@ -78,6 +78,7 @@ private:
     void addCiDiscoveryEvents ();
     void addCiEndpointEvents ();
     void addCiInvalidateMuidEvent ();
+    void addCiNakEvent ();
     void addCiAckEvent ();
     void startPlayback ();
 

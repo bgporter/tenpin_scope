@@ -49,6 +49,8 @@ Handler::Result CiHandler::handle (const Event& e)
             result = onCiEndpointReply (e);
         else if (type == CiInvalidateMuid::type)
             result = onCiInvalidateMuid (e);
+        else if (type == CiNak::type)
+            result = onCiNak (e);
         else if (type == CiAck::type)
             result = onCiAck (e);
         else
