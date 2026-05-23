@@ -107,7 +107,7 @@ Handler::Result EventListViewMsgHandler::onSysex7Message (const Event& e)
     const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
 
     eventView->setEvent ("Sysex7 Message");
-    eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
 
     if (auto buf = msg.data.get ())
     {
@@ -137,7 +137,7 @@ Handler::Result EventListViewMsgHandler::onSysex8Message (const Event& e)
     const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
 
     eventView->setEvent ("Sysex8 Message");
-    eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
     eventView->addValue ("sid", juce::String (static_cast<int> (msg.streamId)));
 
     if (auto buf = msg.data.get ())
@@ -168,7 +168,7 @@ Handler::Result EventListViewMsgHandler::onMdsMessage (const Event& e)
     const auto formatType = (rawFormat == ValueFormatType::Integer) ? ValueFormatType::Integer : ValueFormatType::Hex;
 
     eventView->setEvent ("MDS Message");
-    eventView->addValue ("grp", juce::String (static_cast<int> (msg.group)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
     eventView->addValue ("id", juce::String (static_cast<int> (msg.mdsId)));
     eventView->addValue ("mfr", juce::String::toHexString (static_cast<int> (msg.manufacturerId)));
     eventView->addValue ("dev", juce::String::toHexString (static_cast<int> (msg.deviceId)));
@@ -200,8 +200,8 @@ Handler::Result EventListViewMsgHandler::onFlexDataTextMessage (const Event& e)
 {
     TextMessage msg (e);
     eventView->setEvent (TextMessage::displayName (e.getType ()));
-    eventView->addValue ("grp", juce::String (msg.group.get ()));
-    eventView->addValue ("ch", juce::String (static_cast<int> (msg.channel)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (msg.userGroup)));
+    eventView->addValue ("ch", juce::String (static_cast<int> (msg.userChannel)));
     eventView->addValue ("text", static_cast<juce::String> (msg.text));
     return Handler::Result::ok;
 }
