@@ -42,8 +42,10 @@ private:
     Handler::Result preDispatch  (const Event& e) override;
     Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) override;
 
-    Handler::Result onCiDiscoveryInquiry  (const Event& e) override;
-    Handler::Result onCiDiscoveryReply    (const Event& e) override;
+    Handler::Result onCiProfileInquiry      (const Event& e) override;
+    Handler::Result onCiProfileInquiryReply (const Event& e) override;
+    Handler::Result onCiDiscoveryInquiry    (const Event& e) override;
+    Handler::Result onCiDiscoveryReply      (const Event& e) override;
     Handler::Result onCiEndpointInquiry   (const Event& e) override;
     Handler::Result onCiEndpointReply     (const Event& e) override;
     Handler::Result onCiInvalidateMuid    (const Event& e) override;

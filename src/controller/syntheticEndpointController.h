@@ -75,6 +75,7 @@ private:
     void addMidi1Events ();
     void addMidi2Events ();
     void addStreamEvents ();
+    void addCiProfileEvents ();
     void addCiDiscoveryEvents ();
     void addCiEndpointEvents ();
     void addCiInvalidateMuidEvent ();

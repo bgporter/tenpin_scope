@@ -24,6 +24,7 @@
 
 #include "syntheticEndpointController.h"
 
+#include "model/ci/profile.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
 #include "model/ci/invalidateMuid.h"
@@ -135,6 +136,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addMidi1Events ();
     addMidi2Events ();
     addStreamEvents ();
+    addCiProfileEvents ();
     addCiDiscoveryEvents ();
     addCiEndpointEvents ();
     addCiInvalidateMuidEvent ();
@@ -343,6 +345,35 @@ void SyntheticEndpointController::addStreamEvents ()
     // Clip markers
     eventList.addEvent (100, StartOfClipEvent ());
     eventList.addEvent (100, EndOfClipEvent   ());
+}
+
+void SyntheticEndpointController::addCiProfileEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Inquiry: initiator asks responder which profiles it supports
+    CiProfileInquiry inquiry { group, initiatorMuid, responderMuid };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Reply: two enabled profiles (one standard, one manufacturer), one disabled
+    CiProfileInquiryReply reply { group, responderMuid, initiatorMuid };
+    reply.addEnabledProfile  ({ 0x7E, 0x00, 0x21, 0x01, 0x01 }); // Standard: Piano (bank 0, #0x21, v1, lvl1)
+    reply.addEnabledProfile  ({ 0x41, 0x00, 0x00, 0x01, 0x00 }); // Manufacturer: Roland
+    reply.addDisabledProfile ({ 0x7E, 0x00, 0x24, 0x01, 0x01 }); // Standard: Drawbar Organ (bank 0, #0x24, v1, lvl1)
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
 }
 
 void SyntheticEndpointController::addCiDiscoveryEvents ()

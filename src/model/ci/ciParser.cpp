@@ -26,6 +26,7 @@
 
 #include "model/ci/ciConstants.h"
 #include "model/ci/ciMessage.h"
+#include "model/ci/profile.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
 #include "model/ci/invalidateMuid.h"
@@ -45,6 +46,18 @@ void CiParser::parse (const Sysex7Message& msg)
 
     switch (ciType)
     {
+        case CiType::profileInquiry:
+        {
+            CiProfileInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileInquiryReply:
+        {
+            CiProfileInquiryReply ci { msg };
+            defer (ci);
+            break;
+        }
         case CiType::discoveryInquiry:
         {
             CiDiscoveryInquiry ci { msg };

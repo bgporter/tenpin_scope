@@ -48,8 +48,10 @@ private:
     virtual Handler::Result preDispatch  (const Event& e) { return Handler::Result::ok; }
     virtual Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) { return pendingResult; }
 
-    virtual Handler::Result onCiDiscoveryInquiry  (const Event& e) { return defaultResult; }
-    virtual Handler::Result onCiDiscoveryReply    (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiProfileInquiry      (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiProfileInquiryReply (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiDiscoveryInquiry    (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiDiscoveryReply      (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiEndpointInquiry   (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiEndpointReply     (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiInvalidateMuid    (const Event& e) { return defaultResult; }

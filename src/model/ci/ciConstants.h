@@ -39,7 +39,9 @@ constexpr int midiCi = 0x0D;
 
 namespace CiType
 {
-constexpr int discoveryInquiry  = 0x70;
+constexpr int profileInquiry      = 0x20;
+constexpr int profileInquiryReply = 0x21;
+constexpr int discoveryInquiry    = 0x70;
 constexpr int discoveryReply    = 0x71;
 constexpr int endpointInquiry   = 0x72;
 constexpr int endpointReply     = 0x73;
@@ -83,6 +85,22 @@ constexpr int propertyExchange     = 0x08;
 constexpr int processInquiry       = 0x10;
 } // namespace CiCategory
 
-constexpr int broadcastMuid      = MidiLong::maxValue; // 0x0FFFFFFF
-constexpr int messageFormatMin   = 0x01;               // format 0x00 is disallowed
-constexpr int messageFormatLatest = 0x02;              // highest format version implemented
+constexpr int broadcastMuid       = MidiLong::maxValue; // 0x0FFFFFFF
+constexpr int messageFormatMin    = 0x01;               // format 0x00 is disallowed
+constexpr int messageFormatLatest = 0x02;               // highest format version implemented
+
+// ---------------------------------------------------------------------------
+
+/** A 5-byte MIDI-CI Profile ID. */
+struct ProfileId
+{
+    uint8_t byte1 { 0 };
+    uint8_t byte2 { 0 };
+    uint8_t byte3 { 0 };
+    uint8_t byte4 { 0 };
+    uint8_t byte5 { 0 };
+
+    bool isStandardDefined () const { return byte1 == 0x7E; }
+
+    bool operator== (const ProfileId&) const = default;
+};

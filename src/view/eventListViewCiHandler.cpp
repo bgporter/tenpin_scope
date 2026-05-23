@@ -24,11 +24,12 @@
 
 #include "eventListViewCiHandler.h"
 
+#include "model/ci/ack.h"
 #include "model/ci/ciConstants.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
 #include "model/ci/invalidateMuid.h"
-#include "model/ci/ack.h"
+#include "model/ci/profile.h"
 #include "palette.h"
 #include "view/dispatchContext.h"
 #include "view/eventNameUtils.h"
@@ -63,6 +64,16 @@ juce::String formatManufacturerId (int byte0, int byte1, int byte2)
            formatValue (static_cast<uint32_t> (byte2), 8, ValueFormatType::Hex);
 }
 
+juce::String formatProfileId (const ProfileId& p)
+{
+    auto hex = [] (uint8_t b) { return formatValue (static_cast<uint32_t> (b), 8, ValueFormatType::Hex); };
+    if (p.isStandardDefined ())
+        return "(std) bank: " + hex (p.byte2) + " number: " + hex (p.byte3) + " version: " + hex (p.byte4) +
+               " level: " + hex (p.byte5);
+    return "(mfr) id: " + hex (p.byte1) + " " + hex (p.byte2) + " " + hex (p.byte3) + " info: " + hex (p.byte4) + " " +
+           hex (p.byte5);
+}
+
 juce::String formatCiCategories (int bitmap)
 {
     juce::StringArray names;
@@ -87,16 +98,13 @@ template <typename T> void addDiscoveryCommonFields (EventView* view, const T& m
     view->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     view->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     view->addLine ();
-    view->addValue ("manufacturer ID",
-                    formatManufacturerId (m.manufacturerByte0.get (), m.manufacturerByte1.get (),
-                                         m.manufacturerByte2.get ()));
+    view->addValue ("manufacturer ID", formatManufacturerId (m.manufacturerByte0.get (), m.manufacturerByte1.get (),
+                                                             m.manufacturerByte2.get ()));
     view->addLine ();
-    view->addValue ("device family",
-                    formatValue (static_cast<uint32_t> (m.deviceFamilyMsb.get ()), 7, fmt) + " " +
-                        formatValue (static_cast<uint32_t> (m.deviceFamilyLsb.get ()), 7, fmt));
-    view->addValue ("device model",
-                    formatValue (static_cast<uint32_t> (m.deviceFamilyModelMsb.get ()), 7, fmt) + " " +
-                        formatValue (static_cast<uint32_t> (m.deviceFamilyModelLsb.get ()), 7, fmt));
+    view->addValue ("device family", formatValue (static_cast<uint32_t> (m.deviceFamilyMsb.get ()), 7, fmt) + " " +
+                                         formatValue (static_cast<uint32_t> (m.deviceFamilyLsb.get ()), 7, fmt));
+    view->addValue ("device model", formatValue (static_cast<uint32_t> (m.deviceFamilyModelMsb.get ()), 7, fmt) + " " +
+                                        formatValue (static_cast<uint32_t> (m.deviceFamilyModelLsb.get ()), 7, fmt));
     view->addValue ("sw revision", juce::String (m.revisionByte0.get ()) + "." + juce::String (m.revisionByte1.get ()) +
                                        "." + juce::String (m.revisionByte2.get ()) + "." +
                                        juce::String (m.revisionByte3.get ()));
@@ -169,7 +177,7 @@ Handler::Result EventListViewCiHandler::onCiEndpointInquiry (const Event& e)
 
     eventView->setEvent ("CI Endpoint Inquiry");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
     eventView->addLine ();
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
@@ -186,12 +194,12 @@ Handler::Result EventListViewCiHandler::onCiEndpointReply (const Event& e)
 
     eventView->setEvent ("CI Endpoint Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
     eventView->addLine ();
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("status",  formatValue (static_cast<uint32_t> (m.status.get ()), 8, fmt));
+    eventView->addValue ("status", formatValue (static_cast<uint32_t> (m.status.get ()), 8, fmt));
     eventView->addValue ("prod ID", static_cast<juce::String> (m.productInstanceId));
     return Handler::Result::ok;
 }
@@ -204,9 +212,9 @@ Handler::Result EventListViewCiHandler::onCiInvalidateMuid (const Event& e)
 
     eventView->setEvent ("CI Invalidate MUID");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
     eventView->addLine ();
-    eventView->addValue ("src MUID",    formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("target MUID", formatMuid (m.targetMuid.get (), fmt));
     return Handler::Result::ok;
 }
@@ -219,21 +227,22 @@ Handler::Result EventListViewCiHandler::onCiNak (const Event& e)
 
     eventView->setEvent ("CI NAK");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
     eventView->addLine ();
-    eventView->addValue ("src MUID",  formatMuid (m.sourceMuid.get (), fmt));
-    eventView->addValue ("dst MUID",  formatMuid (m.destMuid.get (), fmt));
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("orig sub-ID", formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
-    eventView->addValue ("status",      formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
+    eventView->addValue ("orig sub-ID",
+                         formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
+    eventView->addValue ("status", formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
     eventView->addValue ("status data", formatValue (static_cast<uint32_t> (m.statusData.get ()), 8, fmt));
     eventView->addLine ();
     eventView->addValue ("details",
                          formatValue (static_cast<uint32_t> (m.nakDetail0.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.nakDetail1.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.nakDetail2.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.nakDetail3.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.nakDetail4.get ()), 8, ValueFormatType::Hex));
+                             formatValue (static_cast<uint32_t> (m.nakDetail1.get ()), 8, ValueFormatType::Hex) + " " +
+                             formatValue (static_cast<uint32_t> (m.nakDetail2.get ()), 8, ValueFormatType::Hex) + " " +
+                             formatValue (static_cast<uint32_t> (m.nakDetail3.get ()), 8, ValueFormatType::Hex) + " " +
+                             formatValue (static_cast<uint32_t> (m.nakDetail4.get ()), 8, ValueFormatType::Hex));
     const auto text = static_cast<juce::String> (m.messageText);
     if (text.isNotEmpty ())
     {
@@ -251,21 +260,22 @@ Handler::Result EventListViewCiHandler::onCiAck (const Event& e)
 
     eventView->setEvent ("CI ACK");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
     eventView->addLine ();
-    eventView->addValue ("src MUID",  formatMuid (m.sourceMuid.get (), fmt));
-    eventView->addValue ("dst MUID",  formatMuid (m.destMuid.get (), fmt));
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("orig sub-ID", formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
-    eventView->addValue ("status",      formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
+    eventView->addValue ("orig sub-ID",
+                         formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
+    eventView->addValue ("status", formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
     eventView->addValue ("status data", formatValue (static_cast<uint32_t> (m.statusData.get ()), 8, fmt));
     eventView->addLine ();
     eventView->addValue ("details",
                          formatValue (static_cast<uint32_t> (m.ackDetail0.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.ackDetail1.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.ackDetail2.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.ackDetail3.get ()), 8, ValueFormatType::Hex) + " " +
-                         formatValue (static_cast<uint32_t> (m.ackDetail4.get ()), 8, ValueFormatType::Hex));
+                             formatValue (static_cast<uint32_t> (m.ackDetail1.get ()), 8, ValueFormatType::Hex) + " " +
+                             formatValue (static_cast<uint32_t> (m.ackDetail2.get ()), 8, ValueFormatType::Hex) + " " +
+                             formatValue (static_cast<uint32_t> (m.ackDetail3.get ()), 8, ValueFormatType::Hex) + " " +
+                             formatValue (static_cast<uint32_t> (m.ackDetail4.get ()), 8, ValueFormatType::Hex));
     const auto text = static_cast<juce::String> (m.messageText);
     if (text.isNotEmpty ())
     {
@@ -275,11 +285,61 @@ Handler::Result EventListViewCiHandler::onCiAck (const Event& e)
     return Handler::Result::ok;
 }
 
+Handler::Result EventListViewCiHandler::onCiProfileInquiry (const Event& e)
+{
+    CiProfileInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Inquiry");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileInquiryReply (const Event& e)
+{
+    CiProfileInquiryReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Inquiry Reply");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+
+    const int cep = m.enabledProfileCount ();
+    eventView->addValue ("enabled", juce::String (cep));
+    const juce::String indent ("   ");
+    for (int i = 0; i < cep; ++i)
+    {
+        eventView->addLine ();
+        eventView->addValue (indent + juce::String (i + 1) + ".", formatProfileId (m.enabledProfileAt (i)));
+    }
+
+    eventView->addLine ();
+    const int cdp = m.disabledProfileCount ();
+    eventView->addValue ("disabled", juce::String (cdp));
+    for (int i = 0; i < cdp; ++i)
+    {
+        eventView->addLine ();
+        eventView->addValue (indent + juce::String (i + 1) + ".", formatProfileId (m.disabledProfileAt (i)));
+    }
+
+    return Handler::Result::ok;
+}
+
 Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 {
     CiDiscoveryInquiry m { e };
     const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("CI Discovery Inquiry");
     addDiscoveryCommonFields (eventView, m, fmt);
@@ -295,7 +355,7 @@ Handler::Result EventListViewCiHandler::onCiDiscoveryReply (const Event& e)
 {
     CiDiscoveryReply m { e };
     const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
 
     eventView->setEvent ("CI Discovery Reply");
     addDiscoveryCommonFields (eventView, m, fmt);

@@ -152,6 +152,8 @@ set(SOURCES_CI
     src/model/ci/invalidateMuid.cpp
     src/model/ci/ack.h
     src/model/ci/ack.cpp
+    src/model/ci/profile.h
+    src/model/ci/profile.cpp
     src/model/ci/ciParser.h
     src/model/ci/ciParser.cpp
     src/view/eventListViewCiHandler.h

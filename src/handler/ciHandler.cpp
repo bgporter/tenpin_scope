@@ -24,6 +24,7 @@
 
 #include "ciHandler.h"
 
+#include "model/ci/profile.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
 #include "model/ci/invalidateMuid.h"
@@ -39,7 +40,11 @@ Handler::Result CiHandler::handle (const Event& e)
     if (result == Handler::Result::ok)
     {
         const auto type = e.getType ();
-        if (type == CiDiscoveryInquiry::type)
+        if (type == CiProfileInquiry::type)
+            result = onCiProfileInquiry (e);
+        else if (type == CiProfileInquiryReply::type)
+            result = onCiProfileInquiryReply (e);
+        else if (type == CiDiscoveryInquiry::type)
             result = onCiDiscoveryInquiry (e);
         else if (type == CiDiscoveryReply::type)
             result = onCiDiscoveryReply (e);
