@@ -30,6 +30,7 @@
 #include "model/ci/endpointInfo.h"
 #include "model/ci/invalidateMuid.h"
 #include "model/ci/profile.h"
+#include "model/ci/propertyExchange.h"
 #include "palette.h"
 #include "view/dispatchContext.h"
 #include "view/eventNameUtils.h"
@@ -283,6 +284,242 @@ Handler::Result EventListViewCiHandler::onCiAck (const Event& e)
         eventView->addValue ("message", text);
     }
     return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeCapabilitiesInquiry (const Event& e)
+{
+    CiPeCapabilitiesInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI PE Capabilities Inquiry");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("simultaneous requests", juce::String (m.simultaneousRequests.get ()));
+    if (m.messageFormat.get () >= 2)
+    {
+        eventView->addValue ("PE major version", juce::String (m.majorVersion.get ()));
+        eventView->addValue ("PE minor version", juce::String (m.minorVersion.get ()));
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeCapabilitiesReply (const Event& e)
+{
+    CiPeCapabilitiesReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI PE Capabilities Reply");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("simultaneous requests", juce::String (m.simultaneousRequests.get ()));
+    if (m.messageFormat.get () >= 2)
+    {
+        eventView->addValue ("PE major version", juce::String (m.majorVersion.get ()));
+        eventView->addValue ("PE minor version", juce::String (m.minorVersion.get ()));
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeGetPropertyDataInquiry (const Event& e)
+{
+    CiPeGetPropertyDataInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI PE Get Property Data");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID",   formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID",   formatMuid (m.destMuid.get (), fmt));
+    eventView->addValue ("request ID", formatValue (static_cast<uint32_t> (m.requestId.get ()), 8, fmt));
+    eventView->addLine ();
+    if (auto hdr { m.headerData.get () }; hdr != nullptr && hdr->size () > 0)
+        eventView->addValue ("header", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*hdr)[0]), static_cast<int> (hdr->size ())));
+    else
+        eventView->addValue ("header", "(empty)");
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeGetPropertyDataReply (const Event& e)
+{
+    CiPeGetPropertyDataReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI PE Get Property Data Reply");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID",   formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID",   formatMuid (m.destMuid.get (), fmt));
+    eventView->addValue ("request ID", formatValue (static_cast<uint32_t> (m.requestId.get ()), 8, fmt));
+    eventView->addLine ();
+    if (auto hdr { m.headerData.get () }; hdr != nullptr && hdr->size () > 0)
+        eventView->addValue ("header", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*hdr)[0]), static_cast<int> (hdr->size ())));
+    else
+        eventView->addValue ("header", "(empty)");
+    eventView->addLine ();
+    const int nc = m.numberOfChunks.get ();
+    eventView->addValue ("chunk", juce::String (m.chunkNumber.get ()) + " of "
+                                  + (nc == 0 ? "?" : juce::String (nc)));
+    if (auto prop { m.propertyData.get () }; prop != nullptr && prop->size () > 0)
+    {
+        eventView->addValue ("data", juce::String (static_cast<int> (prop->size ())) + " bytes");
+        eventView->addLine ();
+        eventView->addValue ("  value", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*prop)[0]), static_cast<int> (prop->size ())));
+    }
+    else
+    {
+        eventView->addValue ("data", "(empty)");
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeSetPropertyDataInquiry (const Event& e)
+{
+    CiPeSetPropertyDataInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI PE Set Property Data");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID",   formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID",   formatMuid (m.destMuid.get (), fmt));
+    eventView->addValue ("request ID", formatValue (static_cast<uint32_t> (m.requestId.get ()), 8, fmt));
+    eventView->addLine ();
+    if (auto hdr { m.headerData.get () }; hdr != nullptr && hdr->size () > 0)
+        eventView->addValue ("header", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*hdr)[0]), static_cast<int> (hdr->size ())));
+    else
+        eventView->addValue ("header", "(empty)");
+    eventView->addLine ();
+    const int nc = m.numberOfChunks.get ();
+    eventView->addValue ("chunk", juce::String (m.chunkNumber.get ()) + " of "
+                                  + (nc == 0 ? "?" : juce::String (nc)));
+    if (auto prop { m.propertyData.get () }; prop != nullptr && prop->size () > 0)
+    {
+        eventView->addValue ("data", juce::String (static_cast<int> (prop->size ())) + " bytes");
+        eventView->addLine ();
+        eventView->addValue ("  value", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*prop)[0]), static_cast<int> (prop->size ())));
+    }
+    else
+    {
+        eventView->addValue ("data", "(empty)");
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeSetPropertyDataReply (const Event& e)
+{
+    CiPeSetPropertyDataReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI PE Set Property Data Reply");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID",   formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID",   formatMuid (m.destMuid.get (), fmt));
+    eventView->addValue ("request ID", formatValue (static_cast<uint32_t> (m.requestId.get ()), 8, fmt));
+    eventView->addLine ();
+    if (auto hdr { m.headerData.get () }; hdr != nullptr && hdr->size () > 0)
+        eventView->addValue ("header", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*hdr)[0]), static_cast<int> (hdr->size ())));
+    else
+        eventView->addValue ("header", "(empty)");
+    return Handler::Result::ok;
+}
+
+static Handler::Result displayPeSubscription (EventView* eventView, const juce::String& eventName,
+                                              int deviceId, int userGroup,
+                                              int sourceMuid, int destMuid, int reqId,
+                                              Buffer::Ptr headerData, int numChunks, int chunkNum,
+                                              Buffer::Ptr propData, ValueFormatType fmt)
+{
+    eventView->setEvent (eventName);
+    eventView->addValue ("device ID", formatDeviceId (deviceId));
+    eventView->addValue ("grp", juce::String (userGroup));
+    eventView->addLine ();
+    eventView->addValue ("src MUID",   formatMuid (sourceMuid, fmt));
+    eventView->addValue ("dst MUID",   formatMuid (destMuid, fmt));
+    eventView->addValue ("request ID", formatValue (static_cast<uint32_t> (reqId), 8, fmt));
+    eventView->addLine ();
+    if (auto hdr { headerData.get () }; hdr != nullptr && hdr->size () > 0)
+        eventView->addValue ("header", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*hdr)[0]), static_cast<int> (hdr->size ())));
+    else
+        eventView->addValue ("header", "(empty)");
+    eventView->addLine ();
+    eventView->addValue ("chunk", juce::String (chunkNum) + " of "
+                                  + (numChunks == 0 ? "?" : juce::String (numChunks)));
+    if (auto prop { propData.get () }; prop != nullptr && prop->size () > 0)
+    {
+        eventView->addValue ("data", juce::String (static_cast<int> (prop->size ())) + " bytes");
+        eventView->addLine ();
+        eventView->addValue ("  value", juce::String::fromUTF8 (
+            reinterpret_cast<const char*> (&(*prop)[0]), static_cast<int> (prop->size ())));
+    }
+    else
+    {
+        eventView->addValue ("data", "(empty)");
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiPeSubscriptionInquiry (const Event& e)
+{
+    CiPeSubscriptionInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    return displayPeSubscription (eventView, "CI PE Subscription",
+                                  m.deviceId.get (), static_cast<int> (m.userGroup),
+                                  m.sourceMuid.get (), m.destMuid.get (), m.requestId.get (),
+                                  m.headerData.get (), m.numberOfChunks.get (),
+                                  m.chunkNumber.get (), m.propertyData.get (), fmt);
+}
+
+Handler::Result EventListViewCiHandler::onCiPeSubscriptionReply (const Event& e)
+{
+    CiPeSubscriptionReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    return displayPeSubscription (eventView, "CI PE Subscription Reply",
+                                  m.deviceId.get (), static_cast<int> (m.userGroup),
+                                  m.sourceMuid.get (), m.destMuid.get (), m.requestId.get (),
+                                  m.headerData.get (), m.numberOfChunks.get (),
+                                  m.chunkNumber.get (), m.propertyData.get (), fmt);
+}
+
+Handler::Result EventListViewCiHandler::onCiPeNotify (const Event& e)
+{
+    // Notify (0x3F) is deprecated in MIDI-CI v1.1; ACK/NAK should be used instead.
+    // Displayed for backward compatibility with legacy devices.
+    CiPeNotify m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    return displayPeSubscription (eventView, "CI PE Notify (deprecated)",
+                                  m.deviceId.get (), static_cast<int> (m.userGroup),
+                                  m.sourceMuid.get (), m.destMuid.get (), m.requestId.get (),
+                                  m.headerData.get (), m.numberOfChunks.get (),
+                                  m.chunkNumber.get (), m.propertyData.get (), fmt);
 }
 
 Handler::Result EventListViewCiHandler::onCiProfileInquiry (const Event& e)

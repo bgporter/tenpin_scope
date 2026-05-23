@@ -48,7 +48,16 @@ private:
     virtual Handler::Result preDispatch  (const Event& e) { return Handler::Result::ok; }
     virtual Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) { return pendingResult; }
 
-    virtual Handler::Result onCiProfileInquiry      (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeCapabilitiesInquiry      (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeCapabilitiesReply        (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeGetPropertyDataInquiry   (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeGetPropertyDataReply     (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeSetPropertyDataInquiry   (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeSetPropertyDataReply     (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeSubscriptionInquiry      (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeSubscriptionReply        (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiPeNotify                   (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiProfileInquiry        (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiProfileInquiryReply (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiProfileSetOn         (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiProfileSetOff        (const Event& e) { return defaultResult; }

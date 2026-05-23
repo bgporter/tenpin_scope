@@ -26,6 +26,7 @@
 
 #include "model/ci/ciConstants.h"
 #include "model/ci/ciMessage.h"
+#include "model/ci/propertyExchange.h"
 #include "model/ci/profile.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
@@ -46,6 +47,60 @@ void CiParser::parse (const Sysex7Message& msg)
 
     switch (ciType)
     {
+        case CiType::peCapabilitiesInquiry:
+        {
+            CiPeCapabilitiesInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peCapabilitiesReply:
+        {
+            CiPeCapabilitiesReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peGetPropertyDataInquiry:
+        {
+            CiPeGetPropertyDataInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peGetPropertyDataReply:
+        {
+            CiPeGetPropertyDataReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peSetPropertyDataInquiry:
+        {
+            CiPeSetPropertyDataInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peSetPropertyDataReply:
+        {
+            CiPeSetPropertyDataReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peSubscriptionInquiry:
+        {
+            CiPeSubscriptionInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peSubscriptionReply:
+        {
+            CiPeSubscriptionReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::peNotify:
+        {
+            CiPeNotify ci { msg };
+            defer (ci);
+            break;
+        }
         case CiType::profileInquiry:
         {
             CiProfileInquiry ci { msg };

@@ -25,6 +25,7 @@
 #include "syntheticEndpointController.h"
 
 #include "model/ci/profile.h"
+#include "model/ci/propertyExchange.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
 #include "model/ci/invalidateMuid.h"
@@ -136,6 +137,11 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addMidi1Events ();
     addMidi2Events ();
     addStreamEvents ();
+    addCiPeCapabilitiesEvents ();
+    addCiPeGetPropertyDataEvents ();
+    addCiPeSetPropertyDataEvents ();
+    addCiPeSubscriptionEvents ();
+    addCiPeNotifyEvent ();
     addCiProfileEvents ();
     addCiProfileSetEvents ();
     addCiProfileEnabledDisabledEvents ();
@@ -350,6 +356,180 @@ void SyntheticEndpointController::addStreamEvents ()
     // Clip markers
     eventList.addEvent (100, StartOfClipEvent ());
     eventList.addEvent (100, EndOfClipEvent   ());
+}
+
+void SyntheticEndpointController::addCiPeCapabilitiesEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Initiator asks responder about PE capabilities (v2: major=1, minor=0)
+    CiPeCapabilitiesInquiry inquiry { group, initiatorMuid, responderMuid, 3, 1, 0 };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Responder reports it supports 2 simultaneous requests, same PE version
+    CiPeCapabilitiesReply reply { group, responderMuid, initiatorMuid, 2, 1, 0 };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiPeGetPropertyDataEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Inquiry: request the value of the "X-DeviceName" resource
+    const juce::String headerJson { R"({"resource":"X-DeviceName"})" };
+    Buffer::Ptr hdrBuf = new Buffer ();
+    for (auto c : headerJson)
+        hdrBuf->append (static_cast<uint8_t> (c));
+
+    CiPeGetPropertyDataInquiry inquiry { group, initiatorMuid, responderMuid, 1, hdrBuf };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Reply: property value is "Synth Piano"
+    const juce::String replyHeader { R"({"status":200})" };
+    Buffer::Ptr rHdr = new Buffer ();
+    for (auto c : replyHeader)
+        rHdr->append (static_cast<uint8_t> (c));
+
+    const juce::String propValue { R"("Synth Piano")" };
+    Buffer::Ptr propBuf = new Buffer ();
+    for (auto c : propValue)
+        propBuf->append (static_cast<uint8_t> (c));
+
+    CiPeGetPropertyDataReply reply { group, responderMuid, initiatorMuid,
+                                     1, rHdr, 1, 1, propBuf };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiPeSetPropertyDataEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Inquiry: write a new value to "X-DeviceName"
+    const juce::String setHeader { R"({"resource":"X-DeviceName","command":"full"})" };
+    Buffer::Ptr sHdr = new Buffer ();
+    for (auto c : setHeader)
+        sHdr->append (static_cast<uint8_t> (c));
+
+    const juce::String newValue { R"("Grand Piano")" };
+    Buffer::Ptr propBuf = new Buffer ();
+    for (auto c : newValue)
+        propBuf->append (static_cast<uint8_t> (c));
+
+    CiPeSetPropertyDataInquiry inquiry { group, initiatorMuid, responderMuid,
+                                         2, sHdr, 1, 1, propBuf };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Reply: status 200 OK, no property data
+    const juce::String replyHeader { R"({"status":200})" };
+    Buffer::Ptr rHdr = new Buffer ();
+    for (auto c : replyHeader)
+        rHdr->append (static_cast<uint8_t> (c));
+
+    CiPeSetPropertyDataReply reply { group, responderMuid, initiatorMuid, 2, rHdr };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiPeSubscriptionEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Inquiry: subscribe to "X-State" property updates
+    const juce::String subHeader { R"({"resource":"X-State","command":"start"})" };
+    Buffer::Ptr sHdr = new Buffer ();
+    for (auto c : subHeader)
+        sHdr->append (static_cast<uint8_t> (c));
+
+    CiPeSubscriptionInquiry inquiry { group, initiatorMuid, responderMuid,
+                                      3, sHdr, 1, 1, {} };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Reply: subscription confirmed, current value included
+    const juce::String replyHeader { R"({"status":200,"command":"start"})" };
+    Buffer::Ptr rHdr = new Buffer ();
+    for (auto c : replyHeader)
+        rHdr->append (static_cast<uint8_t> (c));
+
+    const juce::String stateValue { R"({"active":true})" };
+    Buffer::Ptr propBuf = new Buffer ();
+    for (auto c : stateValue)
+        propBuf->append (static_cast<uint8_t> (c));
+
+    CiPeSubscriptionReply reply { group, responderMuid, initiatorMuid,
+                                   3, rHdr, 1, 1, propBuf };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiPeNotifyEvent ()
+{
+    // Notify (0x3F) is deprecated; emitted here only to exercise legacy-device parsing.
+    const MidiGroup group { 1 };
+    const int responderMuid { 0x0654321 };
+    const int initiatorMuid { 0x01234567 };
+
+    const juce::String notifyHeader { R"({"status":144})" }; // 144 = 0x90, example error code
+    Buffer::Ptr hdr = new Buffer ();
+    for (auto c : notifyHeader)
+        hdr->append (static_cast<uint8_t> (c));
+
+    CiPeNotify msg { group, responderMuid, initiatorMuid, 1, hdr, 1, 1, {} };
+    auto sysexMsg { msg.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    if (auto buf { sysexMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
 }
 
 void SyntheticEndpointController::addCiProfileEvents ()

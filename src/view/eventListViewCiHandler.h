@@ -42,7 +42,16 @@ private:
     Handler::Result preDispatch  (const Event& e) override;
     Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) override;
 
-    Handler::Result onCiProfileInquiry      (const Event& e) override;
+    Handler::Result onCiPeCapabilitiesInquiry    (const Event& e) override;
+    Handler::Result onCiPeCapabilitiesReply      (const Event& e) override;
+    Handler::Result onCiPeGetPropertyDataInquiry (const Event& e) override;
+    Handler::Result onCiPeGetPropertyDataReply   (const Event& e) override;
+    Handler::Result onCiPeSetPropertyDataInquiry (const Event& e) override;
+    Handler::Result onCiPeSetPropertyDataReply   (const Event& e) override;
+    Handler::Result onCiPeSubscriptionInquiry    (const Event& e) override;
+    Handler::Result onCiPeSubscriptionReply      (const Event& e) override;
+    Handler::Result onCiPeNotify                 (const Event& e) override;
+    Handler::Result onCiProfileInquiry        (const Event& e) override;
     Handler::Result onCiProfileInquiryReply (const Event& e) override;
     Handler::Result onCiProfileSetOn               (const Event& e) override;
     Handler::Result onCiProfileSetOff              (const Event& e) override;

@@ -75,6 +75,11 @@ private:
     void addMidi1Events ();
     void addMidi2Events ();
     void addStreamEvents ();
+    void addCiPeCapabilitiesEvents ();
+    void addCiPeGetPropertyDataEvents ();
+    void addCiPeSetPropertyDataEvents ();
+    void addCiPeSubscriptionEvents ();
+    void addCiPeNotifyEvent ();
     void addCiProfileEvents ();
     void addCiProfileReportEvents ();
     void addCiProfileDetailsEvents ();

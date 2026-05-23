@@ -39,6 +39,15 @@ constexpr int midiCi = 0x0D;
 
 namespace CiType
 {
+constexpr int peCapabilitiesInquiry      = 0x30;
+constexpr int peCapabilitiesReply        = 0x31;
+constexpr int peGetPropertyDataInquiry   = 0x34;
+constexpr int peGetPropertyDataReply     = 0x35;
+constexpr int peSetPropertyDataInquiry   = 0x36;
+constexpr int peSetPropertyDataReply     = 0x37;
+constexpr int peSubscriptionInquiry      = 0x38;
+constexpr int peSubscriptionReply        = 0x39;
+constexpr int peNotify                   = 0x3F; // deprecated in MIDI-CI v1.1; use ACK/NAK instead
 constexpr int profileInquiry             = 0x20;
 constexpr int profileInquiryReply        = 0x21;
 constexpr int profileSetOn               = 0x22;

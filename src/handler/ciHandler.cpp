@@ -24,6 +24,7 @@
 
 #include "ciHandler.h"
 
+#include "model/ci/propertyExchange.h"
 #include "model/ci/profile.h"
 #include "model/ci/discovery.h"
 #include "model/ci/endpointInfo.h"
@@ -40,7 +41,25 @@ Handler::Result CiHandler::handle (const Event& e)
     if (result == Handler::Result::ok)
     {
         const auto type = e.getType ();
-        if (type == CiProfileInquiry::type)
+        if (type == CiPeCapabilitiesInquiry::type)
+            result = onCiPeCapabilitiesInquiry (e);
+        else if (type == CiPeCapabilitiesReply::type)
+            result = onCiPeCapabilitiesReply (e);
+        else if (type == CiPeGetPropertyDataInquiry::type)
+            result = onCiPeGetPropertyDataInquiry (e);
+        else if (type == CiPeGetPropertyDataReply::type)
+            result = onCiPeGetPropertyDataReply (e);
+        else if (type == CiPeSetPropertyDataInquiry::type)
+            result = onCiPeSetPropertyDataInquiry (e);
+        else if (type == CiPeSetPropertyDataReply::type)
+            result = onCiPeSetPropertyDataReply (e);
+        else if (type == CiPeSubscriptionInquiry::type)
+            result = onCiPeSubscriptionInquiry (e);
+        else if (type == CiPeSubscriptionReply::type)
+            result = onCiPeSubscriptionReply (e);
+        else if (type == CiPeNotify::type)
+            result = onCiPeNotify (e);
+        else if (type == CiProfileInquiry::type)
             result = onCiProfileInquiry (e);
         else if (type == CiProfileInquiryReply::type)
             result = onCiProfileInquiryReply (e);

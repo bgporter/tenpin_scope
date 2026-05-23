@@ -154,6 +154,8 @@ set(SOURCES_CI
     src/model/ci/ack.cpp
     src/model/ci/profile.h
     src/model/ci/profile.cpp
+    src/model/ci/propertyExchange.h
+    src/model/ci/propertyExchange.cpp
     src/model/ci/ciParser.h
     src/model/ci/ciParser.cpp
     src/view/eventListViewCiHandler.h
