@@ -44,6 +44,10 @@ Handler::Result CiHandler::handle (const Event& e)
             result = onCiProfileInquiry (e);
         else if (type == CiProfileInquiryReply::type)
             result = onCiProfileInquiryReply (e);
+        else if (type == CiProfileAdded::type)
+            result = onCiProfileAdded (e);
+        else if (type == CiProfileRemoved::type)
+            result = onCiProfileRemoved (e);
         else if (type == CiDiscoveryInquiry::type)
             result = onCiDiscoveryInquiry (e);
         else if (type == CiDiscoveryReply::type)

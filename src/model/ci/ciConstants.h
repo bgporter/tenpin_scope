@@ -41,6 +41,8 @@ namespace CiType
 {
 constexpr int profileInquiry      = 0x20;
 constexpr int profileInquiryReply = 0x21;
+constexpr int profileAdded        = 0x26;
+constexpr int profileRemoved      = 0x27;
 constexpr int discoveryInquiry    = 0x70;
 constexpr int discoveryReply    = 0x71;
 constexpr int endpointInquiry   = 0x72;

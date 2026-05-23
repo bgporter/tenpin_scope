@@ -58,6 +58,18 @@ void CiParser::parse (const Sysex7Message& msg)
             defer (ci);
             break;
         }
+        case CiType::profileAdded:
+        {
+            CiProfileAdded ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileRemoved:
+        {
+            CiProfileRemoved ci { msg };
+            defer (ci);
+            break;
+        }
         case CiType::discoveryInquiry:
         {
             CiDiscoveryInquiry ci { msg };

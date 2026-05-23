@@ -137,6 +137,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addMidi2Events ();
     addStreamEvents ();
     addCiProfileEvents ();
+    addCiProfileReportEvents ();
     addCiDiscoveryEvents ();
     addCiEndpointEvents ();
     addCiInvalidateMuidEvent ();
@@ -374,6 +375,31 @@ void SyntheticEndpointController::addCiProfileEvents ()
     reply.addDisabledProfile ({ 0x7E, 0x00, 0x24, 0x01, 0x01 }); // Standard: Drawbar Organ (bank 0, #0x24, v1, lvl1)
     auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
     addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiProfileReportEvents ()
+{
+    const MidiGroup group { 1 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Responder announces a newly available standard profile.
+    CiProfileAdded added { group, responderMuid, { 0x7E, 0x00, 0x2B, 0x01, 0x01 } };
+    auto addedMsg { added.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (addedMsg);
+
+    // Responder announces a profile it no longer supports.
+    CiProfileRemoved removed { group, responderMuid, { 0x7E, 0x00, 0x21, 0x01, 0x01 } };
+    auto removedMsg { removed.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (removedMsg);
 }
 
 void SyntheticEndpointController::addCiDiscoveryEvents ()

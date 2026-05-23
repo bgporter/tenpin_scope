@@ -92,3 +92,73 @@ struct CiProfileInquiryReply : public CiMessage
     MAKE_VALUE_MEMBER (Buffer::Ptr, enabledProfiles,  {});
     MAKE_VALUE_MEMBER (Buffer::Ptr, disabledProfiles, {});
 };
+
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief CI Profile Added Report (0x26). One-way broadcast.
+ *
+ * Sent when a device gains support for a new profile. Destination MUID is
+ * always broadcast. Payload (after common CI header at buf[13]):
+ *   [13..17] Profile ID (5 bytes)
+ */
+struct CiProfileAdded : public CiMessage
+{
+    static const inline juce::Identifier type { "CiProfileAdded" };
+
+    explicit CiProfileAdded (const Sysex7Message& msg);
+    explicit CiProfileAdded (const Event& e);
+    explicit CiProfileAdded (juce::ValueTree vt);
+
+    CiProfileAdded (MidiGroup group, int sourceMuid, ProfileId profile);
+
+    Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
+
+    MAKE_VALUE_MEMBER (int, profileByte1, 0);
+    MAKE_VALUE_MEMBER (int, profileByte2, 0);
+    MAKE_VALUE_MEMBER (int, profileByte3, 0);
+    MAKE_VALUE_MEMBER (int, profileByte4, 0);
+    MAKE_VALUE_MEMBER (int, profileByte5, 0);
+
+    ProfileId profileId () const
+    {
+        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
+                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
+                 static_cast<uint8_t> (profileByte5.get ()) };
+    }
+};
+
+// ---------------------------------------------------------------------------
+
+/**
+ * @brief CI Profile Removed Report (0x27). One-way broadcast.
+ *
+ * Sent when a device loses support for a profile. Destination MUID is always
+ * broadcast. Payload (after common CI header at buf[13]):
+ *   [13..17] Profile ID (5 bytes)
+ */
+struct CiProfileRemoved : public CiMessage
+{
+    static const inline juce::Identifier type { "CiProfileRemoved" };
+
+    explicit CiProfileRemoved (const Sysex7Message& msg);
+    explicit CiProfileRemoved (const Event& e);
+    explicit CiProfileRemoved (juce::ValueTree vt);
+
+    CiProfileRemoved (MidiGroup group, int sourceMuid, ProfileId profile);
+
+    Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
+
+    MAKE_VALUE_MEMBER (int, profileByte1, 0);
+    MAKE_VALUE_MEMBER (int, profileByte2, 0);
+    MAKE_VALUE_MEMBER (int, profileByte3, 0);
+    MAKE_VALUE_MEMBER (int, profileByte4, 0);
+    MAKE_VALUE_MEMBER (int, profileByte5, 0);
+
+    ProfileId profileId () const
+    {
+        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
+                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
+                 static_cast<uint8_t> (profileByte5.get ()) };
+    }
+};

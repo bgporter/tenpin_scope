@@ -335,6 +335,40 @@ Handler::Result EventListViewCiHandler::onCiProfileInquiryReply (const Event& e)
     return Handler::Result::ok;
 }
 
+Handler::Result EventListViewCiHandler::onCiProfileAdded (const Event& e)
+{
+    CiProfileAdded m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Added");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileRemoved (const Event& e)
+{
+    CiProfileRemoved m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Removed");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    return Handler::Result::ok;
+}
+
 Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 {
     CiDiscoveryInquiry m { e };

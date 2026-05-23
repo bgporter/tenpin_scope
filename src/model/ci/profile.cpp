@@ -26,9 +26,11 @@
 
 namespace
 {
-constexpr size_t kCepIdx   = 13; // offset of enabled-profile count (2 bytes LSB first)
-constexpr size_t kCountLen = 2;  // byte width of cep / cdp fields
-constexpr size_t kMinSize  = 13; // header only — profile lists may be empty
+constexpr size_t kCepIdx      = 13; // offset of enabled-profile count (2 bytes LSB first)
+constexpr size_t kCountLen    = 2;  // byte width of cep / cdp fields
+constexpr size_t kMinSize     = 13; // header only — profile lists may be empty
+constexpr size_t kProfileIdx  = 13; // offset of single ProfileId in Added/Removed messages
+constexpr size_t kProfileSize = CiProfileInquiryReply::kProfileSize;
 
 void appendMidiLong (Buffer& buf, int value)
 {
@@ -237,4 +239,118 @@ ProfileId CiProfileInquiryReply::disabledProfileAt (int index) const
     if (!buf || index < 0 || index >= disabledProfileCount ())
         return {};
     return profileIdAt (*buf, static_cast<size_t> (index) * kProfileSize);
+}
+
+// ============================================================================
+// CiProfileAdded
+// ============================================================================
+
+CiProfileAdded::CiProfileAdded (const Sysex7Message& msg)
+: CiMessage { type.toString () }
+{
+    parseHeader (msg);
+    const auto buf = msg.data.get ();
+    if (!buf || buf->size () < kProfileIdx + kProfileSize)
+        return;
+    profileByte1 = static_cast<int> ((*buf)[kProfileIdx]);
+    profileByte2 = static_cast<int> ((*buf)[kProfileIdx + 1]);
+    profileByte3 = static_cast<int> ((*buf)[kProfileIdx + 2]);
+    profileByte4 = static_cast<int> ((*buf)[kProfileIdx + 3]);
+    profileByte5 = static_cast<int> ((*buf)[kProfileIdx + 4]);
+}
+
+CiProfileAdded::CiProfileAdded (const Event& e)
+: CiMessage { type.toString (), juce::ValueTree { e } }
+{
+}
+
+CiProfileAdded::CiProfileAdded (juce::ValueTree vt)
+: CiMessage { type.toString (), vt }
+{
+}
+
+CiProfileAdded::CiProfileAdded (MidiGroup theGroup, int sourceMuidValue, ProfileId profile)
+: CiMessage { type.toString () }
+{
+    group         = theGroup.get () - 1;
+    deviceId      = CiDeviceId::functionBlock;
+    messageType   = CiType::profileAdded;
+    messageFormat = messageFormatMin;
+    sourceMuid    = sourceMuidValue;
+    destMuid      = broadcastMuid;
+    profileByte1  = profile.byte1;
+    profileByte2  = profile.byte2;
+    profileByte3  = profile.byte3;
+    profileByte4  = profile.byte4;
+    profileByte5  = profile.byte5;
+}
+
+Sysex7Message CiProfileAdded::toSysex7Message (MidiNibble theGroup, int targetFormat) const
+{
+    Buffer::Ptr buf = new Buffer ();
+    appendCommonHeader (*buf, deviceId.get (), CiType::profileAdded, targetFormat,
+                        sourceMuid.get (), destMuid.get ());
+    buf->append (static_cast<uint8_t> (profileByte1.get ()));
+    buf->append (static_cast<uint8_t> (profileByte2.get ()));
+    buf->append (static_cast<uint8_t> (profileByte3.get ()));
+    buf->append (static_cast<uint8_t> (profileByte4.get ()));
+    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    return Sysex7Message { theGroup, buf };
+}
+
+// ============================================================================
+// CiProfileRemoved
+// ============================================================================
+
+CiProfileRemoved::CiProfileRemoved (const Sysex7Message& msg)
+: CiMessage { type.toString () }
+{
+    parseHeader (msg);
+    const auto buf = msg.data.get ();
+    if (!buf || buf->size () < kProfileIdx + kProfileSize)
+        return;
+    profileByte1 = static_cast<int> ((*buf)[kProfileIdx]);
+    profileByte2 = static_cast<int> ((*buf)[kProfileIdx + 1]);
+    profileByte3 = static_cast<int> ((*buf)[kProfileIdx + 2]);
+    profileByte4 = static_cast<int> ((*buf)[kProfileIdx + 3]);
+    profileByte5 = static_cast<int> ((*buf)[kProfileIdx + 4]);
+}
+
+CiProfileRemoved::CiProfileRemoved (const Event& e)
+: CiMessage { type.toString (), juce::ValueTree { e } }
+{
+}
+
+CiProfileRemoved::CiProfileRemoved (juce::ValueTree vt)
+: CiMessage { type.toString (), vt }
+{
+}
+
+CiProfileRemoved::CiProfileRemoved (MidiGroup theGroup, int sourceMuidValue, ProfileId profile)
+: CiMessage { type.toString () }
+{
+    group         = theGroup.get () - 1;
+    deviceId      = CiDeviceId::functionBlock;
+    messageType   = CiType::profileRemoved;
+    messageFormat = messageFormatMin;
+    sourceMuid    = sourceMuidValue;
+    destMuid      = broadcastMuid;
+    profileByte1  = profile.byte1;
+    profileByte2  = profile.byte2;
+    profileByte3  = profile.byte3;
+    profileByte4  = profile.byte4;
+    profileByte5  = profile.byte5;
+}
+
+Sysex7Message CiProfileRemoved::toSysex7Message (MidiNibble theGroup, int targetFormat) const
+{
+    Buffer::Ptr buf = new Buffer ();
+    appendCommonHeader (*buf, deviceId.get (), CiType::profileRemoved, targetFormat,
+                        sourceMuid.get (), destMuid.get ());
+    buf->append (static_cast<uint8_t> (profileByte1.get ()));
+    buf->append (static_cast<uint8_t> (profileByte2.get ()));
+    buf->append (static_cast<uint8_t> (profileByte3.get ()));
+    buf->append (static_cast<uint8_t> (profileByte4.get ()));
+    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    return Sysex7Message { theGroup, buf };
 }

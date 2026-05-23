@@ -50,6 +50,8 @@ private:
 
     virtual Handler::Result onCiProfileInquiry      (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiProfileInquiryReply (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiProfileAdded        (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiProfileRemoved      (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiDiscoveryInquiry    (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiDiscoveryReply      (const Event& e) { return defaultResult; }
     virtual Handler::Result onCiEndpointInquiry   (const Event& e) { return defaultResult; }
