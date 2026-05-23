@@ -137,7 +137,11 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addMidi2Events ();
     addStreamEvents ();
     addCiProfileEvents ();
+    addCiProfileSetEvents ();
+    addCiProfileEnabledDisabledEvents ();
     addCiProfileReportEvents ();
+    addCiProfileDetailsEvents ();
+    addCiProfileSpecificDataEvent ();
     addCiDiscoveryEvents ();
     addCiEndpointEvents ();
     addCiInvalidateMuidEvent ();
@@ -377,6 +381,93 @@ void SyntheticEndpointController::addCiProfileEvents ()
     addEvents (replyMsg);
 }
 
+void SyntheticEndpointController::addCiProfileSetEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+    const ProfileId profile { 0x7E, 0x00, 0x21, 0x01, 0x01 }; // Standard Piano profile
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Initiator enables the Piano profile on 2 channels
+    CiProfileSetOn setOn { group, initiatorMuid, responderMuid, profile, 2 };
+    auto setOnMsg { setOn.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (setOnMsg);
+
+    // Initiator disables the same profile
+    CiProfileSetOff setOff { group, initiatorMuid, responderMuid, profile };
+    auto setOffMsg { setOff.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (setOffMsg);
+}
+
+void SyntheticEndpointController::addCiProfileDetailsEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+    const ProfileId profile { 0x7E, 0x00, 0x21, 0x01, 0x01 }; // Standard Piano profile
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Inquiry: initiator asks for registered target data (0x01)
+    CiProfileDetailsInquiry inquiry { group, initiatorMuid, responderMuid,
+                                      profile, MidiByte { 0x01 } };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Reply: responder provides 4 bytes of target data
+    Buffer::Ptr data = new Buffer ();
+    data->append (0x01);
+    data->append (0x00);
+    data->append (0x10);
+    data->append (0x00);
+    CiProfileDetailsInquiryReply reply { group, responderMuid, initiatorMuid,
+                                         profile, MidiByte { 0x01 }, data };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
+}
+
+void SyntheticEndpointController::addCiProfileEnabledDisabledEvents ()
+{
+    const MidiGroup group { 1 };
+    const int responderMuid { 0x0654321 };
+    const ProfileId profile { 0x7E, 0x00, 0x21, 0x01, 0x01 }; // Standard Piano profile
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Responder reports Piano profile is now enabled on 2 channels
+    CiProfileEnabled enabled { group, responderMuid, profile, 2 };
+    auto enabledMsg { enabled.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (enabledMsg);
+
+    // Responder reports Piano profile is now disabled on those channels
+    CiProfileDisabled disabled { group, responderMuid, profile, 2 };
+    auto disabledMsg { disabled.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (disabledMsg);
+}
+
 void SyntheticEndpointController::addCiProfileReportEvents ()
 {
     const MidiGroup group { 1 };
@@ -400,6 +491,30 @@ void SyntheticEndpointController::addCiProfileReportEvents ()
     CiProfileRemoved removed { group, responderMuid, { 0x7E, 0x00, 0x21, 0x01, 0x01 } };
     auto removedMsg { removed.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
     addEvents (removedMsg);
+}
+
+void SyntheticEndpointController::addCiProfileSpecificDataEvent ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+    const ProfileId profile { 0x7E, 0x00, 0x21, 0x01, 0x01 }; // Standard Piano profile
+
+    Buffer::Ptr data = new Buffer ();
+    data->append (0x01);
+    data->append (0x02);
+    data->append (0x03);
+    data->append (0x04);
+    data->append (0x05);
+    data->append (0x06);
+
+    CiProfileSpecificData msg { group, initiatorMuid, responderMuid, profile, data };
+    auto sysexMsg { msg.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    if (auto buf { sysexMsg.data.get () }; buf != nullptr)
+    {
+        Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+        factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+    }
 }
 
 void SyntheticEndpointController::addCiDiscoveryEvents ()

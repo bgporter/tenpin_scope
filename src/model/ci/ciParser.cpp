@@ -58,6 +58,30 @@ void CiParser::parse (const Sysex7Message& msg)
             defer (ci);
             break;
         }
+        case CiType::profileSetOn:
+        {
+            CiProfileSetOn ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileSetOff:
+        {
+            CiProfileSetOff ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileEnabled:
+        {
+            CiProfileEnabled ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileDisabled:
+        {
+            CiProfileDisabled ci { msg };
+            defer (ci);
+            break;
+        }
         case CiType::profileAdded:
         {
             CiProfileAdded ci { msg };
@@ -67,6 +91,24 @@ void CiParser::parse (const Sysex7Message& msg)
         case CiType::profileRemoved:
         {
             CiProfileRemoved ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileDetailsInquiry:
+        {
+            CiProfileDetailsInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileDetailsInquiryReply:
+        {
+            CiProfileDetailsInquiryReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::profileSpecificData:
+        {
+            CiProfileSpecificData ci { msg };
             defer (ci);
             break;
         }

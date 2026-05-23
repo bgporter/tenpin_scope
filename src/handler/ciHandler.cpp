@@ -44,10 +44,24 @@ Handler::Result CiHandler::handle (const Event& e)
             result = onCiProfileInquiry (e);
         else if (type == CiProfileInquiryReply::type)
             result = onCiProfileInquiryReply (e);
+        else if (type == CiProfileSetOn::type)
+            result = onCiProfileSetOn (e);
+        else if (type == CiProfileSetOff::type)
+            result = onCiProfileSetOff (e);
+        else if (type == CiProfileEnabled::type)
+            result = onCiProfileEnabled (e);
+        else if (type == CiProfileDisabled::type)
+            result = onCiProfileDisabled (e);
         else if (type == CiProfileAdded::type)
             result = onCiProfileAdded (e);
         else if (type == CiProfileRemoved::type)
             result = onCiProfileRemoved (e);
+        else if (type == CiProfileDetailsInquiry::type)
+            result = onCiProfileDetailsInquiry (e);
+        else if (type == CiProfileDetailsInquiryReply::type)
+            result = onCiProfileDetailsInquiryReply (e);
+        else if (type == CiProfileSpecificData::type)
+            result = onCiProfileSpecificData (e);
         else if (type == CiDiscoveryInquiry::type)
             result = onCiDiscoveryInquiry (e);
         else if (type == CiDiscoveryReply::type)

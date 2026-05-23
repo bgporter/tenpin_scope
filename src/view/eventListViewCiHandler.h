@@ -44,8 +44,15 @@ private:
 
     Handler::Result onCiProfileInquiry      (const Event& e) override;
     Handler::Result onCiProfileInquiryReply (const Event& e) override;
-    Handler::Result onCiProfileAdded        (const Event& e) override;
-    Handler::Result onCiProfileRemoved      (const Event& e) override;
+    Handler::Result onCiProfileSetOn               (const Event& e) override;
+    Handler::Result onCiProfileSetOff              (const Event& e) override;
+    Handler::Result onCiProfileEnabled             (const Event& e) override;
+    Handler::Result onCiProfileDisabled            (const Event& e) override;
+    Handler::Result onCiProfileAdded               (const Event& e) override;
+    Handler::Result onCiProfileRemoved             (const Event& e) override;
+    Handler::Result onCiProfileDetailsInquiry      (const Event& e) override;
+    Handler::Result onCiProfileDetailsInquiryReply (const Event& e) override;
+    Handler::Result onCiProfileSpecificData        (const Event& e) override;
     Handler::Result onCiDiscoveryInquiry    (const Event& e) override;
     Handler::Result onCiDiscoveryReply      (const Event& e) override;
     Handler::Result onCiEndpointInquiry   (const Event& e) override;

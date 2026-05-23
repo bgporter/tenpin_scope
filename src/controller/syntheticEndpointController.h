@@ -77,6 +77,10 @@ private:
     void addStreamEvents ();
     void addCiProfileEvents ();
     void addCiProfileReportEvents ();
+    void addCiProfileDetailsEvents ();
+    void addCiProfileSetEvents ();
+    void addCiProfileEnabledDisabledEvents ();
+    void addCiProfileSpecificDataEvent ();
     void addCiDiscoveryEvents ();
     void addCiEndpointEvents ();
     void addCiInvalidateMuidEvent ();

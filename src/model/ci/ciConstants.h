@@ -39,10 +39,17 @@ constexpr int midiCi = 0x0D;
 
 namespace CiType
 {
-constexpr int profileInquiry      = 0x20;
-constexpr int profileInquiryReply = 0x21;
-constexpr int profileAdded        = 0x26;
-constexpr int profileRemoved      = 0x27;
+constexpr int profileInquiry             = 0x20;
+constexpr int profileInquiryReply        = 0x21;
+constexpr int profileSetOn               = 0x22;
+constexpr int profileSetOff              = 0x23;
+constexpr int profileEnabled             = 0x24;
+constexpr int profileDisabled            = 0x25;
+constexpr int profileAdded               = 0x26;
+constexpr int profileRemoved             = 0x27;
+constexpr int profileDetailsInquiry      = 0x28;
+constexpr int profileDetailsInquiryReply = 0x29;
+constexpr int profileSpecificData        = 0x2F;
 constexpr int discoveryInquiry    = 0x70;
 constexpr int discoveryReply    = 0x71;
 constexpr int endpointInquiry   = 0x72;

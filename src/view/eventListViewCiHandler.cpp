@@ -335,6 +335,80 @@ Handler::Result EventListViewCiHandler::onCiProfileInquiryReply (const Event& e)
     return Handler::Result::ok;
 }
 
+Handler::Result EventListViewCiHandler::onCiProfileSetOn (const Event& e)
+{
+    CiProfileSetOn m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Set Profile On");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile",   formatProfileId (m.profileId ()));
+    if (m.messageFormat.get () >= 2)
+        eventView->addValue ("channels", formatValue (static_cast<uint32_t> (m.channelsRequested.get ()), 14, fmt));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileSetOff (const Event& e)
+{
+    CiProfileSetOff m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Set Profile Off");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileEnabled (const Event& e)
+{
+    CiProfileEnabled m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Enabled");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    if (m.messageFormat.get () >= 2)
+        eventView->addValue ("channels", formatValue (static_cast<uint32_t> (m.channelsEnabled.get ()), 14, fmt));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileDisabled (const Event& e)
+{
+    CiProfileDisabled m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Disabled");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile",  formatProfileId (m.profileId ()));
+    if (m.messageFormat.get () >= 2)
+        eventView->addValue ("channels", formatValue (static_cast<uint32_t> (m.channelsDisabled.get ()), 14, fmt));
+    return Handler::Result::ok;
+}
+
 Handler::Result EventListViewCiHandler::onCiProfileAdded (const Event& e)
 {
     CiProfileAdded m { e };
@@ -366,6 +440,77 @@ Handler::Result EventListViewCiHandler::onCiProfileRemoved (const Event& e)
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
     eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiry (const Event& e)
+{
+    CiProfileDetailsInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Details Inquiry");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("target",  formatValue (static_cast<uint32_t> (m.inquiryTarget.get ()), 8, ValueFormatType::Hex) +
+                                        (m.isRegisteredTarget () ? "  (registered)" : "  (profile-specific)"));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiryReply (const Event& e)
+{
+    CiProfileDetailsInquiryReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Details Reply");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("target",  formatValue (static_cast<uint32_t> (m.inquiryTarget.get ()), 8, ValueFormatType::Hex) +
+                                        (m.isRegisteredTarget () ? "  (registered)" : "  (profile-specific)"));
+
+    if (auto data = m.targetData.get (); data && !data->empty ())
+    {
+        eventView->addLine ();
+        eventView->addValue ("data", "");
+        for (size_t i = 0; i < data->size (); ++i)
+            eventView->addValue ("", formatValue ((*data)[i], 8, ValueFormatType::Hex));
+    }
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiProfileSpecificData (const Event& e)
+{
+    CiProfileSpecificData m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Profile Specific Data");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+
+    if (auto data = m.profileData.get (); data && !data->empty ())
+    {
+        eventView->addLine ();
+        eventView->addValue ("data", juce::String (static_cast<int> (data->size ())) + " bytes");
+        for (size_t i = 0; i < data->size (); ++i)
+            eventView->addValue ("", formatValue ((*data)[i], 8, ValueFormatType::Hex));
+    }
     return Handler::Result::ok;
 }
 
