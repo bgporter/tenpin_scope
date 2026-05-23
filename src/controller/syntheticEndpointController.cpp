@@ -25,6 +25,7 @@
 #include "syntheticEndpointController.h"
 
 #include "model/ci/discovery.h"
+#include "model/ci/endpointInfo.h"
 #include "model/sysex/sysex7Message.h"
 #include "model/ump/channelVoice1.h"
 #include "model/ump/channelVoice2.h"
@@ -133,6 +134,7 @@ void SyntheticEndpointController::buildDefaultEventList ()
     addMidi2Events ();
     addStreamEvents ();
     addCiDiscoveryEvents ();
+    addCiEndpointEvents ();
 }
 
 void SyntheticEndpointController::addUtilityEvents ()
@@ -370,6 +372,35 @@ void SyntheticEndpointController::addCiDiscoveryEvents ()
         Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
         factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
     }
+}
+
+void SyntheticEndpointController::addCiEndpointEvents ()
+{
+    const MidiGroup group { 1 };
+    const int initiatorMuid { 0x01234567 };
+    const int responderMuid { 0x0654321 };
+
+    auto addEvents = [this, &group] (auto& msg)
+    {
+        if (auto buf { msg.data.get () }; buf != nullptr)
+        {
+            Sysex7EventFactory factory ([this] (Sysex7Event e) { eventList.addEvent (100, e); });
+            factory.createEvents (group, std::span<const uint8_t> (buf->cbegin (), buf->cend ()));
+        }
+    };
+
+    // Inquiry: initiator asks responder for its Product Instance ID
+    CiEndpointInquiry inquiry { group, initiatorMuid, responderMuid,
+                                MidiByte { CiEndpointStatus::productInstanceId } };
+    auto inquiryMsg { inquiry.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (inquiryMsg);
+
+    // Reply: responder provides its Product Instance ID
+    CiEndpointReply reply { group, responderMuid, initiatorMuid,
+                            MidiByte { CiEndpointStatus::productInstanceId },
+                            "SN20250401-SYNTH" };
+    auto replyMsg { reply.toSysex7Message (MidiNibble { group }, messageFormatLatest) };
+    addEvents (replyMsg);
 }
 
 void SyntheticEndpointController::addMixedDataSetEvents ()

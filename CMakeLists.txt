@@ -146,6 +146,8 @@ set(SOURCES_CI
     src/model/ci/ciMessage.cpp
     src/model/ci/discovery.h
     src/model/ci/discovery.cpp
+    src/model/ci/endpointInfo.h
+    src/model/ci/endpointInfo.cpp
     src/model/ci/ciParser.h
     src/model/ci/ciParser.cpp
     src/view/eventListViewCiHandler.h

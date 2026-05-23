@@ -26,6 +26,7 @@
 
 #include "model/ci/ciConstants.h"
 #include "model/ci/discovery.h"
+#include "model/ci/endpointInfo.h"
 #include "palette.h"
 #include "view/dispatchContext.h"
 #include "view/eventNameUtils.h"
@@ -156,6 +157,41 @@ Handler::Result EventListViewCiHandler::postDispatch (const Event& /*e*/, Handle
     if (pendingResult == Handler::Result::ok)
         eventView->sizeToWidth (currentWidth);
     return pendingResult;
+}
+
+Handler::Result EventListViewCiHandler::onCiEndpointInquiry (const Event& e)
+{
+    CiEndpointInquiry m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Endpoint Inquiry");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("status", formatValue (static_cast<uint32_t> (m.status.get ()), 8, fmt));
+    return Handler::Result::ok;
+}
+
+Handler::Result EventListViewCiHandler::onCiEndpointReply (const Event& e)
+{
+    CiEndpointReply m { e };
+    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
+    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+
+    eventView->setEvent ("CI Endpoint Reply");
+    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    eventView->addValue ("grp",       juce::String (static_cast<int> (m.userGroup)));
+    eventView->addLine ();
+    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    eventView->addLine ();
+    eventView->addValue ("status",  formatValue (static_cast<uint32_t> (m.status.get ()), 8, fmt));
+    eventView->addValue ("prod ID", static_cast<juce::String> (m.productInstanceId));
+    return Handler::Result::ok;
 }
 
 Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)

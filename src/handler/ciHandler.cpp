@@ -25,6 +25,7 @@
 #include "ciHandler.h"
 
 #include "model/ci/discovery.h"
+#include "model/ci/endpointInfo.h"
 
 CiHandler::CiHandler () {}
 
@@ -40,6 +41,10 @@ Handler::Result CiHandler::handle (const Event& e)
             result = onCiDiscoveryInquiry (e);
         else if (type == CiDiscoveryReply::type)
             result = onCiDiscoveryReply (e);
+        else if (type == CiEndpointInquiry::type)
+            result = onCiEndpointInquiry (e);
+        else if (type == CiEndpointReply::type)
+            result = onCiEndpointReply (e);
         else
             result = onCiMessage (e);
     }

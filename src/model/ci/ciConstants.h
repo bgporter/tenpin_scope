@@ -39,9 +39,16 @@ constexpr int midiCi = 0x0D;
 
 namespace CiType
 {
-constexpr int discoveryInquiry = 0x70;
-constexpr int discoveryReply   = 0x71;
+constexpr int discoveryInquiry  = 0x70;
+constexpr int discoveryReply    = 0x71;
+constexpr int endpointInquiry   = 0x72;
+constexpr int endpointReply     = 0x73;
 } // namespace CiType
+
+namespace CiEndpointStatus
+{
+constexpr int productInstanceId = 0x00;
+} // namespace CiEndpointStatus
 
 namespace CiCategory
 {

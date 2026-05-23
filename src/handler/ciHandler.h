@@ -48,7 +48,9 @@ private:
     virtual Handler::Result preDispatch  (const Event& e) { return Handler::Result::ok; }
     virtual Handler::Result postDispatch (const Event& e, Handler::Result pendingResult) { return pendingResult; }
 
-    virtual Handler::Result onCiDiscoveryInquiry (const Event& e) { return defaultResult; }
-    virtual Handler::Result onCiDiscoveryReply   (const Event& e) { return defaultResult; }
-    virtual Handler::Result onCiMessage          (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiDiscoveryInquiry  (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiDiscoveryReply    (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiEndpointInquiry   (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiEndpointReply     (const Event& e) { return defaultResult; }
+    virtual Handler::Result onCiMessage           (const Event& e) { return defaultResult; }
 };

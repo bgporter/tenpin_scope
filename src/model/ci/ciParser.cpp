@@ -27,6 +27,7 @@
 #include "model/ci/ciConstants.h"
 #include "model/ci/ciMessage.h"
 #include "model/ci/discovery.h"
+#include "model/ci/endpointInfo.h"
 
 CiParser::CiParser (DeferFn deferFn)
 : defer { std::move (deferFn) }
@@ -51,6 +52,18 @@ void CiParser::parse (const Sysex7Message& msg)
         case CiType::discoveryReply:
         {
             CiDiscoveryReply ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::endpointInquiry:
+        {
+            CiEndpointInquiry ci { msg };
+            defer (ci);
+            break;
+        }
+        case CiType::endpointReply:
+        {
+            CiEndpointReply ci { msg };
             defer (ci);
             break;
         }
