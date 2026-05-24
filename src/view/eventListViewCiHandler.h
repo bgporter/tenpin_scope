@@ -70,6 +70,8 @@ private:
     Handler::Result onCiNak              (const Event& e) override;
     Handler::Result onCiAck              (const Event& e) override;
 
+    ValueFormatType valueFormat () const;
+
     AppContext appContext;
     PersistentContext pc;
     EventView* eventView  { nullptr };

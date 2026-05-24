@@ -1,67 +1,13 @@
 
 #include <juce_core/juce_core.h>
+#include "ciTestHelpers.inl"
 
-class Test_CiPropertyExchange : public TestSuite
+class Test_CiPropertyExchange : public CiTestHelpers
 {
 public:
     Test_CiPropertyExchange ()
-    : TestSuite ("CiPropertyExchange", "ci")
+    : CiTestHelpers ("CiPropertyExchange", "ci")
     {
-    }
-
-    bool noF0inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF0) return false;
-        return true;
-    }
-
-    bool noF7inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF7) return false;
-        return true;
-    }
-
-    int muidFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset])
-             | (static_cast<int> (buf[offset + 1]) << 7)
-             | (static_cast<int> (buf[offset + 2]) << 14)
-             | (static_cast<int> (buf[offset + 3]) << 21);
-    }
-
-    int wordFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset]) | (static_cast<int> (buf[offset + 1]) << 7);
-    }
-
-    // PE messages always hardcode deviceId = 0x7F (whole Function Block, §8.2)
-    void checkPeCiHeader (const Buffer& buf, int expectedType)
-    {
-        expectEquals (static_cast<int> (buf[0]), 0x7E, "buf[0] must be 0x7E, not 0xF0");
-        expectEquals (static_cast<int> (buf[1]), 0x7F, "PE device ID must be 0x7F (Function Block)");
-        expectEquals (static_cast<int> (buf[2]), 0x0D, "MIDI-CI sub-ID");
-        expectEquals (static_cast<int> (buf[3]), expectedType, "message type");
-        expect (static_cast<int> (buf[4]) >= messageFormatMin, "format must be >= 1");
-        expect (noF0inBuf (buf), "Buffer must not contain 0xF0");
-        expect (noF7inBuf (buf), "Buffer must not contain 0xF7");
-    }
-
-    Buffer::Ptr makeHeader (const char* json) const
-    {
-        Buffer::Ptr hdr = new Buffer ();
-        for (const char* p = json; *p; ++p)
-            hdr->append (static_cast<uint8_t> (*p));
-        return hdr;
-    }
-
-    Buffer::Ptr makeData (std::initializer_list<uint8_t> bytes) const
-    {
-        Buffer::Ptr buf = new Buffer ();
-        for (auto b : bytes)
-            buf->append (b);
-        return buf;
     }
 
     void runTest () override
@@ -80,7 +26,7 @@ public:
                   auto msg = inquiry.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peCapabilitiesInquiry);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peCapabilitiesInquiry, 1);
               });
 
         test ("CiPeCapabilitiesInquiry: v1 vs v2 size, majorVersion/minorVersion conditional",
@@ -134,7 +80,7 @@ public:
                   auto msg = inquiry.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peGetPropertyDataInquiry);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peGetPropertyDataInquiry, 1);
               });
 
         test ("CiPeGetPropertyDataInquiry: headerDataLength endianness, fixed chunks in wire",
@@ -182,7 +128,7 @@ public:
                   auto msg = reply.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peGetPropertyDataReply);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peGetPropertyDataReply, 1);
               });
 
         test ("CiPeGetPropertyDataReply: chunk field endianness (numberOfChunks = 256)",
@@ -233,7 +179,7 @@ public:
                   auto msg = inquiry.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peSetPropertyDataInquiry);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peSetPropertyDataInquiry, 1);
               });
 
         test ("CiPeSetPropertyDataInquiry: round-trip",
@@ -262,7 +208,7 @@ public:
                   auto msg = reply.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peSetPropertyDataReply);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peSetPropertyDataReply, 1);
                   // Fixed: numberOfChunks=1, chunkNumber=1, propertyDataLength=0
                   const int hl = wordFromBuf (*buf, 14);
                   const size_t afterHdr = 16 + static_cast<size_t> (hl);
@@ -295,7 +241,7 @@ public:
                   auto msg = inquiry.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peSubscriptionInquiry);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peSubscriptionInquiry, 1);
               });
 
         test ("CiPeSubscriptionInquiry: round-trip",
@@ -354,7 +300,7 @@ public:
                   auto msg = notify.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkPeCiHeader (*buf, CiType::peNotify);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::peNotify, 1);
                   expectEquals (static_cast<int> ((*buf)[3]), 0x3F, "Notify type byte is 0x3F");
               });
 

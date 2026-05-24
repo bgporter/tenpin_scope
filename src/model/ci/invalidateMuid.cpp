@@ -29,15 +29,10 @@ namespace
 constexpr size_t kTargetMuidIdx = 13;
 constexpr size_t kMinSize       = 17; // header (13) + targetMuid (4)
 
-void appendMidiLong (Buffer& buf, int value)
-{
-    MidiLong ml { value };
-    buf.append (static_cast<uint8_t> (ml.getLsb ()));
-    buf.append (static_cast<uint8_t> (ml.getByte2 ()));
-    buf.append (static_cast<uint8_t> (ml.getByte3 ()));
-    buf.append (static_cast<uint8_t> (ml.getMsb ()));
-}
 } // namespace
+
+using CiSerial::appendMidiLong;
+using CiSerial::parseMidiLong;
 
 CiInvalidateMuid::CiInvalidateMuid (const Sysex7Message& msg)
 : CiMessage { type.toString () }
@@ -46,11 +41,7 @@ CiInvalidateMuid::CiInvalidateMuid (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kMinSize)
         return;
-    targetMuid = MidiLong { static_cast<int> ((*buf)[kTargetMuidIdx]),
-                            static_cast<int> ((*buf)[kTargetMuidIdx + 1]),
-                            static_cast<int> ((*buf)[kTargetMuidIdx + 2]),
-                            static_cast<int> ((*buf)[kTargetMuidIdx + 3]) }
-                     .get ();
+    targetMuid = parseMidiLong (*buf, kTargetMuidIdx);
 }
 
 CiInvalidateMuid::CiInvalidateMuid (const Event& e)

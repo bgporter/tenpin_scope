@@ -33,8 +33,10 @@
 /**
  * @brief CI Invalidate MUID (0x7E). One-way — no reply.
  *
- * Destination MUID is always broadcast. Payload:
- *   [13..16] target MUID (the MUID being invalidated, LSB first)
+ * Destination MUID is always broadcast (0x0FFFFFFF).
+ *
+ * Wire format payload (after common CI header at buf[13]):
+ *   [13..16] Target MUID (4 bytes, 7-bit each, LSB first)
  */
 struct CiInvalidateMuid : public CiMessage
 {

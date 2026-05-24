@@ -1,49 +1,13 @@
 
 #include <juce_core/juce_core.h>
+#include "ciTestHelpers.inl"
 
-class Test_CiAck : public TestSuite
+class Test_CiAck : public CiTestHelpers
 {
 public:
     Test_CiAck ()
-    : TestSuite ("CiAck", "ci")
+    : CiTestHelpers ("CiAck", "ci")
     {
-    }
-
-    bool noF0inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF0) return false;
-        return true;
-    }
-
-    bool noF7inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF7) return false;
-        return true;
-    }
-
-    int muidFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset])
-             | (static_cast<int> (buf[offset + 1]) << 7)
-             | (static_cast<int> (buf[offset + 2]) << 14)
-             | (static_cast<int> (buf[offset + 3]) << 21);
-    }
-
-    int wordFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset]) | (static_cast<int> (buf[offset + 1]) << 7);
-    }
-
-    void checkCommonCiHeader (const Buffer& buf, int expectedType)
-    {
-        expectEquals (static_cast<int> (buf[0]), 0x7E, "buf[0] must be 0x7E, not 0xF0");
-        expectEquals (static_cast<int> (buf[2]), 0x0D, "MIDI-CI sub-ID");
-        expectEquals (static_cast<int> (buf[3]), expectedType, "message type");
-        expect (static_cast<int> (buf[4]) >= messageFormatMin, "format must be >= 1");
-        expect (noF0inBuf (buf), "Buffer must not contain 0xF0");
-        expect (noF7inBuf (buf), "Buffer must not contain 0xF7");
     }
 
     std::array<uint8_t, 5> makeDetails (uint8_t a, uint8_t b, uint8_t c, uint8_t d, uint8_t e)
@@ -72,7 +36,7 @@ public:
                   auto sysex = msg.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = sysex.data.get ();
                   expect (buf != nullptr);
-                  checkCommonCiHeader (*buf, CiType::ack);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::ack, 1);
               });
 
         test ("CiAck: MUID endianness",
@@ -125,9 +89,9 @@ public:
                   expectEquals (recovered.originalSubId.get (), CiType::discoveryInquiry);
                   expectEquals (recovered.statusCode.get (),    CiAckStatus::ack);
                   expectEquals (recovered.statusData.get (),    7);
-                  expectEquals (recovered.ackDetail0.get (),    1);
-                  expectEquals (recovered.ackDetail1.get (),    2);
-                  expectEquals (recovered.ackDetail4.get (),    5);
+                  expectEquals (recovered.detail0.get (),    1);
+                  expectEquals (recovered.detail1.get (),    2);
+                  expectEquals (recovered.detail4.get (),    5);
                   expect (static_cast<juce::String> (recovered.messageText) == text);
               });
 
@@ -159,7 +123,7 @@ public:
                   auto sysex = msg.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = sysex.data.get ();
                   expect (buf != nullptr);
-                  checkCommonCiHeader (*buf, CiType::nak);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::nak, 1);
                   // Confirm it's NAK (0x7F), not ACK (0x7D)
                   expectEquals (static_cast<int> ((*buf)[3]), 0x7F, "NAK type byte");
               });
@@ -181,8 +145,8 @@ public:
                   expectEquals (recovered.originalSubId.get (), CiType::discoveryInquiry);
                   expectEquals (recovered.statusCode.get (),    CiNakStatus::messageNotSupported);
                   expectEquals (recovered.statusData.get (),    3);
-                  expectEquals (recovered.nakDetail0.get (),    1);
-                  expectEquals (recovered.nakDetail4.get (),    5);
+                  expectEquals (recovered.detail0.get (),    1);
+                  expectEquals (recovered.detail4.get (),    5);
                   expect (static_cast<juce::String> (recovered.messageText) == text);
               });
 

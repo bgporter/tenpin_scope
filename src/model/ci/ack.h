@@ -69,11 +69,11 @@ struct CiNak : public CiMessage
     MAKE_VALUE_MEMBER (int, statusData, 0);
 
     // Branch-specific detail bytes (5 fixed).
-    MAKE_VALUE_MEMBER (int, nakDetail0, 0);
-    MAKE_VALUE_MEMBER (int, nakDetail1, 0);
-    MAKE_VALUE_MEMBER (int, nakDetail2, 0);
-    MAKE_VALUE_MEMBER (int, nakDetail3, 0);
-    MAKE_VALUE_MEMBER (int, nakDetail4, 0);
+    MAKE_VALUE_MEMBER (int, detail0, 0);
+    MAKE_VALUE_MEMBER (int, detail1, 0);
+    MAKE_VALUE_MEMBER (int, detail2, 0);
+    MAKE_VALUE_MEMBER (int, detail3, 0);
+    MAKE_VALUE_MEMBER (int, detail4, 0);
 
     // Human-readable message text (7-bit ASCII; \u escapes left as-is).
     MAKE_VALUE_MEMBER (juce::String, messageText, "");
@@ -118,11 +118,11 @@ struct CiAck : public CiMessage
     MAKE_VALUE_MEMBER (int, statusData, 0);
 
     // Branch-specific detail bytes (5 fixed).
-    MAKE_VALUE_MEMBER (int, ackDetail0, 0);
-    MAKE_VALUE_MEMBER (int, ackDetail1, 0);
-    MAKE_VALUE_MEMBER (int, ackDetail2, 0);
-    MAKE_VALUE_MEMBER (int, ackDetail3, 0);
-    MAKE_VALUE_MEMBER (int, ackDetail4, 0);
+    MAKE_VALUE_MEMBER (int, detail0, 0);
+    MAKE_VALUE_MEMBER (int, detail1, 0);
+    MAKE_VALUE_MEMBER (int, detail2, 0);
+    MAKE_VALUE_MEMBER (int, detail3, 0);
+    MAKE_VALUE_MEMBER (int, detail4, 0);
 
     // Human-readable message text (7-bit ASCII; \u escapes left as-is).
     MAKE_VALUE_MEMBER (juce::String, messageText, "");

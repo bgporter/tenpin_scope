@@ -123,6 +123,35 @@ template <typename T> void addExtraData (EventView* view, const T& m)
             view->addValue ("", formatValue ((*extra)[i], 8, ValueFormatType::Hex));
     }
 }
+
+template <typename T>
+void displayAckNak (EventView* view, const juce::String& title, const T& m, ValueFormatType fmt)
+{
+    view->setEvent (title);
+    view->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
+    view->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
+    view->addLine ();
+    view->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
+    view->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
+    view->addLine ();
+    view->addValue ("orig sub-ID",
+                    formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
+    view->addValue ("status", formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
+    view->addValue ("status data", formatValue (static_cast<uint32_t> (m.statusData.get ()), 8, fmt));
+    view->addLine ();
+    view->addValue ("details",
+                    formatValue (static_cast<uint32_t> (m.detail0.get ()), 8, ValueFormatType::Hex) + " " +
+                        formatValue (static_cast<uint32_t> (m.detail1.get ()), 8, ValueFormatType::Hex) + " " +
+                        formatValue (static_cast<uint32_t> (m.detail2.get ()), 8, ValueFormatType::Hex) + " " +
+                        formatValue (static_cast<uint32_t> (m.detail3.get ()), 8, ValueFormatType::Hex) + " " +
+                        formatValue (static_cast<uint32_t> (m.detail4.get ()), 8, ValueFormatType::Hex));
+    const auto text = static_cast<juce::String> (m.messageText);
+    if (text.isNotEmpty ())
+    {
+        view->addLine ();
+        view->addValue ("message", text);
+    }
+}
 } // namespace
 
 // ============================================================================
@@ -154,6 +183,12 @@ Handler::Result EventListViewCiHandler::handle (const Event& e, void* ctx)
     return CiHandler::handle (e, ctx);
 }
 
+ValueFormatType EventListViewCiHandler::valueFormat () const
+{
+    const auto fmt = pc.eventViewContext.valueFormatType.get ();
+    return (fmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+}
+
 Handler::Result EventListViewCiHandler::preDispatch (const Event& e)
 {
     if (!eventView)
@@ -173,8 +208,7 @@ Handler::Result EventListViewCiHandler::postDispatch (const Event& /*e*/, Handle
 Handler::Result EventListViewCiHandler::onCiEndpointInquiry (const Event& e)
 {
     CiEndpointInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Endpoint Inquiry");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -190,8 +224,7 @@ Handler::Result EventListViewCiHandler::onCiEndpointInquiry (const Event& e)
 Handler::Result EventListViewCiHandler::onCiEndpointReply (const Event& e)
 {
     CiEndpointReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Endpoint Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -208,8 +241,7 @@ Handler::Result EventListViewCiHandler::onCiEndpointReply (const Event& e)
 Handler::Result EventListViewCiHandler::onCiInvalidateMuid (const Event& e)
 {
     CiInvalidateMuid m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Invalidate MUID");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -223,74 +255,21 @@ Handler::Result EventListViewCiHandler::onCiInvalidateMuid (const Event& e)
 Handler::Result EventListViewCiHandler::onCiNak (const Event& e)
 {
     CiNak m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
-
-    eventView->setEvent ("CI NAK");
-    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
-    eventView->addLine ();
-    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
-    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
-    eventView->addLine ();
-    eventView->addValue ("orig sub-ID",
-                         formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
-    eventView->addValue ("status", formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
-    eventView->addValue ("status data", formatValue (static_cast<uint32_t> (m.statusData.get ()), 8, fmt));
-    eventView->addLine ();
-    eventView->addValue ("details",
-                         formatValue (static_cast<uint32_t> (m.nakDetail0.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.nakDetail1.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.nakDetail2.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.nakDetail3.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.nakDetail4.get ()), 8, ValueFormatType::Hex));
-    const auto text = static_cast<juce::String> (m.messageText);
-    if (text.isNotEmpty ())
-    {
-        eventView->addLine ();
-        eventView->addValue ("message", text);
-    }
+    displayAckNak (eventView, "CI NAK", m, valueFormat ());
     return Handler::Result::ok;
 }
 
 Handler::Result EventListViewCiHandler::onCiAck (const Event& e)
 {
     CiAck m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
-
-    eventView->setEvent ("CI ACK");
-    eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
-    eventView->addValue ("grp", juce::String (static_cast<int> (m.userGroup)));
-    eventView->addLine ();
-    eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
-    eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
-    eventView->addLine ();
-    eventView->addValue ("orig sub-ID",
-                         formatValue (static_cast<uint32_t> (m.originalSubId.get ()), 8, ValueFormatType::Hex));
-    eventView->addValue ("status", formatValue (static_cast<uint32_t> (m.statusCode.get ()), 8, fmt));
-    eventView->addValue ("status data", formatValue (static_cast<uint32_t> (m.statusData.get ()), 8, fmt));
-    eventView->addLine ();
-    eventView->addValue ("details",
-                         formatValue (static_cast<uint32_t> (m.ackDetail0.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.ackDetail1.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.ackDetail2.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.ackDetail3.get ()), 8, ValueFormatType::Hex) + " " +
-                             formatValue (static_cast<uint32_t> (m.ackDetail4.get ()), 8, ValueFormatType::Hex));
-    const auto text = static_cast<juce::String> (m.messageText);
-    if (text.isNotEmpty ())
-    {
-        eventView->addLine ();
-        eventView->addValue ("message", text);
-    }
+    displayAckNak (eventView, "CI ACK", m, valueFormat ());
     return Handler::Result::ok;
 }
 
 Handler::Result EventListViewCiHandler::onCiPeCapabilitiesInquiry (const Event& e)
 {
     CiPeCapabilitiesInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI PE Capabilities Inquiry");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -311,8 +290,7 @@ Handler::Result EventListViewCiHandler::onCiPeCapabilitiesInquiry (const Event& 
 Handler::Result EventListViewCiHandler::onCiPeCapabilitiesReply (const Event& e)
 {
     CiPeCapabilitiesReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI PE Capabilities Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -333,8 +311,7 @@ Handler::Result EventListViewCiHandler::onCiPeCapabilitiesReply (const Event& e)
 Handler::Result EventListViewCiHandler::onCiPeGetPropertyDataInquiry (const Event& e)
 {
     CiPeGetPropertyDataInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI PE Get Property Data");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -355,8 +332,7 @@ Handler::Result EventListViewCiHandler::onCiPeGetPropertyDataInquiry (const Even
 Handler::Result EventListViewCiHandler::onCiPeGetPropertyDataReply (const Event& e)
 {
     CiPeGetPropertyDataReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI PE Get Property Data Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -392,8 +368,7 @@ Handler::Result EventListViewCiHandler::onCiPeGetPropertyDataReply (const Event&
 Handler::Result EventListViewCiHandler::onCiPeSetPropertyDataInquiry (const Event& e)
 {
     CiPeSetPropertyDataInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI PE Set Property Data");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -429,8 +404,7 @@ Handler::Result EventListViewCiHandler::onCiPeSetPropertyDataInquiry (const Even
 Handler::Result EventListViewCiHandler::onCiPeSetPropertyDataReply (const Event& e)
 {
     CiPeSetPropertyDataReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI PE Set Property Data Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -487,8 +461,7 @@ static Handler::Result displayPeSubscription (EventView* eventView, const juce::
 Handler::Result EventListViewCiHandler::onCiPeSubscriptionInquiry (const Event& e)
 {
     CiPeSubscriptionInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
     return displayPeSubscription (eventView, "CI PE Subscription",
                                   m.deviceId.get (), static_cast<int> (m.userGroup),
                                   m.sourceMuid.get (), m.destMuid.get (), m.requestId.get (),
@@ -499,8 +472,7 @@ Handler::Result EventListViewCiHandler::onCiPeSubscriptionInquiry (const Event& 
 Handler::Result EventListViewCiHandler::onCiPeSubscriptionReply (const Event& e)
 {
     CiPeSubscriptionReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
     return displayPeSubscription (eventView, "CI PE Subscription Reply",
                                   m.deviceId.get (), static_cast<int> (m.userGroup),
                                   m.sourceMuid.get (), m.destMuid.get (), m.requestId.get (),
@@ -513,8 +485,7 @@ Handler::Result EventListViewCiHandler::onCiPeNotify (const Event& e)
     // Notify (0x3F) is deprecated in MIDI-CI v1.1; ACK/NAK should be used instead.
     // Displayed for backward compatibility with legacy devices.
     CiPeNotify m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
     return displayPeSubscription (eventView, "CI PE Notify (deprecated)",
                                   m.deviceId.get (), static_cast<int> (m.userGroup),
                                   m.sourceMuid.get (), m.destMuid.get (), m.requestId.get (),
@@ -525,8 +496,7 @@ Handler::Result EventListViewCiHandler::onCiPeNotify (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileInquiry (const Event& e)
 {
     CiProfileInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Inquiry");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -540,8 +510,7 @@ Handler::Result EventListViewCiHandler::onCiProfileInquiry (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileInquiryReply (const Event& e)
 {
     CiProfileInquiryReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Inquiry Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -575,8 +544,7 @@ Handler::Result EventListViewCiHandler::onCiProfileInquiryReply (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileSetOn (const Event& e)
 {
     CiProfileSetOn m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Set Profile On");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -594,8 +562,7 @@ Handler::Result EventListViewCiHandler::onCiProfileSetOn (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileSetOff (const Event& e)
 {
     CiProfileSetOff m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Set Profile Off");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -611,8 +578,7 @@ Handler::Result EventListViewCiHandler::onCiProfileSetOff (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileEnabled (const Event& e)
 {
     CiProfileEnabled m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Enabled");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -630,8 +596,7 @@ Handler::Result EventListViewCiHandler::onCiProfileEnabled (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileDisabled (const Event& e)
 {
     CiProfileDisabled m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Disabled");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -649,8 +614,7 @@ Handler::Result EventListViewCiHandler::onCiProfileDisabled (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileAdded (const Event& e)
 {
     CiProfileAdded m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Added");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -666,8 +630,7 @@ Handler::Result EventListViewCiHandler::onCiProfileAdded (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileRemoved (const Event& e)
 {
     CiProfileRemoved m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Removed");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -683,8 +646,7 @@ Handler::Result EventListViewCiHandler::onCiProfileRemoved (const Event& e)
 Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiry (const Event& e)
 {
     CiProfileDetailsInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Details Inquiry");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -702,8 +664,7 @@ Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiry (const Event& 
 Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiryReply (const Event& e)
 {
     CiProfileDetailsInquiryReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Details Reply");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -729,8 +690,7 @@ Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiryReply (const Ev
 Handler::Result EventListViewCiHandler::onCiProfileSpecificData (const Event& e)
 {
     CiProfileSpecificData m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Profile Specific Data");
     eventView->addValue ("device ID", formatDeviceId (m.deviceId.get ()));
@@ -754,8 +714,7 @@ Handler::Result EventListViewCiHandler::onCiProfileSpecificData (const Event& e)
 Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 {
     CiDiscoveryInquiry m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Discovery Inquiry");
     addDiscoveryCommonFields (eventView, m, fmt);
@@ -770,8 +729,7 @@ Handler::Result EventListViewCiHandler::onCiDiscoveryInquiry (const Event& e)
 Handler::Result EventListViewCiHandler::onCiDiscoveryReply (const Event& e)
 {
     CiDiscoveryReply m { e };
-    const auto rawFmt = pc.eventViewContext.valueFormatType.get ();
-    const auto fmt    = (rawFmt == ValueFormatType::Decimal) ? ValueFormatType::Decimal : ValueFormatType::Hex;
+    const auto fmt = valueFormat ();
 
     eventView->setEvent ("CI Discovery Reply");
     addDiscoveryCommonFields (eventView, m, fmt);

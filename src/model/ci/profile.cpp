@@ -32,24 +32,9 @@ constexpr size_t kMinSize     = 13; // header only — profile lists may be empt
 constexpr size_t kProfileIdx  = 13; // offset of single ProfileId in Added/Removed messages
 constexpr size_t kProfileSize = CiProfileInquiryReply::kProfileSize;
 
-void appendMidiLong (Buffer& buf, int value)
-{
-    MidiLong ml { value };
-    buf.append (static_cast<uint8_t> (ml.getLsb ()));
-    buf.append (static_cast<uint8_t> (ml.getByte2 ()));
-    buf.append (static_cast<uint8_t> (ml.getByte3 ()));
-    buf.append (static_cast<uint8_t> (ml.getMsb ()));
-}
-
 void appendCommonHeader (Buffer& buf, int devId, int msgType, int msgFmt, int src, int dst)
 {
-    buf.append (0x7E);
-    buf.append (static_cast<uint8_t> (devId));
-    buf.append (static_cast<uint8_t> (CiSubId::midiCi));
-    buf.append (static_cast<uint8_t> (msgType));
-    buf.append (static_cast<uint8_t> (std::max (msgFmt, messageFormatMin)));
-    appendMidiLong (buf, src);
-    appendMidiLong (buf, dst);
+    CiSerial::appendCommonHeader (buf, msgType, msgFmt, src, dst, devId);
 }
 
 void appendProfileId (Buffer& buf, ProfileId p)
@@ -84,6 +69,9 @@ void ensureBuffer (Buffer::Ptr& buf)
         buf = new Buffer ();
 }
 } // namespace
+
+using CiSerial::appendMidiLong;
+using CiSerial::parseMidiLong;
 
 // ============================================================================
 // CiProfileInquiry
@@ -827,11 +815,7 @@ CiProfileSpecificData::CiProfileSpecificData (const Sysex7Message& msg)
     profileByte4 = static_cast<int> ((*buf)[kSpecificProfileIdx + 3]);
     profileByte5 = static_cast<int> ((*buf)[kSpecificProfileIdx + 4]);
 
-    const size_t dataLen = static_cast<size_t> (
-        MidiLong { static_cast<int> ((*buf)[kSpecificDataLenIdx]),
-                   static_cast<int> ((*buf)[kSpecificDataLenIdx + 1]),
-                   static_cast<int> ((*buf)[kSpecificDataLenIdx + 2]),
-                   static_cast<int> ((*buf)[kSpecificDataLenIdx + 3]) }.get ());
+    const size_t dataLen = static_cast<size_t> (parseMidiLong (*buf, kSpecificDataLenIdx));
 
     if (dataLen > 0 && kSpecificDataStart + dataLen <= buf->size ())
     {

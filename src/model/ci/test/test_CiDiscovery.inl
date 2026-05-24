@@ -1,61 +1,14 @@
 
 #include <juce_core/juce_core.h>
+#include "ciTestHelpers.inl"
 
-class Test_CiDiscovery : public TestSuite
+class Test_CiDiscovery : public CiTestHelpers
 {
 public:
     Test_CiDiscovery ()
-    : TestSuite ("CiDiscovery", "ci")
+    : CiTestHelpers ("CiDiscovery", "ci")
     {
     }
-
-    // -----------------------------------------------------------------------
-    // Helpers shared across all subtests
-
-    bool noF0inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF0) return false;
-        return true;
-    }
-
-    bool noF7inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF7) return false;
-        return true;
-    }
-
-    // Reconstruct a 28-bit MUID from 4 × 7-bit bytes at buf[offset..offset+3].
-    int muidFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset])
-             | (static_cast<int> (buf[offset + 1]) << 7)
-             | (static_cast<int> (buf[offset + 2]) << 14)
-             | (static_cast<int> (buf[offset + 3]) << 21);
-    }
-
-    // Reconstruct a 14-bit word from 2 × 7-bit bytes at buf[offset..offset+1].
-    int wordFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset]) | (static_cast<int> (buf[offset + 1]) << 7);
-    }
-
-    void checkCommonCiHeader (const Buffer& buf, int expectedDeviceId,
-                               int expectedType, int expectedFormat)
-    {
-        // Must start with 0x7E (Universal SysEx), never 0xF0 (MIDI1 SysEx start)
-        expectEquals (static_cast<int> (buf[0]), 0x7E, "buf[0] must be 0x7E, not 0xF0");
-        expectEquals (static_cast<int> (buf[1]), expectedDeviceId, "device ID");
-        expectEquals (static_cast<int> (buf[2]), 0x0D, "MIDI-CI sub-ID");
-        expectEquals (static_cast<int> (buf[3]), expectedType, "message type");
-        expect (static_cast<int> (buf[4]) >= messageFormatMin, "format must be >= 1");
-        expectEquals (static_cast<int> (buf[4]), expectedFormat, "format byte");
-        expect (noF0inBuf (buf), "Buffer must not contain 0xF0");
-        expect (noF7inBuf (buf), "Buffer must not contain 0xF7");
-    }
-
-    // -----------------------------------------------------------------------
 
     void runTest () override
     {

@@ -1,49 +1,13 @@
 
 #include <juce_core/juce_core.h>
+#include "ciTestHelpers.inl"
 
-class Test_CiProfile : public TestSuite
+class Test_CiProfile : public CiTestHelpers
 {
 public:
     Test_CiProfile ()
-    : TestSuite ("CiProfile", "ci")
+    : CiTestHelpers ("CiProfile", "ci")
     {
-    }
-
-    bool noF0inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF0) return false;
-        return true;
-    }
-
-    bool noF7inBuf (const Buffer& buf) const
-    {
-        for (size_t i = 0; i < buf.size (); ++i)
-            if (buf[i] == 0xF7) return false;
-        return true;
-    }
-
-    int muidFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset])
-             | (static_cast<int> (buf[offset + 1]) << 7)
-             | (static_cast<int> (buf[offset + 2]) << 14)
-             | (static_cast<int> (buf[offset + 3]) << 21);
-    }
-
-    int wordFromBuf (const Buffer& buf, size_t offset) const
-    {
-        return static_cast<int> (buf[offset]) | (static_cast<int> (buf[offset + 1]) << 7);
-    }
-
-    void checkCommonCiHeader (const Buffer& buf, int expectedType)
-    {
-        expectEquals (static_cast<int> (buf[0]), 0x7E, "buf[0] must be 0x7E, not 0xF0");
-        expectEquals (static_cast<int> (buf[2]), 0x0D, "MIDI-CI sub-ID");
-        expectEquals (static_cast<int> (buf[3]), expectedType, "message type");
-        expect (static_cast<int> (buf[4]) >= messageFormatMin, "format must be >= 1");
-        expect (noF0inBuf (buf), "Buffer must not contain 0xF0");
-        expect (noF7inBuf (buf), "Buffer must not contain 0xF7");
     }
 
     ProfileId stdProfile () const { return { 0x7E, 0x00, 0x21, 0x01, 0x01 }; }
@@ -65,7 +29,7 @@ public:
                   auto msg = inquiry.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkCommonCiHeader (*buf, CiType::profileInquiry);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::profileInquiry, 1);
                   // Header-only: 13 bytes (no payload beyond common header)
                   expectEquals (static_cast<int> (buf->size ()), 13);
               });
@@ -93,7 +57,7 @@ public:
                   auto msg = reply.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
                   expect (buf != nullptr);
-                  checkCommonCiHeader (*buf, CiType::profileInquiryReply);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::profileInquiryReply, 1);
                   // cep at buf[13..14], LSB first
                   const int cep = wordFromBuf (*buf, 13);
                   expectEquals (cep, 2, "enabled profile count");
@@ -139,7 +103,7 @@ public:
                   CiProfileSetOn setOn { group, srcMuid, dstMuid, stdProfile (), 4 };
                   auto v1 = setOn.toSysex7Message (MidiNibble { group }, 1);
                   auto v2 = setOn.toSysex7Message (MidiNibble { group }, 2);
-                  checkCommonCiHeader (*v1.data.get (), CiType::profileSetOn);
+                  checkCommonCiHeader (*v1.data.get (), CiDeviceId::functionBlock, CiType::profileSetOn, 1);
                   expect (v1.data.get ()->size () == 18, "v1: no channelsRequested");
                   expect (v2.data.get ()->size () == 20, "v2: channelsRequested added");
 
@@ -164,7 +128,7 @@ public:
               {
                   CiProfileSetOff original { group, srcMuid, dstMuid, stdProfile () };
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
-                  checkCommonCiHeader (*msg.data.get (), CiType::profileSetOff);
+                  checkCommonCiHeader (*msg.data.get (), CiDeviceId::functionBlock, CiType::profileSetOff, 1);
                   CiProfileSetOff recovered { msg };
                   expect (recovered.profileId () == stdProfile ());
                   expectEquals (recovered.sourceMuid.get (), srcMuid);
@@ -182,8 +146,8 @@ public:
                   auto dv1 = disabled.toSysex7Message (MidiNibble { group }, 1);
                   auto dv2 = disabled.toSysex7Message (MidiNibble { group }, 2);
 
-                  checkCommonCiHeader (*ev1.data.get (), CiType::profileEnabled);
-                  checkCommonCiHeader (*dv1.data.get (), CiType::profileDisabled);
+                  checkCommonCiHeader (*ev1.data.get (), CiDeviceId::functionBlock, CiType::profileEnabled, 1);
+                  checkCommonCiHeader (*dv1.data.get (), CiDeviceId::functionBlock, CiType::profileDisabled, 1);
                   expect (ev1.data.get ()->size () == 18, "Enabled v1: no channelsEnabled");
                   expect (ev2.data.get ()->size () == 20, "Enabled v2: channelsEnabled added");
 
@@ -202,8 +166,8 @@ public:
 
                   auto am = added.toSysex7Message   (MidiNibble { group }, 1);
                   auto rm = removed.toSysex7Message (MidiNibble { group }, 1);
-                  checkCommonCiHeader (*am.data.get (), CiType::profileAdded);
-                  checkCommonCiHeader (*rm.data.get (), CiType::profileRemoved);
+                  checkCommonCiHeader (*am.data.get (), CiDeviceId::functionBlock, CiType::profileAdded, 1);
+                  checkCommonCiHeader (*rm.data.get (), CiDeviceId::functionBlock, CiType::profileRemoved, 1);
 
                   CiProfileAdded   ra { am };
                   CiProfileRemoved rr { rm };
@@ -218,7 +182,7 @@ public:
                   CiProfileDetailsInquiry original { group, srcMuid, dstMuid,
                                                      stdProfile (), MidiByte { 0x01 } };
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
-                  checkCommonCiHeader (*msg.data.get (), CiType::profileDetailsInquiry);
+                  checkCommonCiHeader (*msg.data.get (), CiDeviceId::functionBlock, CiType::profileDetailsInquiry, 1);
                   CiProfileDetailsInquiry recovered { msg };
                   expect (recovered.profileId () == stdProfile ());
                   expectEquals (recovered.inquiryTarget.get (), 0x01);
@@ -237,7 +201,7 @@ public:
                   // targetFormat ignored — always serialized as format 2
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
-                  checkCommonCiHeader (*buf, CiType::profileDetailsInquiryReply);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::profileDetailsInquiryReply, 2);
                   expectEquals (static_cast<int> ((*buf)[4]), 0x02, "format byte always 0x02");
 
                   // targetDataLength at buf[19..20], LSB first: value = 3
@@ -264,7 +228,7 @@ public:
                   CiProfileSpecificData original { group, srcMuid, dstMuid, stdProfile (), data };
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
                   auto buf = msg.data.get ();
-                  checkCommonCiHeader (*buf, CiType::profileSpecificData);
+                  checkCommonCiHeader (*buf, CiDeviceId::functionBlock, CiType::profileSpecificData, 1);
 
                   // 4-byte data length at buf[18..21], MidiLong LSB first; value = 6
                   const int fromBuf = muidFromBuf (*buf, 18);

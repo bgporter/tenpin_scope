@@ -61,15 +61,10 @@ Buffer::Ptr collectExtraBytes (const Buffer& src, size_t start, size_t end)
     return extra;
 }
 
-void appendMidiLong (Buffer& buf, int value)
-{
-    MidiLong ml { value };
-    buf.append (static_cast<uint8_t> (ml.getLsb ()));
-    buf.append (static_cast<uint8_t> (ml.getByte2 ()));
-    buf.append (static_cast<uint8_t> (ml.getByte3 ()));
-    buf.append (static_cast<uint8_t> (ml.getMsb ()));
-}
 } // namespace
+
+using CiSerial::appendMidiLong;
+using CiSerial::parseMidiLong;
 
 // ============================================================================
 // CiDiscoveryInquiry
@@ -96,11 +91,7 @@ CiDiscoveryInquiry::CiDiscoveryInquiry (const Sysex7Message& msg)
     revisionByte2     = static_cast<int> ((*buf)[kRev2]);
     revisionByte3     = static_cast<int> ((*buf)[kRev3]);
     ciCategoriesSupported = static_cast<int> ((*buf)[kCategories]);
-    maxSysexSize      = MidiLong { static_cast<int> ((*buf)[kMaxSysexLsb]),
-                                   static_cast<int> ((*buf)[kMaxSysexLsb + 1]),
-                                   static_cast<int> ((*buf)[kMaxSysexLsb + 2]),
-                                   static_cast<int> ((*buf)[kMaxSysexLsb + 3]) }
-                            .get ();
+    maxSysexSize      = parseMidiLong (*buf, kMaxSysexLsb);
 
     if (buf->size () >= kInquiryFormat2MinSize)
         outputPathId = static_cast<int> ((*buf)[kOutputPathId]);
@@ -207,11 +198,7 @@ CiDiscoveryReply::CiDiscoveryReply (const Sysex7Message& msg)
     revisionByte2        = static_cast<int> ((*buf)[kRev2]);
     revisionByte3        = static_cast<int> ((*buf)[kRev3]);
     ciCategoriesSupported = static_cast<int> ((*buf)[kCategories]);
-    maxSysexSize         = MidiLong { static_cast<int> ((*buf)[kMaxSysexLsb]),
-                                      static_cast<int> ((*buf)[kMaxSysexLsb + 1]),
-                                      static_cast<int> ((*buf)[kMaxSysexLsb + 2]),
-                                      static_cast<int> ((*buf)[kMaxSysexLsb + 3]) }
-                               .get ();
+    maxSysexSize         = parseMidiLong (*buf, kMaxSysexLsb);
 
     if (buf->size () >= kInquiryFormat2MinSize)
         outputPathId = static_cast<int> ((*buf)[kOutputPathId]);

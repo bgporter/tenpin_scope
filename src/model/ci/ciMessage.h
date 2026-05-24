@@ -33,6 +33,50 @@
 
 struct Sysex7Message;
 
+// ---------------------------------------------------------------------------
+// Shared serialization helpers used by all CI toSysex7Message() implementations.
+
+namespace CiSerial
+{
+
+// Append a 28-bit value as 4 × 7-bit bytes, LSB first.
+inline void appendMidiLong (Buffer& buf, int value)
+{
+    MidiLong ml { value };
+    buf.append (static_cast<uint8_t> (ml.getLsb ()));
+    buf.append (static_cast<uint8_t> (ml.getByte2 ()));
+    buf.append (static_cast<uint8_t> (ml.getByte3 ()));
+    buf.append (static_cast<uint8_t> (ml.getMsb ()));
+}
+
+// Read a 28-bit value from 4 × 7-bit bytes at buf[offset], LSB first.
+inline int parseMidiLong (const Buffer& buf, size_t offset)
+{
+    return MidiLong { static_cast<int> (buf[offset]),
+                      static_cast<int> (buf[offset + 1]),
+                      static_cast<int> (buf[offset + 2]),
+                      static_cast<int> (buf[offset + 3]) }.get ();
+}
+
+// Append the 13-byte common CI SysEx header and both MUIDs.
+// deviceId defaults to CiDeviceId::functionBlock (0x7F) for PE and most CI messages.
+inline void appendCommonHeader (Buffer& buf, int msgType, int msgFmt,
+                                int src, int dst,
+                                int deviceId = CiDeviceId::functionBlock)
+{
+    buf.append (0x7E);
+    buf.append (static_cast<uint8_t> (deviceId));
+    buf.append (static_cast<uint8_t> (CiSubId::midiCi));
+    buf.append (static_cast<uint8_t> (msgType));
+    buf.append (static_cast<uint8_t> (std::max (msgFmt, messageFormatMin)));
+    appendMidiLong (buf, src);
+    appendMidiLong (buf, dst);
+}
+
+} // namespace CiSerial
+
+// ---------------------------------------------------------------------------
+
 /**
  * @brief Abstract base for all MIDI-CI assembled messages.
  *

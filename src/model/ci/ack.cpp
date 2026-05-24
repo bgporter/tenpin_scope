@@ -33,15 +33,11 @@ constexpr size_t kDetailStart  = 16; // 5 bytes: [16..20]
 constexpr size_t kMlLsb        = 21; // 2-byte message length LSB first
 constexpr size_t kTextStart    = 23;
 constexpr size_t kMinSize      = 23; // header(13) + 8 fixed payload + 2 ml bytes
+} // namespace
 
-void appendMidiLong (Buffer& buf, int value)
-{
-    MidiLong ml { value };
-    buf.append (static_cast<uint8_t> (ml.getLsb ()));
-    buf.append (static_cast<uint8_t> (ml.getByte2 ()));
-    buf.append (static_cast<uint8_t> (ml.getByte3 ()));
-    buf.append (static_cast<uint8_t> (ml.getMsb ()));
-}
+using CiSerial::appendMidiLong;
+
+namespace {
 
 // Accept 7-bit ASCII printable chars plus line feed; skip anything else.
 juce::String parseMessageText (const Buffer& buf, size_t start, size_t count)
@@ -72,11 +68,11 @@ CiNak::CiNak (const Sysex7Message& msg)
     originalSubId = static_cast<int> ((*buf)[kOrigSubIdIdx]);
     statusCode    = static_cast<int> ((*buf)[kStatusCode]);
     statusData    = static_cast<int> ((*buf)[kStatusData]);
-    nakDetail0    = static_cast<int> ((*buf)[kDetailStart]);
-    nakDetail1    = static_cast<int> ((*buf)[kDetailStart + 1]);
-    nakDetail2    = static_cast<int> ((*buf)[kDetailStart + 2]);
-    nakDetail3    = static_cast<int> ((*buf)[kDetailStart + 3]);
-    nakDetail4    = static_cast<int> ((*buf)[kDetailStart + 4]);
+    detail0    = static_cast<int> ((*buf)[kDetailStart]);
+    detail1    = static_cast<int> ((*buf)[kDetailStart + 1]);
+    detail2    = static_cast<int> ((*buf)[kDetailStart + 2]);
+    detail3    = static_cast<int> ((*buf)[kDetailStart + 3]);
+    detail4    = static_cast<int> ((*buf)[kDetailStart + 4]);
 
     const size_t ml = static_cast<size_t> ((*buf)[kMlLsb]) |
                       (static_cast<size_t> ((*buf)[kMlLsb + 1]) << 7);
@@ -109,11 +105,11 @@ CiNak::CiNak (MidiGroup theGroup, int sourceMuidValue, int destMuidValue,
     originalSubId = origSubId.get ();
     statusCode    = theStatusCode.get ();
     statusData    = theStatusData.get ();
-    nakDetail0    = details[0];
-    nakDetail1    = details[1];
-    nakDetail2    = details[2];
-    nakDetail3    = details[3];
-    nakDetail4    = details[4];
+    detail0    = details[0];
+    detail1    = details[1];
+    detail2    = details[2];
+    detail3    = details[3];
+    detail4    = details[4];
     messageText   = text;
 }
 
@@ -131,11 +127,11 @@ Sysex7Message CiNak::toSysex7Message (MidiNibble theGroup, int targetFormat) con
     buf->append (static_cast<uint8_t> (originalSubId.get ()));
     buf->append (static_cast<uint8_t> (statusCode.get ()));
     buf->append (static_cast<uint8_t> (statusData.get ()));
-    buf->append (static_cast<uint8_t> (nakDetail0.get ()));
-    buf->append (static_cast<uint8_t> (nakDetail1.get ()));
-    buf->append (static_cast<uint8_t> (nakDetail2.get ()));
-    buf->append (static_cast<uint8_t> (nakDetail3.get ()));
-    buf->append (static_cast<uint8_t> (nakDetail4.get ()));
+    buf->append (static_cast<uint8_t> (detail0.get ()));
+    buf->append (static_cast<uint8_t> (detail1.get ()));
+    buf->append (static_cast<uint8_t> (detail2.get ()));
+    buf->append (static_cast<uint8_t> (detail3.get ()));
+    buf->append (static_cast<uint8_t> (detail4.get ()));
 
     const auto text = messageText.get ();
     const auto ml   = static_cast<size_t> (text.length ());
@@ -162,11 +158,11 @@ CiAck::CiAck (const Sysex7Message& msg)
     originalSubId = static_cast<int> ((*buf)[kOrigSubIdIdx]);
     statusCode    = static_cast<int> ((*buf)[kStatusCode]);
     statusData    = static_cast<int> ((*buf)[kStatusData]);
-    ackDetail0    = static_cast<int> ((*buf)[kDetailStart]);
-    ackDetail1    = static_cast<int> ((*buf)[kDetailStart + 1]);
-    ackDetail2    = static_cast<int> ((*buf)[kDetailStart + 2]);
-    ackDetail3    = static_cast<int> ((*buf)[kDetailStart + 3]);
-    ackDetail4    = static_cast<int> ((*buf)[kDetailStart + 4]);
+    detail0    = static_cast<int> ((*buf)[kDetailStart]);
+    detail1    = static_cast<int> ((*buf)[kDetailStart + 1]);
+    detail2    = static_cast<int> ((*buf)[kDetailStart + 2]);
+    detail3    = static_cast<int> ((*buf)[kDetailStart + 3]);
+    detail4    = static_cast<int> ((*buf)[kDetailStart + 4]);
 
     const size_t ml        = static_cast<size_t> ((*buf)[kMlLsb]) |
                              (static_cast<size_t> ((*buf)[kMlLsb + 1]) << 7);
@@ -199,11 +195,11 @@ CiAck::CiAck (MidiGroup theGroup, int sourceMuidValue, int destMuidValue,
     originalSubId = origSubId.get ();
     statusCode    = theStatusCode.get ();
     statusData    = theStatusData.get ();
-    ackDetail0    = details[0];
-    ackDetail1    = details[1];
-    ackDetail2    = details[2];
-    ackDetail3    = details[3];
-    ackDetail4    = details[4];
+    detail0    = details[0];
+    detail1    = details[1];
+    detail2    = details[2];
+    detail3    = details[3];
+    detail4    = details[4];
     messageText   = text;
 }
 
@@ -221,11 +217,11 @@ Sysex7Message CiAck::toSysex7Message (MidiNibble theGroup, int targetFormat) con
     buf->append (static_cast<uint8_t> (originalSubId.get ()));
     buf->append (static_cast<uint8_t> (statusCode.get ()));
     buf->append (static_cast<uint8_t> (statusData.get ()));
-    buf->append (static_cast<uint8_t> (ackDetail0.get ()));
-    buf->append (static_cast<uint8_t> (ackDetail1.get ()));
-    buf->append (static_cast<uint8_t> (ackDetail2.get ()));
-    buf->append (static_cast<uint8_t> (ackDetail3.get ()));
-    buf->append (static_cast<uint8_t> (ackDetail4.get ()));
+    buf->append (static_cast<uint8_t> (detail0.get ()));
+    buf->append (static_cast<uint8_t> (detail1.get ()));
+    buf->append (static_cast<uint8_t> (detail2.get ()));
+    buf->append (static_cast<uint8_t> (detail3.get ()));
+    buf->append (static_cast<uint8_t> (detail4.get ()));
 
     const auto text = messageText.get ();
     const auto ml   = static_cast<size_t> (text.length ());

@@ -33,26 +33,6 @@ constexpr size_t kMinorVersionIdx         = 15;
 constexpr size_t kV1Size                  = 14; // header (13) + simultaneousRequests
 constexpr size_t kV2Size                  = 16; // + majorVersion + minorVersion
 
-void appendMidiLong (Buffer& buf, int value)
-{
-    MidiLong ml { value };
-    buf.append (static_cast<uint8_t> (ml.getLsb ()));
-    buf.append (static_cast<uint8_t> (ml.getByte2 ()));
-    buf.append (static_cast<uint8_t> (ml.getByte3 ()));
-    buf.append (static_cast<uint8_t> (ml.getMsb ()));
-}
-
-void appendCommonHeader (Buffer& buf, int msgType, int msgFmt, int src, int dst)
-{
-    buf.append (0x7E);
-    buf.append (static_cast<uint8_t> (CiDeviceId::functionBlock)); // always 0x7F for PE
-    buf.append (static_cast<uint8_t> (CiSubId::midiCi));
-    buf.append (static_cast<uint8_t> (msgType));
-    buf.append (static_cast<uint8_t> (std::max (msgFmt, messageFormatMin)));
-    appendMidiLong (buf, src);
-    appendMidiLong (buf, dst);
-}
-
 void parsePeCapabilities (const Sysex7Message& msg, int& simReqs, int& major, int& minor,
                           Buffer::Ptr& extra)
 {
@@ -80,7 +60,7 @@ Sysex7Message buildPeCapabilities (MidiNibble group, int msgType, int targetForm
                                    int src, int dst, int simReqs, int major, int minor)
 {
     Buffer::Ptr buf = new Buffer ();
-    appendCommonHeader (*buf, msgType, targetFormat, src, dst);
+    CiSerial::appendCommonHeader (*buf, msgType, targetFormat, src, dst);
     buf->append (static_cast<uint8_t> (simReqs));
     if (targetFormat >= 2)
     {
@@ -117,6 +97,9 @@ Buffer::Ptr readBytes (const Buffer& buf, size_t offset, size_t count)
     return out;
 }
 } // namespace
+
+using CiSerial::appendMidiLong;
+using CiSerial::appendCommonHeader;
 
 // ---------------------------------------------------------------------------
 // CiPeCapabilitiesInquiry (0x30)
