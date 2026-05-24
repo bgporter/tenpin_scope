@@ -894,3 +894,7 @@ Sysex7Message CiProfileSpecificData::toSysex7Message (MidiNibble theGroup, int t
 
     return Sysex7Message { theGroup, buf };
 }
+
+#if RUN_UNIT_TESTS
+#include "test/test_CiProfile.inl"
+#endif

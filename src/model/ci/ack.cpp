@@ -236,3 +236,7 @@ Sysex7Message CiAck::toSysex7Message (MidiNibble theGroup, int targetFormat) con
 
     return Sysex7Message { theGroup, buf };
 }
+
+#if RUN_UNIT_TESTS
+#include "test/test_CiAck.inl"
+#endif

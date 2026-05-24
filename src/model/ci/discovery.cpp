@@ -298,3 +298,7 @@ Sysex7Message CiDiscoveryReply::toSysex7Message (MidiNibble theGroup, int target
 
     return Sysex7Message { theGroup, buf };
 }
+
+#if RUN_UNIT_TESTS
+#include "test/test_CiDiscovery.inl"
+#endif

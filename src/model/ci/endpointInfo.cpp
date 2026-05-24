@@ -201,3 +201,8 @@ Sysex7Message CiEndpointReply::toSysex7Message (MidiNibble theGroup, int targetF
 
     return Sysex7Message { theGroup, buf };
 }
+
+#if RUN_UNIT_TESTS
+#include "invalidateMuid.h"
+#include "test/test_CiEndpointInfo.inl"
+#endif

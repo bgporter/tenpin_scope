@@ -718,3 +718,7 @@ Sysex7Message CiPeNotify::toSysex7Message (MidiNibble group, int targetFormat) c
                                   numberOfChunks.get (), chunkNumber.get (),
                                   propertyData.get ());
 }
+
+#if RUN_UNIT_TESTS
+#include "test/test_CiPropertyExchange.inl"
+#endif
