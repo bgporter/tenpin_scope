@@ -24,6 +24,8 @@
 
 #pragma once
 
+#include <vector>
+
 #include "model/midiTypes.h"
 
 namespace CiDeviceId
@@ -121,4 +123,69 @@ struct ProfileId
     bool isStandardDefined () const { return byte1 == 0x7E; }
 
     bool operator== (const ProfileId&) const = default;
+    bool operator!= (const ProfileId&) const = default;
 };
+
+namespace juce
+{
+template <> struct VariantConverter<ProfileId>
+{
+    static ProfileId fromVar (const juce::var& v)
+    {
+        auto t = juce::StringArray::fromTokens (v.toString (), ",", "");
+        if (t.size () < 5)
+            return {};
+        return { static_cast<uint8_t> (t[0].getHexValue32 ()),
+                 static_cast<uint8_t> (t[1].getHexValue32 ()),
+                 static_cast<uint8_t> (t[2].getHexValue32 ()),
+                 static_cast<uint8_t> (t[3].getHexValue32 ()),
+                 static_cast<uint8_t> (t[4].getHexValue32 ()) };
+    }
+
+    static juce::var toVar (ProfileId p)
+    {
+        auto hex = [] (uint8_t b)
+        { return juce::String::toHexString (static_cast<int> (b)).paddedLeft ('0', 2).toUpperCase (); };
+        return hex (p.byte1) + "," + hex (p.byte2) + "," + hex (p.byte3) + "," +
+               hex (p.byte4) + "," + hex (p.byte5);
+    }
+};
+} // namespace juce
+
+// ---------------------------------------------------------------------------
+
+/**
+ * An ordered list of ProfileId values, storable in a juce::ValueTree via
+ * MAKE_VALUE_MEMBER (ProfileIdList::Ptr, ..., {}).
+ */
+class ProfileIdList : public juce::ReferenceCountedObject
+{
+public:
+    using Ptr = juce::ReferenceCountedObjectPtr<ProfileIdList>;
+
+    ProfileIdList () = default;
+
+    void      append (ProfileId p)       { ids_.push_back (p); }
+    int       size ()            const   { return static_cast<int> (ids_.size ()); }
+    bool      empty ()           const   { return ids_.empty (); }
+    ProfileId at (int index)     const   { return ids_[static_cast<size_t> (index)]; }
+
+    auto begin () const { return ids_.begin (); }
+    auto end ()   const { return ids_.end (); }
+
+private:
+    std::vector<ProfileId> ids_;
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ProfileIdList)
+};
+
+namespace juce
+{
+template <> struct VariantConverter<ProfileIdList::Ptr>
+{
+    static ProfileIdList::Ptr fromVar (const juce::var& v)
+    {
+        return ProfileIdList::Ptr (static_cast<ProfileIdList*> (v.getObject ()));
+    }
+    static juce::var toVar (ProfileIdList::Ptr ptr) { return juce::var (ptr.get ()); }
+};
+} // namespace juce

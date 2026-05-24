@@ -553,7 +553,7 @@ Handler::Result EventListViewCiHandler::onCiProfileSetOn (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile",   formatProfileId (m.profileId ()));
+    eventView->addValue ("profile",   formatProfileId (m.profile.get ()));
     if (m.messageFormat.get () >= 2)
         eventView->addValue ("channels", formatValue (static_cast<uint32_t> (m.channelsRequested.get ()), 14, fmt));
     return Handler::Result::ok;
@@ -571,7 +571,7 @@ Handler::Result EventListViewCiHandler::onCiProfileSetOff (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
     return Handler::Result::ok;
 }
 
@@ -587,7 +587,7 @@ Handler::Result EventListViewCiHandler::onCiProfileEnabled (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
     if (m.messageFormat.get () >= 2)
         eventView->addValue ("channels", formatValue (static_cast<uint32_t> (m.channelsEnabled.get ()), 14, fmt));
     return Handler::Result::ok;
@@ -605,7 +605,7 @@ Handler::Result EventListViewCiHandler::onCiProfileDisabled (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile",  formatProfileId (m.profileId ()));
+    eventView->addValue ("profile",  formatProfileId (m.profile.get ()));
     if (m.messageFormat.get () >= 2)
         eventView->addValue ("channels", formatValue (static_cast<uint32_t> (m.channelsDisabled.get ()), 14, fmt));
     return Handler::Result::ok;
@@ -623,7 +623,7 @@ Handler::Result EventListViewCiHandler::onCiProfileAdded (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
     return Handler::Result::ok;
 }
 
@@ -639,7 +639,7 @@ Handler::Result EventListViewCiHandler::onCiProfileRemoved (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
     return Handler::Result::ok;
 }
 
@@ -655,7 +655,7 @@ Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiry (const Event& 
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
     eventView->addValue ("target",  formatValue (static_cast<uint32_t> (m.inquiryTarget.get ()), 8, ValueFormatType::Hex) +
                                         (m.isRegisteredTarget () ? "  (registered)" : "  (profile-specific)"));
     return Handler::Result::ok;
@@ -673,7 +673,7 @@ Handler::Result EventListViewCiHandler::onCiProfileDetailsInquiryReply (const Ev
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
     eventView->addValue ("target",  formatValue (static_cast<uint32_t> (m.inquiryTarget.get ()), 8, ValueFormatType::Hex) +
                                         (m.isRegisteredTarget () ? "  (registered)" : "  (profile-specific)"));
 
@@ -699,7 +699,7 @@ Handler::Result EventListViewCiHandler::onCiProfileSpecificData (const Event& e)
     eventView->addValue ("src MUID", formatMuid (m.sourceMuid.get (), fmt));
     eventView->addValue ("dst MUID", formatMuid (m.destMuid.get (), fmt));
     eventView->addLine ();
-    eventView->addValue ("profile", formatProfileId (m.profileId ()));
+    eventView->addValue ("profile", formatProfileId (m.profile.get ()));
 
     if (auto data = m.profileData.get (); data && !data->empty ())
     {

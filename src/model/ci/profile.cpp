@@ -26,11 +26,11 @@
 
 namespace
 {
-constexpr size_t kCepIdx      = 13; // offset of enabled-profile count (2 bytes LSB first)
-constexpr size_t kCountLen    = 2;  // byte width of cep / cdp fields
-constexpr size_t kMinSize     = 13; // header only — profile lists may be empty
-constexpr size_t kProfileIdx  = 13; // offset of single ProfileId in Added/Removed messages
-constexpr size_t kProfileSize = CiProfileInquiryReply::kProfileSize;
+constexpr size_t kCepIdx     = 13; // offset of enabled-profile count (2 bytes LSB first)
+constexpr size_t kCountLen   = 2;  // byte width of cep / cdp fields
+constexpr size_t kMinSize    = 13; // header only — profile lists may be empty
+constexpr size_t kProfileIdx = 13; // offset of single ProfileId in Added/Removed messages
+constexpr size_t kProfileSize = 5; // bytes per ProfileId on the wire
 
 void appendCommonHeader (Buffer& buf, int devId, int msgType, int msgFmt, int src, int dst)
 {
@@ -51,22 +51,25 @@ ProfileId profileIdAt (const Buffer& buf, size_t offset)
     return { buf[offset], buf[offset + 1], buf[offset + 2], buf[offset + 3], buf[offset + 4] };
 }
 
-// Parse a run of profile IDs from buf starting at offset; count is the number of profiles.
-Buffer::Ptr parseProfileList (const Buffer& buf, size_t offset, size_t count)
+ProfileIdList::Ptr parseProfileList (const Buffer& buf, size_t offset, int count)
 {
     if (count == 0)
         return {};
-    Buffer::Ptr out = new Buffer ();
-    const size_t end = offset + count * CiProfileInquiryReply::kProfileSize;
-    for (size_t i = offset; i < end && i < buf.size (); ++i)
-        out->append (buf[i]);
-    return out;
+    ProfileIdList::Ptr list = new ProfileIdList ();
+    for (int i = 0; i < count; ++i)
+    {
+        const size_t base = offset + static_cast<size_t> (i) * kProfileSize;
+        if (base + 4 >= buf.size ())
+            break;
+        list->append (profileIdAt (buf, base));
+    }
+    return list;
 }
 
-void ensureBuffer (Buffer::Ptr& buf)
+void ensureList (ProfileIdList::Ptr& list)
 {
-    if (!buf)
-        buf = new Buffer ();
+    if (!list)
+        list = new ProfileIdList ();
 }
 } // namespace
 
@@ -124,16 +127,16 @@ CiProfileInquiryReply::CiProfileInquiryReply (const Sysex7Message& msg)
     if (!buf || buf->size () < kCepIdx + kCountLen)
         return;
 
-    const size_t cep = static_cast<size_t> ((*buf)[kCepIdx]) |
-                       (static_cast<size_t> ((*buf)[kCepIdx + 1]) << 7);
+    const int cep = static_cast<int> ((*buf)[kCepIdx]) |
+                    (static_cast<int> ((*buf)[kCepIdx + 1]) << 7);
     const size_t enabledStart = kCepIdx + kCountLen;
     enabledProfiles = parseProfileList (*buf, enabledStart, cep);
 
-    const size_t cdpIdx = enabledStart + cep * kProfileSize;
+    const size_t cdpIdx = enabledStart + static_cast<size_t> (cep) * kProfileSize;
     if (cdpIdx + kCountLen > buf->size ())
         return;
-    const size_t cdp = static_cast<size_t> ((*buf)[cdpIdx]) |
-                       (static_cast<size_t> ((*buf)[cdpIdx + 1]) << 7);
+    const int cdp = static_cast<int> ((*buf)[cdpIdx]) |
+                    (static_cast<int> ((*buf)[cdpIdx + 1]) << 7);
     disabledProfiles = parseProfileList (*buf, cdpIdx + kCountLen, cdp);
 }
 
@@ -167,66 +170,64 @@ Sysex7Message CiProfileInquiryReply::toSysex7Message (MidiNibble theGroup, int t
     auto enabled  = enabledProfiles.get ();
     auto disabled = disabledProfiles.get ();
 
-    const size_t cep = enabled  ? enabled->size ()  / kProfileSize : 0;
-    const size_t cdp = disabled ? disabled->size () / kProfileSize : 0;
+    const int cep = enabled  ? enabled->size ()  : 0;
+    const int cdp = disabled ? disabled->size () : 0;
 
     buf->append (static_cast<uint8_t> (cep & 0x7F));
     buf->append (static_cast<uint8_t> ((cep >> 7) & 0x7F));
-    if (enabled)
-        for (size_t i = 0; i < enabled->size (); ++i)
-            buf->append ((*enabled)[i]);
+    for (int i = 0; i < cep; ++i)
+        appendProfileId (*buf, enabled->at (i));
 
     buf->append (static_cast<uint8_t> (cdp & 0x7F));
     buf->append (static_cast<uint8_t> ((cdp >> 7) & 0x7F));
-    if (disabled)
-        for (size_t i = 0; i < disabled->size (); ++i)
-            buf->append ((*disabled)[i]);
+    for (int i = 0; i < cdp; ++i)
+        appendProfileId (*buf, disabled->at (i));
 
     return Sysex7Message { theGroup, buf };
 }
 
 void CiProfileInquiryReply::addEnabledProfile (ProfileId p)
 {
-    auto buf = enabledProfiles.get ();
-    ensureBuffer (buf);
-    enabledProfiles = buf;
-    appendProfileId (*buf, p);
+    auto list = enabledProfiles.get ();
+    ensureList (list);
+    enabledProfiles = list;
+    list->append (p);
 }
 
 void CiProfileInquiryReply::addDisabledProfile (ProfileId p)
 {
-    auto buf = disabledProfiles.get ();
-    ensureBuffer (buf);
-    disabledProfiles = buf;
-    appendProfileId (*buf, p);
+    auto list = disabledProfiles.get ();
+    ensureList (list);
+    disabledProfiles = list;
+    list->append (p);
 }
 
 int CiProfileInquiryReply::enabledProfileCount () const
 {
-    auto buf = enabledProfiles.get ();
-    return buf ? static_cast<int> (buf->size () / kProfileSize) : 0;
+    auto list = enabledProfiles.get ();
+    return list ? list->size () : 0;
 }
 
 int CiProfileInquiryReply::disabledProfileCount () const
 {
-    auto buf = disabledProfiles.get ();
-    return buf ? static_cast<int> (buf->size () / kProfileSize) : 0;
+    auto list = disabledProfiles.get ();
+    return list ? list->size () : 0;
 }
 
 ProfileId CiProfileInquiryReply::enabledProfileAt (int index) const
 {
-    auto buf = enabledProfiles.get ();
-    if (!buf || index < 0 || index >= enabledProfileCount ())
+    auto list = enabledProfiles.get ();
+    if (!list || index < 0 || index >= list->size ())
         return {};
-    return profileIdAt (*buf, static_cast<size_t> (index) * kProfileSize);
+    return list->at (index);
 }
 
 ProfileId CiProfileInquiryReply::disabledProfileAt (int index) const
 {
-    auto buf = disabledProfiles.get ();
-    if (!buf || index < 0 || index >= disabledProfileCount ())
+    auto list = disabledProfiles.get ();
+    if (!list || index < 0 || index >= list->size ())
         return {};
-    return profileIdAt (*buf, static_cast<size_t> (index) * kProfileSize);
+    return list->at (index);
 }
 
 // ============================================================================
@@ -247,11 +248,7 @@ CiProfileSetOn::CiProfileSetOn (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kSetMinSize)
         return;
-    profileByte1 = static_cast<int> ((*buf)[kSetProfileIdx]);
-    profileByte2 = static_cast<int> ((*buf)[kSetProfileIdx + 1]);
-    profileByte3 = static_cast<int> ((*buf)[kSetProfileIdx + 2]);
-    profileByte4 = static_cast<int> ((*buf)[kSetProfileIdx + 3]);
-    profileByte5 = static_cast<int> ((*buf)[kSetProfileIdx + 4]);
+    profile = profileIdAt (*buf, kSetProfileIdx);
 
     if (buf->size () >= kChannelsRequestedIdx + 2)
         channelsRequested = static_cast<int> ((*buf)[kChannelsRequestedIdx]) |
@@ -278,11 +275,7 @@ CiProfileSetOn::CiProfileSetOn (MidiGroup theGroup, int sourceMuidValue, int des
     messageFormat     = messageFormatMin;
     sourceMuid        = sourceMuidValue;
     destMuid          = destMuidValue;
-    profileByte1      = profile.byte1;
-    profileByte2      = profile.byte2;
-    profileByte3      = profile.byte3;
-    profileByte4      = profile.byte4;
-    profileByte5      = profile.byte5;
+    this->profile = profile;
     channelsRequested = channels;
 }
 
@@ -291,11 +284,7 @@ Sysex7Message CiProfileSetOn::toSysex7Message (MidiNibble theGroup, int targetFo
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileSetOn, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     if (targetFormat >= 2)
     {
         const int ch = channelsRequested.get ();
@@ -316,11 +305,7 @@ CiProfileSetOff::CiProfileSetOff (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kSetMinSize)
         return;
-    profileByte1 = static_cast<int> ((*buf)[kSetProfileIdx]);
-    profileByte2 = static_cast<int> ((*buf)[kSetProfileIdx + 1]);
-    profileByte3 = static_cast<int> ((*buf)[kSetProfileIdx + 2]);
-    profileByte4 = static_cast<int> ((*buf)[kSetProfileIdx + 3]);
-    profileByte5 = static_cast<int> ((*buf)[kSetProfileIdx + 4]);
+    profile = profileIdAt (*buf, kSetProfileIdx);
 }
 
 CiProfileSetOff::CiProfileSetOff (const Event& e)
@@ -343,11 +328,7 @@ CiProfileSetOff::CiProfileSetOff (MidiGroup theGroup, int sourceMuidValue, int d
     messageFormat = messageFormatMin;
     sourceMuid    = sourceMuidValue;
     destMuid      = destMuidValue;
-    profileByte1  = profile.byte1;
-    profileByte2  = profile.byte2;
-    profileByte3  = profile.byte3;
-    profileByte4  = profile.byte4;
-    profileByte5  = profile.byte5;
+    this->profile = profile;
 }
 
 Sysex7Message CiProfileSetOff::toSysex7Message (MidiNibble theGroup, int targetFormat) const
@@ -355,11 +336,7 @@ Sysex7Message CiProfileSetOff::toSysex7Message (MidiNibble theGroup, int targetF
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileSetOff, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     if (targetFormat >= 2)
     {
         buf->append (0x00); // reserved
@@ -378,15 +355,6 @@ constexpr size_t kReportProfileIdx    = 13;
 constexpr size_t kReportChannelsIdx   = 18;
 constexpr size_t kReportMinSize       = 18; // header(13) + profileId(5)
 
-void parseReportProfile (CiMessage& msg, const Buffer* buf,
-                         int& b1, int& b2, int& b3, int& b4, int& b5)
-{
-    b1 = static_cast<int> ((*buf)[kReportProfileIdx]);
-    b2 = static_cast<int> ((*buf)[kReportProfileIdx + 1]);
-    b3 = static_cast<int> ((*buf)[kReportProfileIdx + 2]);
-    b4 = static_cast<int> ((*buf)[kReportProfileIdx + 3]);
-    b5 = static_cast<int> ((*buf)[kReportProfileIdx + 4]);
-}
 } // namespace
 
 // ============================================================================
@@ -400,10 +368,7 @@ CiProfileEnabled::CiProfileEnabled (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kReportMinSize)
         return;
-    int b1, b2, b3, b4, b5;
-    parseReportProfile (*this, buf, b1, b2, b3, b4, b5);
-    profileByte1 = b1; profileByte2 = b2; profileByte3 = b3;
-    profileByte4 = b4; profileByte5 = b5;
+    profile = profileIdAt (*buf, kReportProfileIdx);
     if (buf->size () >= kReportChannelsIdx + 2)
         channelsEnabled = static_cast<int> ((*buf)[kReportChannelsIdx]) |
                           (static_cast<int> ((*buf)[kReportChannelsIdx + 1]) << 7);
@@ -429,11 +394,7 @@ CiProfileEnabled::CiProfileEnabled (MidiGroup theGroup, int sourceMuidValue,
     messageFormat   = messageFormatMin;
     sourceMuid      = sourceMuidValue;
     destMuid        = broadcastMuid;
-    profileByte1    = profile.byte1;
-    profileByte2    = profile.byte2;
-    profileByte3    = profile.byte3;
-    profileByte4    = profile.byte4;
-    profileByte5    = profile.byte5;
+    this->profile = profile;
     channelsEnabled = channels;
 }
 
@@ -442,11 +403,7 @@ Sysex7Message CiProfileEnabled::toSysex7Message (MidiNibble theGroup, int target
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileEnabled, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     if (targetFormat >= 2)
     {
         const int ch = channelsEnabled.get ();
@@ -467,10 +424,7 @@ CiProfileDisabled::CiProfileDisabled (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kReportMinSize)
         return;
-    int b1, b2, b3, b4, b5;
-    parseReportProfile (*this, buf, b1, b2, b3, b4, b5);
-    profileByte1 = b1; profileByte2 = b2; profileByte3 = b3;
-    profileByte4 = b4; profileByte5 = b5;
+    profile = profileIdAt (*buf, kReportProfileIdx);
     if (buf->size () >= kReportChannelsIdx + 2)
         channelsDisabled = static_cast<int> ((*buf)[kReportChannelsIdx]) |
                            (static_cast<int> ((*buf)[kReportChannelsIdx + 1]) << 7);
@@ -496,11 +450,7 @@ CiProfileDisabled::CiProfileDisabled (MidiGroup theGroup, int sourceMuidValue,
     messageFormat    = messageFormatMin;
     sourceMuid       = sourceMuidValue;
     destMuid         = broadcastMuid;
-    profileByte1     = profile.byte1;
-    profileByte2     = profile.byte2;
-    profileByte3     = profile.byte3;
-    profileByte4     = profile.byte4;
-    profileByte5     = profile.byte5;
+    this->profile = profile;
     channelsDisabled = channels;
 }
 
@@ -509,11 +459,7 @@ Sysex7Message CiProfileDisabled::toSysex7Message (MidiNibble theGroup, int targe
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileDisabled, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     if (targetFormat >= 2)
     {
         const int ch = channelsDisabled.get ();
@@ -534,11 +480,7 @@ CiProfileAdded::CiProfileAdded (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kProfileIdx + kProfileSize)
         return;
-    profileByte1 = static_cast<int> ((*buf)[kProfileIdx]);
-    profileByte2 = static_cast<int> ((*buf)[kProfileIdx + 1]);
-    profileByte3 = static_cast<int> ((*buf)[kProfileIdx + 2]);
-    profileByte4 = static_cast<int> ((*buf)[kProfileIdx + 3]);
-    profileByte5 = static_cast<int> ((*buf)[kProfileIdx + 4]);
+    profile = profileIdAt (*buf, kProfileIdx);
 }
 
 CiProfileAdded::CiProfileAdded (const Event& e)
@@ -560,11 +502,7 @@ CiProfileAdded::CiProfileAdded (MidiGroup theGroup, int sourceMuidValue, Profile
     messageFormat = messageFormatMin;
     sourceMuid    = sourceMuidValue;
     destMuid      = broadcastMuid;
-    profileByte1  = profile.byte1;
-    profileByte2  = profile.byte2;
-    profileByte3  = profile.byte3;
-    profileByte4  = profile.byte4;
-    profileByte5  = profile.byte5;
+    this->profile = profile;
 }
 
 Sysex7Message CiProfileAdded::toSysex7Message (MidiNibble theGroup, int targetFormat) const
@@ -572,11 +510,7 @@ Sysex7Message CiProfileAdded::toSysex7Message (MidiNibble theGroup, int targetFo
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileAdded, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     return Sysex7Message { theGroup, buf };
 }
 
@@ -591,11 +525,7 @@ CiProfileRemoved::CiProfileRemoved (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kProfileIdx + kProfileSize)
         return;
-    profileByte1 = static_cast<int> ((*buf)[kProfileIdx]);
-    profileByte2 = static_cast<int> ((*buf)[kProfileIdx + 1]);
-    profileByte3 = static_cast<int> ((*buf)[kProfileIdx + 2]);
-    profileByte4 = static_cast<int> ((*buf)[kProfileIdx + 3]);
-    profileByte5 = static_cast<int> ((*buf)[kProfileIdx + 4]);
+    profile = profileIdAt (*buf, kProfileIdx);
 }
 
 CiProfileRemoved::CiProfileRemoved (const Event& e)
@@ -617,11 +547,7 @@ CiProfileRemoved::CiProfileRemoved (MidiGroup theGroup, int sourceMuidValue, Pro
     messageFormat = messageFormatMin;
     sourceMuid    = sourceMuidValue;
     destMuid      = broadcastMuid;
-    profileByte1  = profile.byte1;
-    profileByte2  = profile.byte2;
-    profileByte3  = profile.byte3;
-    profileByte4  = profile.byte4;
-    profileByte5  = profile.byte5;
+    this->profile = profile;
 }
 
 Sysex7Message CiProfileRemoved::toSysex7Message (MidiNibble theGroup, int targetFormat) const
@@ -629,11 +555,7 @@ Sysex7Message CiProfileRemoved::toSysex7Message (MidiNibble theGroup, int target
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileRemoved, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     return Sysex7Message { theGroup, buf };
 }
 
@@ -658,11 +580,7 @@ CiProfileDetailsInquiry::CiProfileDetailsInquiry (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kDetailsMinSizeInq)
         return;
-    profileByte1  = static_cast<int> ((*buf)[kDetailsProfileIdx]);
-    profileByte2  = static_cast<int> ((*buf)[kDetailsProfileIdx + 1]);
-    profileByte3  = static_cast<int> ((*buf)[kDetailsProfileIdx + 2]);
-    profileByte4  = static_cast<int> ((*buf)[kDetailsProfileIdx + 3]);
-    profileByte5  = static_cast<int> ((*buf)[kDetailsProfileIdx + 4]);
+    profile = profileIdAt (*buf, kDetailsProfileIdx);
     inquiryTarget = static_cast<int> ((*buf)[kInquiryTargetIdx]);
 }
 
@@ -687,11 +605,7 @@ CiProfileDetailsInquiry::CiProfileDetailsInquiry (MidiGroup theGroup, int source
     messageFormat = messageFormatMin;
     sourceMuid    = sourceMuidValue;
     destMuid      = destMuidValue;
-    profileByte1  = profile.byte1;
-    profileByte2  = profile.byte2;
-    profileByte3  = profile.byte3;
-    profileByte4  = profile.byte4;
-    profileByte5  = profile.byte5;
+    this->profile = profile;
     inquiryTarget = target.get ();
 }
 
@@ -700,11 +614,7 @@ Sysex7Message CiProfileDetailsInquiry::toSysex7Message (MidiNibble theGroup, int
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileDetailsInquiry, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     buf->append (static_cast<uint8_t> (inquiryTarget.get ()));
     return Sysex7Message { theGroup, buf };
 }
@@ -720,11 +630,7 @@ CiProfileDetailsInquiryReply::CiProfileDetailsInquiryReply (const Sysex7Message&
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kDetailsMinSizeReply)
         return;
-    profileByte1  = static_cast<int> ((*buf)[kDetailsProfileIdx]);
-    profileByte2  = static_cast<int> ((*buf)[kDetailsProfileIdx + 1]);
-    profileByte3  = static_cast<int> ((*buf)[kDetailsProfileIdx + 2]);
-    profileByte4  = static_cast<int> ((*buf)[kDetailsProfileIdx + 3]);
-    profileByte5  = static_cast<int> ((*buf)[kDetailsProfileIdx + 4]);
+    profile = profileIdAt (*buf, kDetailsProfileIdx);
     inquiryTarget = static_cast<int> ((*buf)[kInquiryTargetIdx]);
 
     const size_t dl = static_cast<size_t> ((*buf)[kTargetDataLenIdx]) |
@@ -759,11 +665,7 @@ CiProfileDetailsInquiryReply::CiProfileDetailsInquiryReply (MidiGroup theGroup, 
     messageFormat = 0x02; // spec mandates format 2
     sourceMuid    = sourceMuidValue;
     destMuid      = destMuidValue;
-    profileByte1  = profile.byte1;
-    profileByte2  = profile.byte2;
-    profileByte3  = profile.byte3;
-    profileByte4  = profile.byte4;
-    profileByte5  = profile.byte5;
+    this->profile = profile;
     inquiryTarget = target.get ();
     targetData    = data;
 }
@@ -773,11 +675,7 @@ Sysex7Message CiProfileDetailsInquiryReply::toSysex7Message (MidiNibble theGroup
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileDetailsInquiryReply,
                         0x02, sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
     buf->append (static_cast<uint8_t> (inquiryTarget.get ()));
 
     auto data       = targetData.get ();
@@ -809,11 +707,7 @@ CiProfileSpecificData::CiProfileSpecificData (const Sysex7Message& msg)
     const auto buf = msg.data.get ();
     if (!buf || buf->size () < kSpecificMinSize)
         return;
-    profileByte1 = static_cast<int> ((*buf)[kSpecificProfileIdx]);
-    profileByte2 = static_cast<int> ((*buf)[kSpecificProfileIdx + 1]);
-    profileByte3 = static_cast<int> ((*buf)[kSpecificProfileIdx + 2]);
-    profileByte4 = static_cast<int> ((*buf)[kSpecificProfileIdx + 3]);
-    profileByte5 = static_cast<int> ((*buf)[kSpecificProfileIdx + 4]);
+    profile = profileIdAt (*buf, kSpecificProfileIdx);
 
     const size_t dataLen = static_cast<size_t> (parseMidiLong (*buf, kSpecificDataLenIdx));
 
@@ -847,11 +741,7 @@ CiProfileSpecificData::CiProfileSpecificData (MidiGroup theGroup, int sourceMuid
     messageFormat = messageFormatMin;
     sourceMuid    = sourceMuidValue;
     destMuid      = destMuidValue;
-    profileByte1  = profile.byte1;
-    profileByte2  = profile.byte2;
-    profileByte3  = profile.byte3;
-    profileByte4  = profile.byte4;
-    profileByte5  = profile.byte5;
+    this->profile = profile;
     profileData   = data;
 }
 
@@ -860,11 +750,7 @@ Sysex7Message CiProfileSpecificData::toSysex7Message (MidiNibble theGroup, int t
     Buffer::Ptr buf = new Buffer ();
     appendCommonHeader (*buf, deviceId.get (), CiType::profileSpecificData, targetFormat,
                         sourceMuid.get (), destMuid.get ());
-    buf->append (static_cast<uint8_t> (profileByte1.get ()));
-    buf->append (static_cast<uint8_t> (profileByte2.get ()));
-    buf->append (static_cast<uint8_t> (profileByte3.get ()));
-    buf->append (static_cast<uint8_t> (profileByte4.get ()));
-    buf->append (static_cast<uint8_t> (profileByte5.get ()));
+    appendProfileId (*buf, profile.get ());
 
     auto data           = profileData.get ();
     const int dataLen   = data ? static_cast<int> (data->size ()) : 0;

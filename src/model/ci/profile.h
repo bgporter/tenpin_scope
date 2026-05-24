@@ -69,8 +69,6 @@ struct CiProfileInquiryReply : public CiMessage
 {
     static const inline juce::Identifier type { "CiProfileInquiryReply" };
 
-    static constexpr size_t kProfileSize = 5;
-
     explicit CiProfileInquiryReply (const Sysex7Message& msg);
     explicit CiProfileInquiryReply (const Event& e);
     explicit CiProfileInquiryReply (juce::ValueTree vt);
@@ -88,9 +86,8 @@ struct CiProfileInquiryReply : public CiMessage
     ProfileId enabledProfileAt     (int index) const;
     ProfileId disabledProfileAt    (int index) const;
 
-    // Packed 5-byte-per-profile raw storage.
-    MAKE_VALUE_MEMBER (Buffer::Ptr, enabledProfiles,  {});
-    MAKE_VALUE_MEMBER (Buffer::Ptr, disabledProfiles, {});
+    MAKE_VALUE_MEMBER (ProfileIdList::Ptr, enabledProfiles,  {});
+    MAKE_VALUE_MEMBER (ProfileIdList::Ptr, disabledProfiles, {});
 };
 
 // ---------------------------------------------------------------------------
@@ -116,19 +113,8 @@ struct CiProfileSetOn : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1,       0);
-    MAKE_VALUE_MEMBER (int, profileByte2,       0);
-    MAKE_VALUE_MEMBER (int, profileByte3,       0);
-    MAKE_VALUE_MEMBER (int, profileByte4,       0);
-    MAKE_VALUE_MEMBER (int, profileByte5,       0);
-    MAKE_VALUE_MEMBER (int, channelsRequested,  0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile,          {});
+    MAKE_VALUE_MEMBER (int,       channelsRequested, 0);
 };
 
 // ---------------------------------------------------------------------------
@@ -153,18 +139,7 @@ struct CiProfileSetOff : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1, 0);
-    MAKE_VALUE_MEMBER (int, profileByte2, 0);
-    MAKE_VALUE_MEMBER (int, profileByte3, 0);
-    MAKE_VALUE_MEMBER (int, profileByte4, 0);
-    MAKE_VALUE_MEMBER (int, profileByte5, 0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile, {});
 };
 
 // ---------------------------------------------------------------------------
@@ -190,19 +165,8 @@ struct CiProfileEnabled : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1,    0);
-    MAKE_VALUE_MEMBER (int, profileByte2,    0);
-    MAKE_VALUE_MEMBER (int, profileByte3,    0);
-    MAKE_VALUE_MEMBER (int, profileByte4,    0);
-    MAKE_VALUE_MEMBER (int, profileByte5,    0);
-    MAKE_VALUE_MEMBER (int, channelsEnabled, 0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile,        {});
+    MAKE_VALUE_MEMBER (int,       channelsEnabled, 0);
 };
 
 // ---------------------------------------------------------------------------
@@ -228,19 +192,8 @@ struct CiProfileDisabled : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1,     0);
-    MAKE_VALUE_MEMBER (int, profileByte2,     0);
-    MAKE_VALUE_MEMBER (int, profileByte3,     0);
-    MAKE_VALUE_MEMBER (int, profileByte4,     0);
-    MAKE_VALUE_MEMBER (int, profileByte5,     0);
-    MAKE_VALUE_MEMBER (int, channelsDisabled, 0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile,         {});
+    MAKE_VALUE_MEMBER (int,       channelsDisabled, 0);
 };
 
 // ---------------------------------------------------------------------------
@@ -264,18 +217,7 @@ struct CiProfileAdded : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1, 0);
-    MAKE_VALUE_MEMBER (int, profileByte2, 0);
-    MAKE_VALUE_MEMBER (int, profileByte3, 0);
-    MAKE_VALUE_MEMBER (int, profileByte4, 0);
-    MAKE_VALUE_MEMBER (int, profileByte5, 0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile, {});
 };
 
 // ---------------------------------------------------------------------------
@@ -299,18 +241,7 @@ struct CiProfileRemoved : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1, 0);
-    MAKE_VALUE_MEMBER (int, profileByte2, 0);
-    MAKE_VALUE_MEMBER (int, profileByte3, 0);
-    MAKE_VALUE_MEMBER (int, profileByte4, 0);
-    MAKE_VALUE_MEMBER (int, profileByte5, 0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile, {});
 };
 
 // ---------------------------------------------------------------------------
@@ -336,19 +267,8 @@ struct CiProfileDetailsInquiry : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int, profileByte1, 0);
-    MAKE_VALUE_MEMBER (int, profileByte2, 0);
-    MAKE_VALUE_MEMBER (int, profileByte3, 0);
-    MAKE_VALUE_MEMBER (int, profileByte4, 0);
-    MAKE_VALUE_MEMBER (int, profileByte5, 0);
-    MAKE_VALUE_MEMBER (int, inquiryTarget, 0);
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId, profile,       {});
+    MAKE_VALUE_MEMBER (int,       inquiryTarget, 0);
 
     bool isRegisteredTarget () const { return inquiryTarget.get () <= 0x3F; }
 };
@@ -381,20 +301,9 @@ struct CiProfileDetailsInquiryReply : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int,         profileByte1,  0);
-    MAKE_VALUE_MEMBER (int,         profileByte2,  0);
-    MAKE_VALUE_MEMBER (int,         profileByte3,  0);
-    MAKE_VALUE_MEMBER (int,         profileByte4,  0);
-    MAKE_VALUE_MEMBER (int,         profileByte5,  0);
+    MAKE_VALUE_MEMBER (ProfileId,   profile,       {});
     MAKE_VALUE_MEMBER (int,         inquiryTarget, 0);
     MAKE_VALUE_MEMBER (Buffer::Ptr, targetData,    {});
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
 
     bool isRegisteredTarget () const { return inquiryTarget.get () <= 0x3F; }
 };
@@ -423,17 +332,6 @@ struct CiProfileSpecificData : public CiMessage
 
     Sysex7Message toSysex7Message (MidiNibble group, int targetFormat) const;
 
-    MAKE_VALUE_MEMBER (int,         profileByte1, 0);
-    MAKE_VALUE_MEMBER (int,         profileByte2, 0);
-    MAKE_VALUE_MEMBER (int,         profileByte3, 0);
-    MAKE_VALUE_MEMBER (int,         profileByte4, 0);
-    MAKE_VALUE_MEMBER (int,         profileByte5, 0);
-    MAKE_VALUE_MEMBER (Buffer::Ptr, profileData,  {});
-
-    ProfileId profileId () const
-    {
-        return { static_cast<uint8_t> (profileByte1.get ()), static_cast<uint8_t> (profileByte2.get ()),
-                 static_cast<uint8_t> (profileByte3.get ()), static_cast<uint8_t> (profileByte4.get ()),
-                 static_cast<uint8_t> (profileByte5.get ()) };
-    }
+    MAKE_VALUE_MEMBER (ProfileId,   profile,     {});
+    MAKE_VALUE_MEMBER (Buffer::Ptr, profileData, {});
 };

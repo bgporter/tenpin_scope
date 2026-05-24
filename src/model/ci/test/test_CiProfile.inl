@@ -109,7 +109,7 @@ public:
 
                   CiProfileSetOn r2 { v2 };
                   expectEquals (r2.channelsRequested.get (), 4);
-                  expect (r2.profileId () == stdProfile ());
+                  expect (r2.profile.get () == stdProfile ());
               });
 
         test ("CiProfileSetOn: round-trip profile bytes",
@@ -118,7 +118,7 @@ public:
                   CiProfileSetOn original { group, srcMuid, dstMuid, mfrProfile (), 0 };
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
                   CiProfileSetOn recovered { msg };
-                  expect (recovered.profileId () == mfrProfile ());
+                  expect (recovered.profile.get () == mfrProfile ());
                   expectEquals (recovered.sourceMuid.get (), srcMuid);
               });
 
@@ -130,7 +130,7 @@ public:
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
                   checkCommonCiHeader (*msg.data.get (), CiDeviceId::functionBlock, CiType::profileSetOff, 1);
                   CiProfileSetOff recovered { msg };
-                  expect (recovered.profileId () == stdProfile ());
+                  expect (recovered.profile.get () == stdProfile ());
                   expectEquals (recovered.sourceMuid.get (), srcMuid);
               });
 
@@ -171,8 +171,8 @@ public:
 
                   CiProfileAdded   ra { am };
                   CiProfileRemoved rr { rm };
-                  expect (ra.profileId () == stdProfile ());
-                  expect (rr.profileId () == mfrProfile ());
+                  expect (ra.profile.get () == stdProfile ());
+                  expect (rr.profile.get () == mfrProfile ());
               });
 
         // ------------------------------------------------------------------
@@ -184,7 +184,7 @@ public:
                   auto msg = original.toSysex7Message (MidiNibble { group }, 1);
                   checkCommonCiHeader (*msg.data.get (), CiDeviceId::functionBlock, CiType::profileDetailsInquiry, 1);
                   CiProfileDetailsInquiry recovered { msg };
-                  expect (recovered.profileId () == stdProfile ());
+                  expect (recovered.profile.get () == stdProfile ());
                   expectEquals (recovered.inquiryTarget.get (), 0x01);
                   expect (recovered.isRegisteredTarget ());
               });
@@ -209,7 +209,7 @@ public:
                   expectEquals (dl, 3, "targetData length LSB-first");
 
                   CiProfileDetailsInquiryReply recovered { msg };
-                  expect (recovered.profileId () == stdProfile ());
+                  expect (recovered.profile.get () == stdProfile ());
                   expectEquals (recovered.inquiryTarget.get (), 0x01);
                   auto rd = recovered.targetData.get ();
                   expect (rd != nullptr);
@@ -238,7 +238,7 @@ public:
                   expectEquals (static_cast<int> ((*buf)[19]), 0, "data length byte2 = 0");
 
                   CiProfileSpecificData recovered { msg };
-                  expect (recovered.profileId () == stdProfile ());
+                  expect (recovered.profile.get () == stdProfile ());
                   auto rd = recovered.profileData.get ();
                   expect (rd != nullptr);
                   expectEquals (static_cast<int> (rd->size ()), 6);
