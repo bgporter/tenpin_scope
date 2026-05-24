@@ -38,7 +38,7 @@ DataViewHeader::DataViewHeader (AppContext& context)
     }
     endpointsLabel.setText ("Endpoints", juce::dontSendNotification);
     timeLabel.setText ("Time", juce::dontSendNotification);
-    endpointLabel.setText ("Src/Dst", juce::dontSendNotification);
+    endpointLabel.setText ("Source", juce::dontSendNotification);
     eventLabel.setText ("Event", juce::dontSendNotification);
     dataLabel.setText ("Data", juce::dontSendNotification);
 

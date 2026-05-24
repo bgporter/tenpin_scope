@@ -128,8 +128,7 @@ juce::String formatValue (uint32_t value, int bitWidth, ValueFormatType formatTy
 juce::String formatTime (double seconds);
 
 /**
- * @brief Formats the src/dst endpoint label from an event's isReceived flag and endpoint name.
- * @return "src: <name>" for received events, "dst: <name>" for sent events.
+ * @brief Returns the endpoint name for an event.
  */
 juce::String formatEndpoint (const Event& e);
 
