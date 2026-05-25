@@ -1,4 +1,4 @@
-# tenpin_scope
+# 10-Pin Scope
 Debug/monitor tool for MIDI 2.0 data
 
 ## About
