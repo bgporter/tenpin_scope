@@ -30,7 +30,7 @@
  * @brief A label + combo box pair laid out in a single row.
  *
  * The label occupies a fixed-width strip on the left; the combo box fills
- * the remainder. Font and colour are sourced from TenpinLookAndFeel and
+ * the remainder. Font and colour are sourced from _10PinLookAndFeel and
  * updated automatically when the look and feel changes.
  *
  * comboBox is public so callers can populate items and wire up callbacks

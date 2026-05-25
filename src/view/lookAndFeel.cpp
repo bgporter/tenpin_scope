@@ -24,7 +24,7 @@
 
 #include "lookAndFeel.h"
 
-TenpinLookAndFeel::TenpinLookAndFeel (const AppContext& appContext)
+_10PinLookAndFeel::_10PinLookAndFeel (const AppContext& appContext)
 : persistentContext { appContext }
 , palette { persistentContext }
 {
@@ -36,7 +36,7 @@ TenpinLookAndFeel::TenpinLookAndFeel (const AppContext& appContext)
     updateFonts ();
 }
 
-void TenpinLookAndFeel::updateFromPalette ()
+void _10PinLookAndFeel::updateFromPalette ()
 {
     setColourScheme ({ palette.windowBackground.get (), palette.widgetBackground.get (), palette.menuBackground.get (),
                        palette.outline.get (), palette.defaultText.get (), palette.defaultFill.get (),
@@ -48,7 +48,7 @@ void TenpinLookAndFeel::updateFromPalette ()
     setColour (juce::ToggleButton::tickColourId, palette.menuText.get ());
 }
 
-void TenpinLookAndFeel::updateFonts ()
+void _10PinLookAndFeel::updateFonts ()
 {
     labelTypeface = juce::Typeface::createSystemTypefaceFor (FontData::IBMPlexSans_CondensedBold_ttf,
                                                              FontData::IBMPlexSans_CondensedBold_ttfSize);
@@ -56,21 +56,21 @@ void TenpinLookAndFeel::updateFonts ()
         juce::Typeface::createSystemTypefaceFor (FontData::FiraCodeBold_ttf, FontData::FiraCodeBold_ttfSize);
 }
 
-juce::Typeface::Ptr TenpinLookAndFeel::getTypefaceForFont (const juce::Font& f)
+juce::Typeface::Ptr _10PinLookAndFeel::getTypefaceForFont (const juce::Font& f)
 {
     if (f.getTypefaceName ().containsIgnoreCase ("Monospace"))
         return valueTypeface;
     return labelTypeface;
 }
 
-juce::Font TenpinLookAndFeel::getTenpinLabelFont () const
+juce::Font _10PinLookAndFeel::getLabelFont () const
 {
     juce::FontOptions options (labelTypeface);
     // return juce::Font (options.withHeight (13.f).withStyle ("bold"));
     return juce::Font (options.withHeight (persistentContext.eventViewContext.textHeight));
 }
 
-juce::Font TenpinLookAndFeel::getTenpinValueFont () const
+juce::Font _10PinLookAndFeel::getValueFont () const
 {
     juce::FontOptions options (valueTypeface);
     // return juce::Font (options.withHeight (13.f).withStyle ("plain"));

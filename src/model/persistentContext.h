@@ -109,7 +109,7 @@ struct EventViewContext : public cello::Object
 class PersistentContext : public cello::Object
 {
 public:
-    static const inline juce::Identifier type { ProjectInfo::projectName };
+    static const inline juce::Identifier type { "_10PinScope" };
     /**
      * @brief Construct a new PersistentContext object
      *

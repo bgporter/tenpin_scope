@@ -46,9 +46,9 @@ void LabeledComboBox::resized ()
 
 void LabeledComboBox::lookAndFeelChanged ()
 {
-    if (auto* lnf = TenpinLookAndFeel::getFrom (*this))
+    if (auto* lnf = _10PinLookAndFeel::getFrom (*this))
     {
-        label.setFont (lnf->getTenpinLabelFont ());
+        label.setFont (lnf->getLabelFont ());
         label.setColour (juce::Label::textColourId, lnf->getPalette ().menuText.get ());
     }
 }

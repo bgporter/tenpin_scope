@@ -41,11 +41,11 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
                             juce::StringRef value, juce::Colour valueColor)
 {
     juce::AttributedString aString;
-    auto& lnf = dynamic_cast<TenpinLookAndFeel&> (getLookAndFeel ());
+    auto& lnf = dynamic_cast<_10PinLookAndFeel&> (getLookAndFeel ());
 
     if (label.isNotEmpty ())
     {
-        auto labelFont = lnf.getTenpinLabelFont ();
+        auto labelFont = lnf.getLabelFont ();
         aString.append (juce::String (label), labelFont, labelColor);
         // if we only have a label, do NOT append the colon.
         if (value.isNotEmpty ())
@@ -54,7 +54,7 @@ LabeledValue::LabeledValue (AppContext& /* ctx */, juce::StringRef label, juce::
 
     if (value.isNotEmpty ())
     {
-        auto valueFont = lnf.getTenpinValueFont ();
+        auto valueFont = lnf.getValueFont ();
         aString.append (juce::String (value), valueFont, valueColor);
     }
 

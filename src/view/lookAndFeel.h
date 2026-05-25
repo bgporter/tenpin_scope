@@ -30,10 +30,10 @@
 #include "model/persistentContext.h"
 #include "palette.h"
 
-class TenpinLookAndFeel : public juce::LookAndFeel_V4
+class _10PinLookAndFeel : public juce::LookAndFeel_V4
 {
 public:
-    TenpinLookAndFeel (const AppContext& appContext);
+    _10PinLookAndFeel (const AppContext& appContext);
 
     /**
      * @brief Update the look and feel from the palette.
@@ -44,14 +44,14 @@ public:
 
     juce::Typeface::Ptr getTypefaceForFont (const juce::Font& f) override;
 
-    juce::Font getTenpinLabelFont () const;
-    juce::Font getTenpinValueFont () const;
+    juce::Font getLabelFont () const;
+    juce::Font getValueFont () const;
 
     const Palette& getPalette () const { return palette; }
 
-    static TenpinLookAndFeel* getFrom (juce::Component& component)
+    static _10PinLookAndFeel* getFrom (juce::Component& component)
     {
-        return dynamic_cast<TenpinLookAndFeel*> (&component.getLookAndFeel ());
+        return dynamic_cast<_10PinLookAndFeel*> (&component.getLookAndFeel ());
     }
 
 

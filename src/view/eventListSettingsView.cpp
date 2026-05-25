@@ -116,7 +116,7 @@ EventListSettingsView::EventListSettingsView (AppContext& theAppContext)
 
 void EventListSettingsView::paint (juce::Graphics& g)
 {
-    const auto* lnf    = TenpinLookAndFeel::getFrom (*this);
+    const auto* lnf    = _10PinLookAndFeel::getFrom (*this);
     const auto palette = lnf->getPalette ();
 
     g.fillAll (palette.defaultFill.get ());

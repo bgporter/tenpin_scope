@@ -39,13 +39,13 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
     txTitleLabel.setJustificationType (juce::Justification::centredLeft);
     txValueLabel.setJustificationType (juce::Justification::centredLeft);
 
-    if (auto* laf = TenpinLookAndFeel::getFrom (*this))
+    if (auto* laf = _10PinLookAndFeel::getFrom (*this))
     {
-        nameLabel.setFont (laf->getTenpinLabelFont ());
-        rxTitleLabel.setFont (laf->getTenpinLabelFont ());
-        txTitleLabel.setFont (laf->getTenpinLabelFont ());
-        rxValueLabel.setFont (laf->getTenpinValueFont ());
-        txValueLabel.setFont (laf->getTenpinValueFont ());
+        nameLabel.setFont (laf->getLabelFont ());
+        rxTitleLabel.setFont (laf->getLabelFont ());
+        txTitleLabel.setFont (laf->getLabelFont ());
+        rxValueLabel.setFont (laf->getValueFont ());
+        txValueLabel.setFont (laf->getValueFont ());
     }
     addAndMakeVisible (nameLabel);
     addAndMakeVisible (rxTitleLabel);
@@ -120,7 +120,7 @@ void EndpointView::updateColors ()
     seenRx |= rxAlive;
     seenTx |= txAlive;
 
-    auto* laf = TenpinLookAndFeel::getFrom (*this);
+    auto* laf = _10PinLookAndFeel::getFrom (*this);
     if (laf == nullptr)
         return;
 
@@ -195,7 +195,7 @@ void EndpointView::paint (juce::Graphics& g)
 {
     g.fillAll (bgColor);
 
-    if (auto* laf = TenpinLookAndFeel::getFrom (*this))
+    if (auto* laf = _10PinLookAndFeel::getFrom (*this))
         g.setColour (laf->getPalette ().divider.get ());
     const auto bounds = getLocalBounds ();
     const auto y      = static_cast<float> (bounds.getBottom ()) - 1.0f;

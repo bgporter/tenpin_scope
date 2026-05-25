@@ -15,7 +15,7 @@ cmake_minimum_required(VERSION 3.22)
 # `project()` command. `project()` sets up some helpful variables that describe source/binary
 # directories, and the current project version. This is a standard CMake command.
 
-project(TenpinScope VERSION 0.0.1)
+project(_10PinScope VERSION 0.0.1)
 set (TargetName ${PROJECT_NAME})
 
 set (CMAKE_CXX_STANDARD 20)
@@ -47,7 +47,7 @@ juce_add_gui_app(${TargetName}
     # ICON_SMALL ...
     # DOCUMENT_EXTENSIONS ...           # Specify file extensions that should be associated with this app
     # COMPANY_NAME ...                  # Specify the name of the app's author
-    PRODUCT_NAME "${TargetName}")     # The name of the final executable, which can differ from the target name
+    PRODUCT_NAME "10-Pin Scope")     # The name of the final executable, which can differ from the target name
 
 # `juce_generate_juce_header` will create a JuceHeader.h for a given target, which will be generated
 # into your build tree. This should be included with `#include <JuceHeader.h>`. The include path for

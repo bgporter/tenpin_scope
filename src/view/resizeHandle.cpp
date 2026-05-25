@@ -51,7 +51,7 @@ void ResizeHandle::paint (juce::Graphics& g)
         case LinePosition::right:  lineX = getWidth () - 1;  break;
     }
 
-    auto* laf = TenpinLookAndFeel::getFrom (*this);
+    auto* laf = _10PinLookAndFeel::getFrom (*this);
     if (laf == nullptr)
         return;
 

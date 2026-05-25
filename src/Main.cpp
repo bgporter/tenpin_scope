@@ -31,12 +31,12 @@
 #include "view/lookAndFeel.h"
 
 //==============================================================================
-class TenpinScopeApplication final : public juce::JUCEApplication,
+class _10PinScopeApplication final : public juce::JUCEApplication,
                                      public juce::Timer
 {
 public:
     //==============================================================================
-    TenpinScopeApplication () {}
+    _10PinScopeApplication () {}
 
     // We inject these as compile definitions from the CMakeLists.txt
     // If you've enabled the juce header with `juce_generate_juce_header(<thisTarget>)`
@@ -80,7 +80,7 @@ public:
         LogWriter::setLogLevel (pc.logLevel);
 #endif
 
-        lookAndFeel = std::make_unique<TenpinLookAndFeel> (*appContext);
+        lookAndFeel = std::make_unique<_10PinLookAndFeel> (*appContext);
         juce::LookAndFeel::setDefaultLookAndFeel (lookAndFeel.get ());
 
         midiController = std::make_unique<MidiController> (getApplicationName (), *appContext);
@@ -186,9 +186,9 @@ private:
     std::unique_ptr<MainWindow> mainWindow;
     std::unique_ptr<AppContext> appContext;
     std::unique_ptr<MidiController> midiController;
-    std::unique_ptr<TenpinLookAndFeel> lookAndFeel;
+    std::unique_ptr<_10PinLookAndFeel> lookAndFeel;
 };
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION (TenpinScopeApplication)
+START_JUCE_APPLICATION (_10PinScopeApplication)
