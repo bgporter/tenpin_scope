@@ -35,6 +35,7 @@ public:
     EndpointView (AppContext& theAppContext, juce::ValueTree tree);
     void paint (juce::Graphics& g) override;
     void resized () override;
+    void lookAndFeelChanged () override;
 
 private:
     void updateColors ();

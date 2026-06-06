@@ -38,15 +38,8 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
     rxValueLabel.setJustificationType (juce::Justification::centredLeft);
     txTitleLabel.setJustificationType (juce::Justification::centredLeft);
     txValueLabel.setJustificationType (juce::Justification::centredLeft);
+    lookAndFeelChanged ();
 
-    if (auto* laf = _10PinLookAndFeel::getFrom (*this))
-    {
-        nameLabel.setFont (laf->getLabelFont ());
-        rxTitleLabel.setFont (laf->getLabelFont ());
-        txTitleLabel.setFont (laf->getLabelFont ());
-        rxValueLabel.setFont (laf->getValueFont ());
-        txValueLabel.setFont (laf->getValueFont ());
-    }
     addAndMakeVisible (nameLabel);
     addAndMakeVisible (rxTitleLabel);
     addAndMakeVisible (rxValueLabel);
@@ -109,6 +102,18 @@ EndpointView::EndpointView (AppContext& theAppContext, juce::ValueTree tree)
             updatePauseEnabled ();
             updateColors ();
         });
+}
+
+void EndpointView::lookAndFeelChanged ()
+{
+    if (auto* laf = _10PinLookAndFeel::getFrom (*this))
+    {
+        nameLabel.setFont (laf->getLabelFont ());
+        rxTitleLabel.setFont (laf->getLabelFont ());
+        txTitleLabel.setFont (laf->getLabelFont ());
+        rxValueLabel.setFont (laf->getValueFont ());
+        txValueLabel.setFont (laf->getValueFont ());
+    }
 }
 
 void EndpointView::updateColors ()

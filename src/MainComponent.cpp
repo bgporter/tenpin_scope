@@ -72,6 +72,8 @@ MainComponent::MainComponent (AppContext& theAppContext)
     runtimeContext.col1Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
     runtimeContext.col2Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
     runtimeContext.col3Width.onPropertyChange ([this] (const juce::Identifier&) { resized (); });
+    persistentContext.eventViewContext.textHeight.onPropertyChange (
+        [this] (const juce::Identifier&) { sendLookAndFeelChange (); });
     setSize (600, 400);
 }
 

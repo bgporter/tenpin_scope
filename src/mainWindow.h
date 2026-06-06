@@ -85,4 +85,5 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainWindow)
     AppContext appContext;
+    juce::SharedResourcePointer<juce::ApplicationCommandManager> cmdManager;
 };

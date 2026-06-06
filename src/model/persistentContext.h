@@ -36,9 +36,10 @@ struct EventViewContext : public cello::Object
     EventViewContext (const cello::Object& parentOrSelf)
     : cello::Object { type.toString (), parentOrSelf }
     {
-        col1Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
-        col2Width.onSet = [] (int v) { return std::clamp (v, 20, 200); };
-        col3Width.onSet = [] (int v) { return std::clamp (v, 20, 400); };
+        textHeight.onSet = [] (float v) { return std::clamp (v, 8.f, 24.f); };
+        col1Width.onSet  = [] (int v) { return std::clamp (v, 20, 200); };
+        col2Width.onSet  = [] (int v) { return std::clamp (v, 20, 200); };
+        col3Width.onSet  = [] (int v) { return std::clamp (v, 20, 400); };
     }
 
     MAKE_VALUE_MEMBER (float, textHeight, 14.f);

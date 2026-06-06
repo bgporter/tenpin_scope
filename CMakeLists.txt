@@ -92,6 +92,7 @@ set (SOURCES_HANDLER
 
 set (SOURCES_MODEL
     src/model/appContext.h
+    src/model/commands.h
     src/model/event.h
     src/model/eventList.h
     src/model/eventList.cpp

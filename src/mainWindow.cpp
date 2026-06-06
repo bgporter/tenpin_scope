@@ -24,6 +24,7 @@
 
 #include "mainWindow.h"
 #include "MainComponent.h"
+#include "model/commands.h"
 #include "model/persistentContext.h"
 #include <juce_core/juce_core.h>
 
@@ -57,7 +58,6 @@ MainWindow::MainWindow (juce::String name, AppContext& theAppContext)
 
     setVisible (true);
 
-    juce::SharedResourcePointer<ApplicationCommandManager> cmdManager;
     setApplicationCommandManagerToWatch (cmdManager);
     cmdManager->registerAllCommandsForTarget (this);
 
@@ -150,17 +150,60 @@ ApplicationCommandTarget* MainWindow::getNextCommandTarget ()
     return findFirstTargetParentComponent ();
 }
 
-void MainWindow::getAllCommands (juce::Array<juce::CommandID>& commands) {}
+void MainWindow::getAllCommands (juce::Array<juce::CommandID>& commands)
+{
+    commands.addArray ({ AppCommands::incTextHeight, AppCommands::decTextHeight });
+}
 
-void MainWindow::getCommandInfo (juce::CommandID commandID, juce::ApplicationCommandInfo& result) {}
+void MainWindow::getCommandInfo (juce::CommandID commandID, juce::ApplicationCommandInfo& result)
+{
+    PersistentContext pc { appContext };
+    const float textHeight = pc.eventViewContext.textHeight.get ();
 
-bool MainWindow::perform (const juce::ApplicationCommandTarget::InvocationInfo& info) {}
+    switch (commandID)
+    {
+        case AppCommands::incTextHeight:
+            result.setInfo ("Larger Text", "Increase text size", "View", 0);
+            result.setActive (textHeight < 24.f);
+            result.addDefaultKeypress ('=', juce::ModifierKeys::commandModifier);
+            break;
+        case AppCommands::decTextHeight:
+            result.setInfo ("Smaller Text", "Decrease text size", "View", 0);
+            result.setActive (textHeight > 8.f);
+            result.addDefaultKeypress ('-', juce::ModifierKeys::commandModifier);
+            break;
+        default:
+            break;
+    }
+}
+
+bool MainWindow::perform (const juce::ApplicationCommandTarget::InvocationInfo& info)
+{
+    PersistentContext pc { appContext };
+    const float current = pc.eventViewContext.textHeight.get ();
+
+    switch (info.commandID)
+    {
+        case AppCommands::incTextHeight:
+            pc.eventViewContext.textHeight = current + 1.f;
+            return true;
+        case AppCommands::decTextHeight:
+            pc.eventViewContext.textHeight = current - 1.f;
+            return true;
+        default:
+            return false;
+    }
+}
 
 void MainWindow::createFileMenu (juce::PopupMenu& menu) {}
 
 void MainWindow::createEditMenu (juce::PopupMenu& menu) {}
 
-void MainWindow::createViewMenu (juce::PopupMenu& menu) {}
+void MainWindow::createViewMenu (juce::PopupMenu& menu)
+{
+    menu.addCommandItem (cmdManager, AppCommands::incTextHeight);
+    menu.addCommandItem (cmdManager, AppCommands::decTextHeight);
+}
 
 void MainWindow::createOptionsMenu (juce::PopupMenu& menu) {}
 
