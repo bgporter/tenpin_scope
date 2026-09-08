@@ -254,8 +254,8 @@ target_compile_definitions(${TargetName}
 
 juce_add_binary_data(FontData NAMESPACE FontData
     SOURCES
-        assets/fonts/Fira_Code/static/FiraCode-Bold.ttf
-        assets/fonts/IBM_Plex_Sans/static/IBMPlexSans_Condensed-Bold.ttf
+        assets/fonts/Fira_Code/FiraCode-VariableFont_wght.ttf
+        "assets/fonts/IBM_Plex_Sans/IBMPlexSans-VariableFont_wdth,wght.ttf"
     )
 
 file(GLOB IMAGE_FILES "${CMAKE_CURRENT_SOURCE_DIR}/assets/images/*.svg")
