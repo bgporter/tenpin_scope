@@ -50,10 +50,18 @@ void _10PinLookAndFeel::updateFromPalette ()
 
 void _10PinLookAndFeel::updateFonts ()
 {
-    labelTypeface = juce::Typeface::createSystemTypefaceFor (FontData::IBMPlexSans_CondensedBold_ttf,
-                                                             FontData::IBMPlexSans_CondensedBold_ttfSize);
-    valueTypeface =
-        juce::Typeface::createSystemTypefaceFor (FontData::FiraCodeBold_ttf, FontData::FiraCodeBold_ttfSize);
+    // Labels use IBM Plex Sans at its Condensed/Bold corner (wdth range is [75, 100], with
+    // 75 == Condensed; wght range is [100, 700], with 700 == Bold), matching the static
+    // IBMPlexSans_Condensed-Bold.ttf this replaced.
+    auto labelBase = juce::Typeface::createSystemTypefaceFor (FontData::IBMPlexSansVariableFont_wdthwght_ttf,
+                                                              FontData::IBMPlexSansVariableFont_wdthwght_ttfSize);
+    labelTypeface = labelBase->cloneWithVariableSettings (
+        std::array { juce::FontVariableSetting ("wdth", 75.f), juce::FontVariableSetting ("wght", 700.f) });
+
+    // Values use Fira Code at Bold (wght == 700), matching the static FiraCode-Bold.ttf this replaced.
+    auto valueBase =
+        juce::Typeface::createSystemTypefaceFor (FontData::FiraCodeVariableFont_wght_ttf, FontData::FiraCodeVariableFont_wght_ttfSize);
+    valueTypeface = valueBase->cloneWithVariableSettings (std::array { juce::FontVariableSetting ("wght", 700.f) });
 }
 
 juce::Typeface::Ptr _10PinLookAndFeel::getTypefaceForFont (const juce::Font& f)
@@ -66,13 +74,11 @@ juce::Typeface::Ptr _10PinLookAndFeel::getTypefaceForFont (const juce::Font& f)
 juce::Font _10PinLookAndFeel::getLabelFont () const
 {
     juce::FontOptions options (labelTypeface);
-    // return juce::Font (options.withHeight (13.f).withStyle ("bold"));
     return juce::Font (options.withHeight (persistentContext.eventViewContext.textHeight));
 }
 
 juce::Font _10PinLookAndFeel::getValueFont () const
 {
     juce::FontOptions options (valueTypeface);
-    // return juce::Font (options.withHeight (13.f).withStyle ("plain"));
     return juce::Font (options.withHeight (persistentContext.eventViewContext.textHeight));
 }
